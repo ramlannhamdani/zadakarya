@@ -1,0 +1,101 @@
+@import 'tailwindcss';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+
+@theme {
+    --font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+        'Segoe UI Symbol', 'Noto Color Emoji';
+
+    /* Zada Karya Production brand palette */
+    --color-brand-50: #fdf5f3;
+    --color-brand-100: #f9e4e0;
+    --color-brand-200: #f0c4bc;
+    --color-brand-300: #d98d80;
+    --color-brand-400: #b34a3a;
+    --color-brand-500: #8b2a1e; /* primary light */
+    --color-brand-600: #6c1005; /* primary */
+    --color-brand-700: #5a0d04;
+    --color-brand-800: #420903; /* primary dark */
+    --color-brand-900: #2e0602;
+
+    --color-warm-300: #d9bb9b;
+    --color-warm-400: #c8a276;
+    --color-warm-500: #b8895a; /* warm accent */
+    --color-warm-600: #9c7048;
+
+    --color-cream: #f7f3ee;
+    --color-ink: #202020;
+    --color-muted: #666666;
+    --color-line: #e8e2dd;
+}
+
+@layer base {
+    body {
+        @apply bg-white font-sans text-ink antialiased;
+    }
+}
+
+@layer components {
+    .btn-primary {
+        @apply inline-flex items-center justify-center gap-2 rounded-lg bg-brand-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-brand-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 focus-visible:ring-offset-2;
+    }
+
+    .btn-outline {
+        @apply inline-flex items-center justify-center gap-2 rounded-lg border border-line bg-white px-6 py-3 text-sm font-semibold text-ink transition hover:border-brand-600 hover:text-brand-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 focus-visible:ring-offset-2;
+    }
+
+    .btn-wa {
+        @apply inline-flex items-center justify-center gap-2 rounded-lg bg-[#25D366] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#1eb958] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#25D366] focus-visible:ring-offset-2;
+    }
+
+    .form-input {
+        @apply block w-full rounded-lg border border-line bg-white px-3.5 py-2.5 text-sm text-ink placeholder-neutral-400 focus:border-brand-600 focus:outline-none focus:ring-1 focus:ring-brand-600;
+    }
+
+    .form-label {
+        @apply mb-1.5 block text-sm font-medium text-ink;
+    }
+
+    .admin-card {
+        @apply rounded-xl border border-line bg-white p-5;
+    }
+}
+
+/* Carousel: hide horizontal scrollbar, keep scrollability */
+.no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+
+/* Rich-text article content */
+.prose-zada {
+    @apply text-[0.975rem] leading-relaxed text-neutral-700;
+}
+.prose-zada h2 {
+    @apply mt-8 mb-3 text-2xl font-bold text-ink;
+}
+.prose-zada h3 {
+    @apply mt-6 mb-2 text-xl font-bold text-ink;
+}
+.prose-zada p {
+    @apply my-4;
+}
+.prose-zada ul {
+    @apply my-4 list-disc pl-6;
+}
+.prose-zada ol {
+    @apply my-4 list-decimal pl-6;
+}
+.prose-zada a {
+    @apply font-medium text-brand-600 underline;
+}
+.prose-zada img {
+    @apply my-6 rounded-xl;
+}
+.prose-zada blockquote {
+    @apply my-6 border-l-4 border-warm-500 pl-4 italic text-neutral-600;
+}
