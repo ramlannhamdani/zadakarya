@@ -103,12 +103,27 @@ php artisan storage:link
 /home/namacpanel/zadakarya/public
 ```
 
-**Cara B** — jika domain utama dan document root `public_html` tidak bisa diubah, ganti `public_html` dengan symlink:
+**Cara B** — jika domain utama dan document root `public_html` tidak bisa diubah, ganti `public_html` dengan symlink. Jika `public_html` masih **kosong** (hosting baru):
+
+```bash
+cd ~
+rmdir public_html
+ln -s ~/zadakarya/public ~/public_html
+```
+
+Jika `rmdir` gagal karena ada file bawaan hosting (mis. `.htaccess` tersembunyi), pakai:
 
 ```bash
 cd ~
 mv public_html public_html_backup
 ln -s ~/zadakarya/public ~/public_html
+```
+
+Verifikasi symlink terbentuk lalu buka website:
+
+```bash
+ls -la ~ | grep public_html
+# harus tampil: public_html -> /home/namacpanel/zadakarya/public
 ```
 
 > Jika hosting menolak symlink untuk `public_html`, gunakan **Cara C**: salin isi `~/zadakarya/public/*` (termasuk `.htaccess`) ke `public_html`, lalu edit `public_html/index.php` — ganti dua path:
