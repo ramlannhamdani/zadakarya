@@ -17,10 +17,8 @@ class TrackingController extends Controller
         $number = trim((string) $request->query('order', ''));
 
         if ($number !== '') {
-            $normalized = strtoupper($number);
-            if (! str_starts_with($normalized, 'ZDK-') && ctype_digit($normalized)) {
-                $normalized = 'ZDK-'.str_pad($normalized, 4, '0', STR_PAD_LEFT);
-            }
+            // Nomor harus dimasukkan lengkap (termasuk akhiran) — tanpa tebak-tebakan parsial.
+            $normalized = strtoupper(preg_replace('/\s+/', '', $number));
 
             $order = Order::with(['items', 'stages', 'publicPhotos'])
                 ->where('order_number', $normalized)

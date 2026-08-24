@@ -34,9 +34,13 @@ class Sequence
         return $next;
     }
 
+    /**
+     * Format: ZDK-XXXX-HHMMTT — XXXX berurutan, akhiran jam+menit+tanggal
+     * pembuatan agar nomor tidak dapat ditebak dari urutannya.
+     */
     public static function orderNumber(): string
     {
-        return sprintf('ZDK-%04d', self::next('order'));
+        return sprintf('ZDK-%04d-%s', self::next('order'), now()->format('Hid'));
     }
 
     public static function invoiceNumber(): string

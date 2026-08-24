@@ -10,14 +10,14 @@ Website company profile + sistem manajemen pesanan & tracking produksi untuk **Z
 - Portfolio dengan filter kategori (`/portfolio`, `/portfolio/{slug}`) + carousel ulasan bergaya Google Maps di bawah grid
 - Blog dengan kategori, pencarian, dan tag (`/blog`, `/blog/{slug}`)
 - Tentang Kami, Kontak, Form Konsultasi (tersimpan sebagai inquiry + diarahkan ke WhatsApp)
-- **Tracking pesanan tanpa login** (`/tracking`) — masukkan nomor `ZDK-0001`, tampil timeline 7 tahap (hijau selesai / kuning diproses / abu menunggu) + foto produksi yang di-publish admin
+- **Tracking pesanan tanpa login** (`/tracking`) — masukkan nomor lengkap (format `ZDK-XXXX-HHMMTT`), tampil timeline 7 tahap (hijau selesai / kuning diproses / abu menunggu) + foto produksi yang di-publish admin
 - SEO: meta title/description, Open Graph, canonical, `sitemap.xml`, `robots.txt`
 - Event Google Analytics: `whatsapp_click`, `consultation_submit`, `tracking_search`
 
 **Admin Panel** (`/admin`)
 - Dashboard berorientasi tindakan (ringkasan, "perlu tindakan", pesanan & inquiry terbaru)
 - Customer, Inquiry (ubah status, konversi ke customer)
-- Pesanan: nomor **ZDK-0001** otomatis & sequential, multi-item, deadline, file attachment (internal), catatan internal, riwayat aktivitas
+- Pesanan: nomor **ZDK-XXXX-HHMMTT** otomatis (inti berurutan + akhiran waktu agar tidak bisa ditebak), multi-item, deadline, file attachment (internal), catatan internal, riwayat aktivitas
 - Tracking 7 tahap: Mulai / Selesaikan / Buka Kembali — tahap berikutnya otomatis berjalan
 - Foto produksi per tahap dengan visibilitas **Internal (default) / Public**
 - Invoice **INV-0001** sequential, terpisah dari nomor order, preview + **download PDF**
@@ -43,7 +43,7 @@ php artisan serve
 - Website: http://localhost:8000
 - Admin: http://localhost:8000/admin
 - **Login default:** `admin@zadakarya.id` / `zadakarya123` (atur via `ADMIN_EMAIL` / `ADMIN_PASSWORD` di `.env` sebelum seeding — **wajib ganti di production**)
-- Demo (hanya env `local`): pesanan `ZDK-0001` di tahap 4 dengan DP tercatat — coba di `/tracking`
+- Demo (hanya env `local`): satu pesanan demo di tahap 4 (nomor lihat di admin) dengan DP tercatat — coba di `/tracking`
 
 Menjalankan test:
 
@@ -79,7 +79,7 @@ php artisan test
 ## Keputusan Produk yang Dikunci (dari PRD)
 
 - Order hanya dibuat admin setelah deal via WhatsApp — tidak ada checkout customer.
-- Nomor order `ZDK-0001` otomatis, sequential, tidak bisa diketik manual, dipakai sebagai nomor tracking.
+- Nomor order `ZDK-XXXX-HHMMTT` otomatis (inti sequential + akhiran jam-menit-tanggal), tidak bisa diketik manual, dipakai sebagai nomor tracking.
 - Nomor invoice `INV-0001` terpisah dari nomor order.
 - Tracking publik tepat 7 tahap dan tidak pernah menampilkan data sensitif (catatan internal, file internal, foto internal, margin).
 - Foto produksi default **Internal**; admin harus eksplisit menjadikannya Public.

@@ -38,13 +38,15 @@ class OrderFlowTest extends TestCase
         return Order::latest('id')->first();
     }
 
-    public function test_order_numbers_are_sequential_and_prefixed(): void
+    public function test_order_numbers_are_sequential_with_time_suffix(): void
     {
         $first = $this->createOrder();
         $second = $this->createOrder();
 
-        $this->assertSame('ZDK-0001', $first->order_number);
-        $this->assertSame('ZDK-0002', $second->order_number);
+        // Format: ZDK-XXXX-HHMMTT — inti berurutan, akhiran waktu pembuatan.
+        $this->assertMatchesRegularExpression('/^ZDK-0001-\d{6}$/', $first->order_number);
+        $this->assertMatchesRegularExpression('/^ZDK-0002-\d{6}$/', $second->order_number);
+        $this->assertNotSame($first->order_number, $second->order_number);
     }
 
     public function test_order_creates_seven_stages_with_first_in_progress(): void

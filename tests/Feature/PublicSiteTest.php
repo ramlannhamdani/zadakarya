@@ -85,8 +85,6 @@ class PublicSiteTest extends TestCase
 
     public function test_tracking_lists_ongoing_orders_without_sensitive_data(): void
     {
-        // Order pertama bernomor ZDK-0001, sama dengan teks contoh statis di halaman —
-        // maka pemeriksaan kebocoran dilakukan pada order kedua (ZDK-0002).
         $this->makeOrder();
         $second = $this->makeOrder();
 

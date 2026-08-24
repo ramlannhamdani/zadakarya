@@ -1,18 +1,18 @@
 @extends('layouts.site')
 
 @section('title', 'Lacak Pesanan — '.setting('company_name'))
-@section('meta_description', 'Lacak progress produksi pesanan Anda di Zada Karya Production menggunakan nomor pesanan (contoh: ZDK-0001).')
+@section('meta_description', 'Lacak progress produksi pesanan Anda di Zada Karya Production menggunakan nomor pesanan yang dikirim oleh admin kami.')
 
 @section('content')
 <section class="border-b border-line bg-cream">
     <div class="mx-auto max-w-3xl px-4 py-14 text-center sm:px-6 lg:px-8">
         <p class="text-xs font-bold uppercase tracking-widest text-warm-600">Tracking</p>
         <h1 class="mt-2 text-4xl font-extrabold tracking-tight text-ink">Lacak Pesanan Anda</h1>
-        <p class="mt-4 text-neutral-600">Masukkan nomor pesanan Anda (contoh: <span class="font-mono font-semibold text-ink">ZDK-0001</span>) untuk melihat progress produksi.</p>
+        <p class="mt-4 text-neutral-600">Masukkan nomor pesanan Anda secara lengkap (contoh: <span class="font-mono font-semibold text-ink">ZDK-0012-143524</span>) untuk melihat progress produksi.</p>
 
         <form method="GET" action="{{ route('tracking.index') }}" class="mx-auto mt-8 flex max-w-md gap-2"
               onsubmit="if(window.gtag){gtag('event','tracking_search');}">
-            <input type="text" name="order" value="{{ $number }}" id="tracking-input" placeholder="ZDK-0001"
+            <input type="text" name="order" value="{{ $number }}" id="tracking-input" placeholder="ZDK-0012-143524"
                    class="form-input flex-1 !py-3 text-center font-mono text-base uppercase tracking-widest" required>
             <button type="submit" class="btn-primary !px-6">Lacak Pesanan</button>
         </form>
@@ -142,7 +142,7 @@
     @else
         <div class="grid gap-5 sm:grid-cols-3">
             @foreach([
-                ['step' => '1', 'title' => 'Masukkan Nomor', 'desc' => 'Gunakan nomor pesanan yang Anda terima dari admin, contoh ZDK-0001.'],
+                ['step' => '1', 'title' => 'Masukkan Nomor', 'desc' => 'Gunakan nomor pesanan lengkap yang Anda terima dari admin via WhatsApp.'],
                 ['step' => '2', 'title' => 'Lihat Progress', 'desc' => 'Pantau 7 tahap produksi pesanan Anda secara real-time.'],
                 ['step' => '3', 'title' => 'Foto Produksi', 'desc' => 'Lihat foto progress produksi yang dibagikan oleh tim kami.'],
             ] as $info)
