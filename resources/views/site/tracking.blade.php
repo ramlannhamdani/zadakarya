@@ -161,7 +161,7 @@
             <h2 class="text-lg font-extrabold text-ink">Sedang Kami Kerjakan</h2>
             <p class="mt-1 text-sm text-neutral-500">Pesanan yang sedang berjalan di workshop kami. Untuk melacak pesanan Anda sendiri, gunakan nomor pesanan yang dikirim admin via WhatsApp.</p>
 
-            <div class="mt-5 overflow-x-auto">
+            <div class="no-scrollbar mt-5 overflow-x-auto">
                 <table class="w-full min-w-[560px] text-sm">
                     <thead>
                         <tr class="border-b border-line text-left text-xs font-bold uppercase tracking-wider text-neutral-500">
