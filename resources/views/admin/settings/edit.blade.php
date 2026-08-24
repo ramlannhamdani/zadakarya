@@ -63,6 +63,22 @@
     </div>
 
     <div class="admin-card mt-5">
+        <h2 class="font-extrabold text-ink">Foto Workshop (halaman Tentang Kami)</h2>
+        <p class="mt-1 text-sm text-neutral-500">Tiga foto pada section "Workshop Kami". Kosong = placeholder default.</p>
+        <div class="mt-4 grid gap-5 sm:grid-cols-3">
+            @foreach([1 => 'Cutting', 2 => 'Sewing', 3 => 'QC'] as $i => $label)
+                <div>
+                    <label class="form-label" for="workshop_photo_{{ $i }}">Foto {{ $i }} <span class="text-neutral-400">({{ $label }})</span></label>
+                    @if(!empty($settings['workshop_photo_'.$i]))
+                        <img src="{{ asset('storage/'.$settings['workshop_photo_'.$i]) }}" alt="Foto workshop {{ $i }}" class="mb-2 aspect-square w-full rounded-lg object-cover">
+                    @endif
+                    <input class="form-input !py-2" type="file" id="workshop_photo_{{ $i }}" name="workshop_photo_{{ $i }}" accept="image/*">
+                </div>
+            @endforeach
+        </div>
+    </div>
+
+    <div class="admin-card mt-5">
         <h2 class="font-extrabold text-ink">Sosial Media &amp; Footer</h2>
         <div class="mt-4 grid gap-5 sm:grid-cols-3">
             <div>

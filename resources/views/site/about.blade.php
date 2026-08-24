@@ -71,9 +71,13 @@
                 </div>
             </div>
             <div class="grid grid-cols-3 gap-4">
-                <x-placeholder-image label="Cutting" class="aspect-square rounded-xl" />
-                <x-placeholder-image label="Sewing" class="aspect-square rounded-xl" />
-                <x-placeholder-image label="QC" class="aspect-square rounded-xl" />
+                @foreach([1 => 'Cutting', 2 => 'Sewing', 3 => 'QC'] as $i => $label)
+                    @if(setting('workshop_photo_'.$i))
+                        <img src="{{ asset('storage/'.setting('workshop_photo_'.$i)) }}" alt="Workshop Zada Karya Production — {{ $label }}" loading="lazy" class="aspect-square w-full rounded-xl object-cover">
+                    @else
+                        <x-placeholder-image :label="$label" class="aspect-square rounded-xl" />
+                    @endif
+                @endforeach
             </div>
         </div>
     </div>

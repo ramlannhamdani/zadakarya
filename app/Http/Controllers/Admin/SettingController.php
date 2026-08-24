@@ -48,6 +48,9 @@ class SettingController extends Controller
             'logo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
             'logo_light' => ['nullable', 'image', 'mimes:png,webp', 'max:2048'],
             'favicon' => ['nullable', 'file', 'mimes:ico,png', 'max:512'],
+            'workshop_photo_1' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
+            'workshop_photo_2' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
+            'workshop_photo_3' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
         ]);
 
         foreach (self::KEYS as $key) {
@@ -66,6 +69,14 @@ class SettingController extends Controller
             ImageUploader::delete(Setting::get('logo_light'));
             [$path] = ImageUploader::store($request->file('logo_light'), 'branding', 'public', 600, 200);
             Setting::set('logo_light', $path);
+        }
+
+        foreach (['workshop_photo_1', 'workshop_photo_2', 'workshop_photo_3'] as $key) {
+            if ($request->hasFile($key)) {
+                ImageUploader::delete(Setting::get($key));
+                [$path] = ImageUploader::store($request->file($key), 'workshop', 'public', 1000);
+                Setting::set($key, $path);
+            }
         }
 
         if ($request->hasFile('favicon')) {
