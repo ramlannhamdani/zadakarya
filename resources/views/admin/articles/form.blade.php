@@ -5,7 +5,8 @@
 @section('content')
 <form method="POST"
       action="{{ $article->exists ? route('admin.articles.update', $article) : route('admin.articles.store') }}"
-      enctype="multipart/form-data" class="max-w-3xl">
+      enctype="multipart/form-data" class="max-w-3xl"
+      x-data="slugger(@js(old('title', $article->title)), @js(old('slug', $article->slug)), @js($article->exists))">
     @csrf
     @if($article->exists) @method('PUT') @endif
 
@@ -13,11 +14,11 @@
         <div class="grid gap-5 sm:grid-cols-2">
             <div class="sm:col-span-2">
                 <label class="form-label" for="title">Judul <span class="text-brand-600">*</span></label>
-                <input class="form-input" type="text" id="title" name="title" value="{{ old('title', $article->title) }}" required>
+                <input class="form-input" type="text" id="title" name="title" x-model="title" @input="syncSlug()" required>
             </div>
             <div>
                 <label class="form-label" for="slug">Slug (URL)</label>
-                <input class="form-input" type="text" id="slug" name="slug" value="{{ old('slug', $article->slug) }}" placeholder="otomatis dari judul">
+                <input class="form-input" type="text" id="slug" name="slug" x-model="slug" @input="touchSlug()" placeholder="otomatis dari judul">
             </div>
             <div>
                 <label class="form-label" for="article_category_id">Kategori</label>

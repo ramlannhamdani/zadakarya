@@ -5,7 +5,8 @@
 @section('content')
 <form method="POST"
       action="{{ $service->exists ? route('admin.services.update', $service) : route('admin.services.store') }}"
-      enctype="multipart/form-data" class="max-w-3xl">
+      enctype="multipart/form-data" class="max-w-3xl"
+      x-data="slugger(@js(old('name', $service->name)), @js(old('slug', $service->slug)), @js($service->exists))">
     @csrf
     @if($service->exists) @method('PUT') @endif
 
@@ -13,11 +14,11 @@
         <div class="grid gap-5 sm:grid-cols-2">
             <div>
                 <label class="form-label" for="name">Nama Layanan <span class="text-brand-600">*</span></label>
-                <input class="form-input" type="text" id="name" name="name" value="{{ old('name', $service->name) }}" required>
+                <input class="form-input" type="text" id="name" name="name" x-model="title" @input="syncSlug()" required>
             </div>
             <div>
                 <label class="form-label" for="slug">Slug (URL)</label>
-                <input class="form-input" type="text" id="slug" name="slug" value="{{ old('slug', $service->slug) }}" placeholder="otomatis dari nama">
+                <input class="form-input" type="text" id="slug" name="slug" x-model="slug" @input="touchSlug()" placeholder="otomatis dari nama">
             </div>
             <div class="sm:col-span-2">
                 <label class="form-label" for="short_description">Deskripsi Singkat</label>
