@@ -85,14 +85,17 @@ class PublicSiteTest extends TestCase
 
     public function test_tracking_lists_ongoing_orders_without_sensitive_data(): void
     {
-        $order = $this->makeOrder();
+        // Order pertama bernomor ZDK-0001, sama dengan teks contoh statis di halaman —
+        // maka pemeriksaan kebocoran dilakukan pada order kedua (ZDK-0002).
+        $this->makeOrder();
+        $second = $this->makeOrder();
 
         $response = $this->get('/tracking');
 
         $response->assertOk()
             ->assertSee('Sedang Kami Kerjakan')
             ->assertSee('Kemeja')                     // nama produk boleh tampil
-            ->assertDontSee($order->order_number)     // nomor pesanan TIDAK boleh tampil di daftar
+            ->assertDontSee($second->order_number)    // nomor pesanan TIDAK boleh tampil di daftar
             ->assertDontSee('Seragam Kantor')         // nama proyek tidak boleh tampil
             ->assertDontSee('Budi');                  // nama customer tidak boleh tampil
     }
