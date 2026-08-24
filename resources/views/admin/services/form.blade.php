@@ -53,7 +53,7 @@
                 @if($service->featured_image)
                     <img src="{{ asset('storage/'.$service->featured_image) }}" alt="" class="mb-2 h-24 rounded-lg object-cover">
                 @endif
-                <input class="form-input !py-2" type="file" id="featured_image" name="featured_image" accept="image/*">
+                <x-admin.media-picker name="featured_image" />
             </div>
         </div>
     </div>

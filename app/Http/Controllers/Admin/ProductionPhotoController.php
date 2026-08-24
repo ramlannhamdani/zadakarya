@@ -16,16 +16,28 @@ class ProductionPhotoController extends Controller
     public function store(Request $request, Order $order)
     {
         $data = $request->validate([
-            'photos' => ['required', 'array', 'min:1'],
+            'photos' => ['required_without:photos_pick', 'array'],
             'photos.*' => ['image', 'mimes:jpg,jpeg,png,webp', 'max:8192'],
+            'photos_pick' => ['required_without:photos', 'array'],
+            'photos_pick.*' => ['integer', 'exists:gallery_items,id'],
             'stage_number' => ['required', 'integer', 'between:1,7'],
             'caption' => ['nullable', 'string', 'max:300'],
             'visibility' => ['required', Rule::in(['public', 'internal'])],
+        ], [
+            'photos.required_without' => 'Pilih file atau gambar dari galeri.',
         ]);
 
-        foreach ($request->file('photos') as $file) {
-            [$path, $thumb] = ImageUploader::store($file, 'production/'.$order->id, 'local');
+        $stored = [];
+        foreach ($request->file('photos') ?? [] as $file) {
+            $stored[] = ImageUploader::store($file, 'production/'.$order->id, 'local');
+        }
+        foreach ((array) $request->input('photos_pick', []) as $id) {
+            if ($res = ImageUploader::fromGalleryId($id, 'production/'.$order->id, 'local')) {
+                $stored[] = $res;
+            }
+        }
 
+        foreach ($stored as [$path, $thumb]) {
             $order->productionPhotos()->create([
                 'stage_number' => $data['stage_number'],
                 'image_path' => $path,
@@ -36,9 +48,9 @@ class ProductionPhotoController extends Controller
             ]);
         }
 
-        $order->logActivity(count($request->file('photos')).' foto produksi diunggah pada tahap "'.Stages::name((int) $data['stage_number']).'"');
+        $order->logActivity(count($stored).' foto produksi diunggah pada tahap "'.Stages::name((int) $data['stage_number']).'"');
 
-        return back()->with('success', 'Foto produksi berhasil diunggah.');
+        return back()->with('success', 'Foto produksi berhasil ditambahkan.');
     }
 
     public function update(Request $request, ProductionPhoto $photo)

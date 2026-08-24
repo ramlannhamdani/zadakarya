@@ -37,10 +37,14 @@ class ArticleController extends Controller
     public function store(Request $request)
     {
         $data = $this->validated($request);
+        $pick = $data['featured_image_pick'] ?? null;
+        unset($data['featured_image_pick']);
 
         if ($request->hasFile('featured_image')) {
             [$path] = ImageUploader::store($request->file('featured_image'), 'articles');
             $data['featured_image'] = $path;
+        } elseif ($pick && ($res = ImageUploader::fromGalleryId($pick, 'articles'))) {
+            $data['featured_image'] = $res[0];
         }
 
         $data['user_id'] = auth()->id();
@@ -60,11 +64,16 @@ class ArticleController extends Controller
     public function update(Request $request, Article $article)
     {
         $data = $this->validated($request, $article);
+        $pick = $data['featured_image_pick'] ?? null;
+        unset($data['featured_image_pick']);
 
         if ($request->hasFile('featured_image')) {
             ImageUploader::delete($article->featured_image);
             [$path] = ImageUploader::store($request->file('featured_image'), 'articles');
             $data['featured_image'] = $path;
+        } elseif ($pick && ($res = ImageUploader::fromGalleryId($pick, 'articles'))) {
+            ImageUploader::delete($article->featured_image);
+            $data['featured_image'] = $res[0];
         }
 
         $article->update($data);
@@ -88,6 +97,7 @@ class ArticleController extends Controller
             'excerpt' => ['nullable', 'string', 'max:500'],
             'content' => ['required', 'string', 'max:100000'],
             'featured_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
+            'featured_image_pick' => ['nullable', 'integer', 'exists:gallery_items,id'],
             'article_category_id' => ['nullable', 'exists:article_categories,id'],
             'tags_text' => ['nullable', 'string', 'max:500'],
             'is_featured' => ['nullable', 'boolean'],
@@ -96,7 +106,7 @@ class ArticleController extends Controller
             'seo_description' => ['nullable', 'string', 'max:500'],
         ]);
 
-        $data['slug'] = $data['slug'] ?: Str::slug($data['title']);
+        $data['slug'] = ($data['slug'] ?? null) ?: Str::slug($data['title']);
         $data['is_featured'] = $request->boolean('is_featured');
         $data['tags'] = collect(explode(',', (string) ($data['tags_text'] ?? '')))
             ->map(fn ($t) => trim($t))

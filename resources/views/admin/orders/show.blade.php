@@ -227,7 +227,7 @@
                 <h2 class="font-extrabold text-ink">Upload Foto Produksi</h2>
                 <div class="mt-4">
                     <label class="form-label">Foto (bisa lebih dari satu)</label>
-                    <input class="form-input !py-2" type="file" name="photos[]" accept="image/*" multiple required>
+                    <x-admin.media-picker name="photos" :multiple="true" />
                 </div>
                 <div class="mt-4">
                     <label class="form-label">Tahap</label>

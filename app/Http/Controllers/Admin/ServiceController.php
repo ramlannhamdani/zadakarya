@@ -26,10 +26,14 @@ class ServiceController extends Controller
     public function store(Request $request)
     {
         $data = $this->validated($request);
+        $pick = $data['featured_image_pick'] ?? null;
+        unset($data['featured_image_pick']);
 
         if ($request->hasFile('featured_image')) {
             [$path] = ImageUploader::store($request->file('featured_image'), 'services');
             $data['featured_image'] = $path;
+        } elseif ($pick && ($res = ImageUploader::fromGalleryId($pick, 'services'))) {
+            $data['featured_image'] = $res[0];
         }
 
         Service::create($data);
@@ -45,11 +49,16 @@ class ServiceController extends Controller
     public function update(Request $request, Service $service)
     {
         $data = $this->validated($request, $service);
+        $pick = $data['featured_image_pick'] ?? null;
+        unset($data['featured_image_pick']);
 
         if ($request->hasFile('featured_image')) {
             ImageUploader::delete($service->featured_image);
             [$path] = ImageUploader::store($request->file('featured_image'), 'services');
             $data['featured_image'] = $path;
+        } elseif ($pick && ($res = ImageUploader::fromGalleryId($pick, 'services'))) {
+            ImageUploader::delete($service->featured_image);
+            $data['featured_image'] = $res[0];
         }
 
         $service->update($data);
@@ -73,6 +82,7 @@ class ServiceController extends Controller
             'short_description' => ['nullable', 'string', 'max:500'],
             'description' => ['nullable', 'string', 'max:50000'],
             'featured_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
+            'featured_image_pick' => ['nullable', 'integer', 'exists:gallery_items,id'],
             'features_text' => ['nullable', 'string', 'max:5000'],
             'material_info' => ['nullable', 'string', 'max:5000'],
             'production_info' => ['nullable', 'string', 'max:5000'],
@@ -83,7 +93,7 @@ class ServiceController extends Controller
             'seo_description' => ['nullable', 'string', 'max:500'],
         ]);
 
-        $data['slug'] = $data['slug'] ?: Str::slug($data['name']);
+        $data['slug'] = ($data['slug'] ?? null) ?: Str::slug($data['name']);
         $data['is_published'] = $request->boolean('is_published');
         $data['sort_order'] = $data['sort_order'] ?? 0;
         $data['features'] = collect(preg_split('/\r?\n/', (string) ($data['features_text'] ?? '')))

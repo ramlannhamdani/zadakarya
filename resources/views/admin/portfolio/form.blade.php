@@ -50,11 +50,11 @@
                 @if($portfolio->cover_image)
                     <img src="{{ asset('storage/'.$portfolio->cover_image) }}" alt="" class="mb-2 h-24 rounded-lg object-cover">
                 @endif
-                <input class="form-input !py-2" type="file" id="cover_image" name="cover_image" accept="image/*">
+                <x-admin.media-picker name="cover_image" />
             </div>
             <div class="sm:col-span-2">
                 <label class="form-label" for="gallery">Tambah Foto Galeri (bisa lebih dari satu)</label>
-                <input class="form-input !py-2" type="file" id="gallery" name="gallery[]" accept="image/*" multiple>
+                <x-admin.media-picker name="gallery" :multiple="true" />
                 <p class="mt-1 text-xs text-neutral-500">Thumbnail dibuat otomatis.</p>
             </div>
         </div>

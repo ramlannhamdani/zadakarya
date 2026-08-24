@@ -48,7 +48,7 @@
                 @if($article->featured_image)
                     <img src="{{ asset('storage/'.$article->featured_image) }}" alt="" class="mb-2 h-20 rounded-lg object-cover">
                 @endif
-                <input class="form-input !py-2" type="file" id="featured_image" name="featured_image" accept="image/*">
+                <x-admin.media-picker name="featured_image" />
             </div>
         </div>
     </div>

@@ -52,6 +52,11 @@ class SettingController extends Controller
             'workshop_photo_1' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
             'workshop_photo_2' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
             'workshop_photo_3' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
+            'logo_pick' => ['nullable', 'integer', 'exists:gallery_items,id'],
+            'logo_light_pick' => ['nullable', 'integer', 'exists:gallery_items,id'],
+            'workshop_photo_1_pick' => ['nullable', 'integer', 'exists:gallery_items,id'],
+            'workshop_photo_2_pick' => ['nullable', 'integer', 'exists:gallery_items,id'],
+            'workshop_photo_3_pick' => ['nullable', 'integer', 'exists:gallery_items,id'],
         ]);
 
         foreach (self::KEYS as $key) {
@@ -60,16 +65,15 @@ class SettingController extends Controller
             }
         }
 
-        if ($request->hasFile('logo')) {
-            ImageUploader::delete(Setting::get('logo'));
-            [$path] = ImageUploader::store($request->file('logo'), 'branding', 'public', 600, 200);
-            Setting::set('logo', $path);
-        }
-
-        if ($request->hasFile('logo_light')) {
-            ImageUploader::delete(Setting::get('logo_light'));
-            [$path] = ImageUploader::store($request->file('logo_light'), 'branding', 'public', 600, 200);
-            Setting::set('logo_light', $path);
+        foreach (['logo', 'logo_light'] as $key) {
+            if ($request->hasFile($key)) {
+                ImageUploader::delete(Setting::get($key));
+                [$path] = ImageUploader::store($request->file($key), 'branding', 'public', 600, 200);
+                Setting::set($key, $path);
+            } elseif ($request->filled($key.'_pick') && ($res = ImageUploader::fromGalleryId($request->input($key.'_pick'), 'branding', 'public', 600, 200))) {
+                ImageUploader::delete(Setting::get($key));
+                Setting::set($key, $res[0]);
+            }
         }
 
         foreach (['workshop_photo_1', 'workshop_photo_2', 'workshop_photo_3'] as $key) {
@@ -77,6 +81,9 @@ class SettingController extends Controller
                 ImageUploader::delete(Setting::get($key));
                 [$path] = ImageUploader::store($request->file($key), 'workshop', 'public', 1000);
                 Setting::set($key, $path);
+            } elseif ($request->filled($key.'_pick') && ($res = ImageUploader::fromGalleryId($request->input($key.'_pick'), 'workshop', 'public', 1000))) {
+                ImageUploader::delete(Setting::get($key));
+                Setting::set($key, $res[0]);
             }
         }
 

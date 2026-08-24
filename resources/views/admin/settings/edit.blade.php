@@ -38,7 +38,7 @@
                 @if(!empty($settings['logo']))
                     <img src="{{ asset('storage/'.$settings['logo']) }}" alt="Logo" class="mb-2 h-12 object-contain">
                 @endif
-                <input class="form-input !py-2" type="file" id="logo" name="logo" accept="image/*">
+                <x-admin.media-picker name="logo" />
                 <p class="mt-1 text-xs text-neutral-500">Dipakai di navbar. Jika ada, teks nama brand disembunyikan (tetap terbaca SEO).</p>
             </div>
             <div>
@@ -48,7 +48,7 @@
                         <img src="{{ asset('storage/'.$settings['logo_light']) }}" alt="Logo putih" class="h-10 object-contain">
                     </span>
                 @endif
-                <input class="form-input !py-2" type="file" id="logo_light" name="logo_light" accept=".png,.webp">
+                <x-admin.media-picker name="logo_light" />
                 <p class="mt-1 text-xs text-neutral-500">Dipakai di footer. Wajib PNG/WebP dengan latar transparan.</p>
             </div>
             <div>
@@ -72,7 +72,7 @@
                     @if(!empty($settings['workshop_photo_'.$i]))
                         <img src="{{ asset('storage/'.$settings['workshop_photo_'.$i]) }}" alt="Foto workshop {{ $i }}" class="mb-2 aspect-square w-full rounded-lg object-cover">
                     @endif
-                    <input class="form-input !py-2" type="file" id="workshop_photo_{{ $i }}" name="workshop_photo_{{ $i }}" accept="image/*">
+                    <x-admin.media-picker :name="'workshop_photo_'.$i" />
                 </div>
             @endforeach
         </div>

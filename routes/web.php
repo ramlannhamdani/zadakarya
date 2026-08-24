@@ -108,6 +108,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         Route::resource('reviews', Admin\ReviewController::class)->except(['show']);
 
+        Route::get('gallery/picker', [Admin\GalleryController::class, 'picker'])->name('gallery.picker');
         Route::get('gallery', [Admin\GalleryController::class, 'index'])->name('gallery.index');
         Route::post('gallery', [Admin\GalleryController::class, 'store'])->name('gallery.store');
         Route::delete('gallery/{item}', [Admin\GalleryController::class, 'destroy'])->name('gallery.destroy');

@@ -16,6 +16,17 @@ class GalleryController extends Controller
         ]);
     }
 
+    /** JSON untuk popup media picker (grid galeri di form-form admin). */
+    public function picker()
+    {
+        return response()->json(
+            GalleryItem::latest()->take(200)->get()->map(fn ($item) => [
+                'id' => $item->id,
+                'thumb' => asset('storage/'.($item->thumb_path ?: $item->image_path)),
+            ])
+        );
+    }
+
     public function store(Request $request)
     {
         $request->validate([
@@ -25,18 +36,26 @@ class GalleryController extends Controller
             'photos.required' => 'Pilih minimal satu gambar.',
         ]);
 
+        $created = collect();
         foreach ($request->file('photos') as $file) {
             // Thumb 800px agar tetap tajam pada kolom masonry layar retina.
             [$path, $thumb] = ImageUploader::store($file, 'gallery', 'public', 1600, 800);
 
-            GalleryItem::create([
+            $created->push(GalleryItem::create([
                 'image_path' => $path,
                 'thumb_path' => $thumb,
                 'uploaded_by' => auth()->id(),
-            ]);
+            ]));
         }
 
-        return back()->with('success', count($request->file('photos')).' gambar ditambahkan ke galeri.');
+        if ($request->wantsJson()) {
+            return response()->json($created->map(fn ($item) => [
+                'id' => $item->id,
+                'thumb' => asset('storage/'.($item->thumb_path ?: $item->image_path)),
+            ]));
+        }
+
+        return back()->with('success', $created->count().' gambar ditambahkan ke galeri.');
     }
 
     public function destroy(GalleryItem $item)

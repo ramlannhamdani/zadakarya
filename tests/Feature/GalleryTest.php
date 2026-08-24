@@ -46,4 +46,42 @@ class GalleryTest extends TestCase
     {
         $this->post(route('admin.gallery.store'), [])->assertRedirect(route('admin.login'));
     }
+
+    public function test_picker_endpoint_returns_gallery_items(): void
+    {
+        Storage::fake('public');
+        $admin = User::factory()->create();
+
+        $this->actingAs($admin)->post(route('admin.gallery.store'), [
+            'photos' => [UploadedFile::fake()->image('a.jpg', 600, 400)],
+        ]);
+
+        $this->actingAs($admin)
+            ->getJson(route('admin.gallery.picker'))
+            ->assertOk()
+            ->assertJsonCount(1)
+            ->assertJsonStructure([['id', 'thumb']]);
+    }
+
+    public function test_media_picker_copies_gallery_image_to_entity(): void
+    {
+        Storage::fake('public');
+        $admin = User::factory()->create();
+
+        $this->actingAs($admin)->post(route('admin.gallery.store'), [
+            'photos' => [UploadedFile::fake()->image('a.jpg', 900, 600)],
+        ]);
+        $item = GalleryItem::first();
+
+        $this->actingAs($admin)->post(route('admin.services.store'), [
+            'name' => 'Layanan Uji Picker',
+            'featured_image_pick' => $item->id,
+        ])->assertRedirect();
+
+        $service = \App\Models\Service::where('slug', 'layanan-uji-picker')->firstOrFail();
+        $this->assertNotNull($service->featured_image);
+        Storage::disk('public')->assertExists($service->featured_image);
+        // Disalin ke folder entity, bukan referensi ke file galeri.
+        $this->assertNotSame($item->image_path, $service->featured_image);
+    }
 }

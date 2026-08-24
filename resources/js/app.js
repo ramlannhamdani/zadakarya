@@ -36,4 +36,80 @@ Alpine.data('slugger', (title = '', slug = '', locked = false) => ({
     },
 }));
 
+// Media picker ala WordPress: input file biasa + tombol "Pilih dari Galeri"
+// yang membuka popup berisi grid galeri dan upload langsung ke galeri.
+Alpine.data('mediaPicker', ({ pickerUrl, uploadUrl, csrf, multiple = false }) => ({
+    openModal: false,
+    items: [],
+    loaded: false,
+    selected: [],
+    picked: [],
+    uploading: false,
+
+    async open() {
+        this.openModal = true;
+        this.selected = this.picked.map((p) => p.id);
+        if (!this.loaded) await this.load();
+    },
+
+    async load() {
+        try {
+            const res = await fetch(pickerUrl, { headers: { Accept: 'application/json' } });
+            this.items = await res.json();
+            this.loaded = true;
+        } catch (e) {
+            this.items = [];
+        }
+    },
+
+    toggle(id) {
+        if (multiple) {
+            this.selected = this.selected.includes(id)
+                ? this.selected.filter((i) => i !== id)
+                : [...this.selected, id];
+        } else {
+            this.selected = this.selected.includes(id) ? [] : [id];
+        }
+    },
+
+    async upload(event) {
+        const files = event.target.files;
+        if (!files.length) return;
+        this.uploading = true;
+        const form = new FormData();
+        [...files].forEach((f) => form.append('photos[]', f));
+        try {
+            const res = await fetch(uploadUrl, {
+                method: 'POST',
+                headers: { 'X-CSRF-TOKEN': csrf, Accept: 'application/json' },
+                body: form,
+            });
+            if (!res.ok) throw new Error();
+            const created = await res.json();
+            this.items = [...created, ...this.items];
+            created.forEach((c) => this.toggle(c.id));
+        } catch (e) {
+            alert('Upload gagal. Periksa format (JPG/PNG/WebP) dan ukuran file (maks 8 MB).');
+        }
+        this.uploading = false;
+        event.target.value = '';
+    },
+
+    use() {
+        this.picked = this.items.filter((i) => this.selected.includes(i.id));
+        if (this.$refs.file) this.$refs.file.value = '';
+        this.openModal = false;
+    },
+
+    clearPicks() {
+        this.picked = [];
+        this.selected = [];
+    },
+
+    onFileChange() {
+        this.picked = [];
+        this.selected = [];
+    },
+}));
+
 Alpine.start();
