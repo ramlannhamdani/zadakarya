@@ -119,6 +119,7 @@
                     @endif
                 </div>
                 <p class="mt-4 text-sm leading-relaxed text-white/70">{{ setting('footer_text') }}</p>
+                <x-social-links class="mt-4" link-class="text-white/70 hover:text-white" />
             </div>
             <div>
                 <h3 class="text-sm font-bold uppercase tracking-wider text-warm-400">Navigasi</h3>

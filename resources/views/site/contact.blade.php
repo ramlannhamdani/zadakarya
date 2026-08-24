@@ -38,6 +38,13 @@
         </div>
     </div>
 
+    @if(setting('instagram') || setting('facebook') || setting('tiktok'))
+        <div class="mt-8 flex items-center justify-center gap-4">
+            <span class="text-sm font-semibold text-neutral-500">Ikuti kami:</span>
+            <x-social-links link-class="text-neutral-500 hover:text-brand-600" />
+        </div>
+    @endif
+
     <div class="mt-10 rounded-xl bg-cream p-8 text-center">
         <h2 class="text-xl font-bold text-ink">Lebih suka mengisi form?</h2>
         <p class="mt-2 text-neutral-600">Isi form konsultasi dan tim kami akan menghubungi Anda.</p>
