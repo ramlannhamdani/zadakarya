@@ -19,6 +19,12 @@ class HomeController extends Controller
                 ->latest()
                 ->take(6)
                 ->get(),
+            'heroPortfolios' => Portfolio::published()
+                ->whereNotNull('cover_image')
+                ->orderByDesc('is_featured')
+                ->latest()
+                ->take(4)
+                ->get(),
             'articles' => Article::published()->with('category')->latest('published_at')->take(3)->get(),
         ]);
     }

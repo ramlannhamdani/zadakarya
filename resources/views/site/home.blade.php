@@ -39,22 +39,17 @@
             </dl>
         </div>
         <div class="grid grid-cols-2 gap-4">
-            @php $heroPortfolios = $featuredPortfolios->take(4); @endphp
-            @if($heroPortfolios->count() >= 4)
-                @foreach($heroPortfolios as $p)
-                    <a href="{{ route('portfolio.show', $p) }}" class="{{ $loop->odd ? 'mt-0' : 'mt-8' }}">
-                        @if($p->cover_image)
-                            <img src="{{ asset('storage/'.$p->cover_image) }}" alt="{{ $p->title }}" loading="lazy" class="aspect-[4/5] w-full rounded-xl object-cover">
-                        @else
-                            <x-placeholder-image :label="$p->category?->name" class="aspect-[4/5] w-full rounded-xl" />
-                        @endif
+            {{-- Slot terisi cover portfolio bergambar (featured dulu); sisanya placeholder --}}
+            @foreach(['Seragam', 'Polo Shirt', 'Kaos Sablon', 'Custom'] as $i => $label)
+                @php $p = $heroPortfolios[$i] ?? null; @endphp
+                @if($p)
+                    <a href="{{ route('portfolio.show', $p) }}" class="{{ $i % 2 === 0 ? '' : 'mt-8' }}">
+                        <img src="{{ asset('storage/'.$p->cover_image) }}" alt="{{ $p->title }}" loading="lazy" class="aspect-[4/5] w-full rounded-xl object-cover">
                     </a>
-                @endforeach
-            @else
-                @foreach(['Seragam', 'Polo Shirt', 'Kaos Sablon', 'Custom'] as $label)
-                    <x-placeholder-image :label="$label" class="{{ $loop->odd ? '' : 'mt-8' }} aspect-[4/5] w-full rounded-xl" />
-                @endforeach
-            @endif
+                @else
+                    <x-placeholder-image :label="$label" class="{{ $i % 2 === 0 ? '' : 'mt-8' }} aspect-[4/5] w-full rounded-xl" />
+                @endif
+            @endforeach
         </div>
     </div>
 </section>
