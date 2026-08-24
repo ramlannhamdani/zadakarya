@@ -167,7 +167,7 @@
                         <tr class="border-b border-line text-left text-xs font-bold uppercase tracking-wider text-neutral-500">
                             <th class="pb-2.5 pr-4">Pesanan</th>
                             <th class="pb-2.5 pr-4">Progress</th>
-                            <th class="pb-2.5 pr-4">Tanggal Pesan</th>
+                            <th class="pb-2.5 pr-4">Dipesan</th>
                             <th class="pb-2.5">Deadline</th>
                         </tr>
                     </thead>
@@ -185,7 +185,8 @@
                                         <span class="whitespace-nowrap text-neutral-600">{{ $o->current_stage }}/7 &bull; {{ $o->current_stage_name }}</span>
                                     </div>
                                 </td>
-                                <td class="py-3 pr-4 text-neutral-600">{{ $o->created_at->translatedFormat('d M Y') }}</td>
+                                {{-- Sengaja hanya bulan+tahun: tanggal lengkap = akhiran nomor pesanan --}}
+                                <td class="py-3 pr-4 text-neutral-600">{{ $o->created_at->translatedFormat('F Y') }}</td>
                                 <td class="py-3 text-neutral-600">{{ $o->deadline?->translatedFormat('d M Y') ?? '—' }}</td>
                             </tr>
                         @endforeach

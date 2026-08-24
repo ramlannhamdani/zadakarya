@@ -95,7 +95,11 @@ class PublicSiteTest extends TestCase
             ->assertSee('Kemeja')                     // nama produk boleh tampil
             ->assertDontSee($second->order_number)    // nomor pesanan TIDAK boleh tampil di daftar
             ->assertDontSee('Seragam Kantor')         // nama proyek tidak boleh tampil
-            ->assertDontSee('Budi');                  // nama customer tidak boleh tampil
+            ->assertDontSee('Budi')                   // nama customer tidak boleh tampil
+            // Tanggal lengkap tidak boleh tampil (akhiran nomor = ddmmyy tanggal pesan);
+            // hanya bulan+tahun yang boleh.
+            ->assertDontSee($second->created_at->translatedFormat('d M Y'))
+            ->assertSee($second->created_at->translatedFormat('F Y'));
     }
 
     public function test_ongoing_list_hides_completed_orders_and_respects_setting(): void
