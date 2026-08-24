@@ -23,7 +23,18 @@
         <div class="columns-2 gap-4 sm:columns-4 lg:columns-5">
             @foreach($items as $item)
                 <div class="group relative mb-4 break-inside-avoid overflow-hidden rounded-lg border border-line">
-                    <img src="{{ asset('storage/'.($item->thumb_path ?: $item->image_path)) }}" alt="" loading="lazy" class="w-full">
+                    <img src="{{ asset('storage/'.($item->thumb_path ?: $item->image_path)) }}" alt="" loading="lazy" class="w-full {{ $item->is_public ? '' : 'opacity-50' }}">
+
+                    {{-- Toggle tampil/sembunyi di galeri publik --}}
+                    <form method="POST" action="{{ route('admin.gallery.toggle', $item) }}" class="absolute left-2 top-2">
+                        @csrf @method('PATCH')
+                        <button type="submit"
+                                class="rounded-full px-2.5 py-1 text-[11px] font-bold shadow transition {{ $item->is_public ? 'bg-green-100 text-green-700 hover:bg-green-200' : 'bg-neutral-200 text-neutral-600 hover:bg-neutral-300' }}"
+                                title="Klik untuk {{ $item->is_public ? 'sembunyikan dari' : 'tampilkan di' }} galeri publik">
+                            {{ $item->is_public ? '● Publik' : '○ Disembunyikan' }}
+                        </button>
+                    </form>
+
                     <form method="POST" action="{{ route('admin.gallery.destroy', $item) }}"
                           onsubmit="return confirm('Hapus gambar ini dari galeri?')"
                           class="absolute right-2 top-2 opacity-0 transition group-hover:opacity-100">

@@ -9,8 +9,8 @@
     $heroBg = 'gallery/20260824091559-5PnXZHiZ-thumb.webp';
 @endphp
 <section class="relative overflow-hidden border-b border-line bg-cream">
-    <div class="absolute inset-0 bg-cover bg-center opacity-10"
-         style="background-image: url('{{ asset('storage/'.$heroBg) }}')" aria-hidden="true"></div>
+    <div class="absolute inset-0 bg-bottom bg-repeat opacity-10"
+         style="background-image: url('{{ asset('storage/'.$heroBg) }}'); background-size: 380px auto; background-position: bottom center;" aria-hidden="true"></div>
     <div class="absolute inset-0 bg-gradient-to-r from-cream via-cream/60 to-transparent" aria-hidden="true"></div>
     <div class="relative mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
         <p class="text-xs font-bold uppercase tracking-widest text-warm-600">Galeri</p>

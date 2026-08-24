@@ -58,6 +58,16 @@ class GalleryController extends Controller
         return back()->with('success', $created->count().' gambar ditambahkan ke galeri.');
     }
 
+    /** Toggle tampil/sembunyi di halaman /galeri publik. */
+    public function toggle(GalleryItem $item)
+    {
+        $item->update(['is_public' => ! $item->is_public]);
+
+        return back()->with('success', $item->is_public
+            ? 'Gambar ditampilkan di galeri publik.'
+            : 'Gambar disembunyikan dari galeri publik.');
+    }
+
     public function destroy(GalleryItem $item)
     {
         ImageUploader::delete($item->image_path);

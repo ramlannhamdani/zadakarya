@@ -111,6 +111,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('gallery/picker', [Admin\GalleryController::class, 'picker'])->name('gallery.picker');
         Route::get('gallery', [Admin\GalleryController::class, 'index'])->name('gallery.index');
         Route::post('gallery', [Admin\GalleryController::class, 'store'])->name('gallery.store');
+        Route::patch('gallery/{item}/toggle', [Admin\GalleryController::class, 'toggle'])->name('gallery.toggle');
         Route::delete('gallery/{item}', [Admin\GalleryController::class, 'destroy'])->name('gallery.destroy');
 
         Route::resource('articles', Admin\ArticleController::class)->except(['show']);

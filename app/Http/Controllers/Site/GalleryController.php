@@ -10,7 +10,7 @@ class GalleryController extends Controller
     public function index()
     {
         return view('site.gallery', [
-            'items' => GalleryItem::latest()->paginate(30),
+            'items' => GalleryItem::where('is_public', true)->latest()->paginate(30),
         ]);
     }
 }

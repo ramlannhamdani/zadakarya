@@ -47,6 +47,30 @@ class GalleryTest extends TestCase
         $this->post(route('admin.gallery.store'), [])->assertRedirect(route('admin.login'));
     }
 
+    public function test_hidden_gallery_items_do_not_appear_publicly(): void
+    {
+        GalleryItem::create(['image_path' => 'gallery/tampil.webp', 'thumb_path' => 'gallery/tampil-thumb.webp']);
+        GalleryItem::create(['image_path' => 'gallery/rahasia.webp', 'thumb_path' => 'gallery/rahasia-thumb.webp', 'is_public' => false]);
+
+        $this->get('/galeri')->assertOk()
+            ->assertSee('tampil-thumb.webp')
+            ->assertDontSee('rahasia-thumb.webp');
+    }
+
+    public function test_admin_can_toggle_gallery_visibility(): void
+    {
+        $admin = User::factory()->create();
+        $item = GalleryItem::create(['image_path' => 'gallery/a.webp']);
+
+        $this->assertTrue($item->is_public);
+
+        $this->actingAs($admin)->patch(route('admin.gallery.toggle', $item))->assertRedirect();
+        $this->assertFalse($item->fresh()->is_public);
+
+        $this->actingAs($admin)->patch(route('admin.gallery.toggle', $item));
+        $this->assertTrue($item->fresh()->is_public);
+    }
+
     public function test_picker_endpoint_returns_gallery_items(): void
     {
         Storage::fake('public');
