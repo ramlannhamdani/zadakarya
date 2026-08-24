@@ -63,6 +63,7 @@
                 ['route' => 'home', 'label' => 'Home'],
                 ['route' => 'services.index', 'label' => 'Layanan'],
                 ['route' => 'portfolio.index', 'label' => 'Portfolio'],
+                ['route' => 'gallery.index', 'label' => 'Galeri'],
                 ['route' => 'blog.index', 'label' => 'Blog'],
                 ['route' => 'about', 'label' => 'Tentang Kami'],
                 ['route' => 'tracking.index', 'label' => 'Tracking'],
@@ -88,6 +89,7 @@
                 ['route' => 'home', 'label' => 'Home'],
                 ['route' => 'services.index', 'label' => 'Layanan'],
                 ['route' => 'portfolio.index', 'label' => 'Portfolio'],
+                ['route' => 'gallery.index', 'label' => 'Galeri'],
                 ['route' => 'blog.index', 'label' => 'Blog'],
                 ['route' => 'about', 'label' => 'Tentang Kami'],
                 ['route' => 'consultation.create', 'label' => 'Konsultasi'],
@@ -127,6 +129,7 @@
                     <li><a href="{{ route('home') }}" class="text-white/80 hover:text-white">Home</a></li>
                     <li><a href="{{ route('services.index') }}" class="text-white/80 hover:text-white">Layanan</a></li>
                     <li><a href="{{ route('portfolio.index') }}" class="text-white/80 hover:text-white">Portfolio</a></li>
+                    <li><a href="{{ route('gallery.index') }}" class="text-white/80 hover:text-white">Galeri</a></li>
                     <li><a href="{{ route('blog.index') }}" class="text-white/80 hover:text-white">Blog</a></li>
                     <li><a href="{{ route('about') }}" class="text-white/80 hover:text-white">Tentang Kami</a></li>
                     <li><a href="{{ route('consultation.create') }}" class="text-white/80 hover:text-white">Konsultasi</a></li>

@@ -18,6 +18,8 @@ Route::get('/layanan/{service}', [Site\ServiceController::class, 'show'])->name(
 Route::get('/portfolio', [Site\PortfolioController::class, 'index'])->name('portfolio.index');
 Route::get('/portfolio/{portfolio}', [Site\PortfolioController::class, 'show'])->name('portfolio.show');
 
+Route::get('/galeri', [Site\GalleryController::class, 'index'])->name('gallery.index');
+
 Route::get('/blog', [Site\BlogController::class, 'index'])->name('blog.index');
 Route::get('/blog/{article}', [Site\BlogController::class, 'show'])->name('blog.show');
 
@@ -105,6 +107,10 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::delete('portfolio-categories/{category}', [Admin\PortfolioCategoryController::class, 'destroy'])->name('portfolio-categories.destroy');
 
         Route::resource('reviews', Admin\ReviewController::class)->except(['show']);
+
+        Route::get('gallery', [Admin\GalleryController::class, 'index'])->name('gallery.index');
+        Route::post('gallery', [Admin\GalleryController::class, 'store'])->name('gallery.store');
+        Route::delete('gallery/{item}', [Admin\GalleryController::class, 'destroy'])->name('gallery.destroy');
 
         Route::resource('articles', Admin\ArticleController::class)->except(['show']);
         Route::post('article-categories', [Admin\ArticleCategoryController::class, 'store'])->name('article-categories.store');
