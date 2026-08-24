@@ -48,10 +48,12 @@
         <a href="{{ route('home') }}" class="flex items-center gap-2.5">
             @if(setting('logo'))
                 <img src="{{ asset('storage/'.setting('logo')) }}" alt="{{ $siteName }}" class="h-9 w-auto">
+                {{-- Nama tetap ada di HTML untuk SEO/screen reader, hanya disembunyikan visual --}}
+                <span class="sr-only">{{ $siteName }}</span>
             @else
                 <span class="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-600 text-sm font-extrabold text-white">ZK</span>
+                <span class="text-[0.95rem] font-extrabold tracking-tight text-ink">Zada Karya<span class="text-brand-600"> Production</span></span>
             @endif
-            <span class="text-[0.95rem] font-extrabold tracking-tight text-ink">Zada Karya<span class="text-brand-600"> Production</span></span>
         </a>
 
         <nav class="hidden items-center gap-7 lg:flex">
