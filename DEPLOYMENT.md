@@ -178,3 +178,4 @@ Website hanya *maintenance mode* beberapa detik selama proses ini.
 | `composer install` kehabisan memori | `php -d memory_limit=-1 composer.phar install --no-dev` |
 | Perubahan `.env` tidak terasa | Jalankan `php artisan config:cache` lagi |
 | Error hak akses folder | `chmod -R 775 storage bootstrap/cache` |
+| `413 Content Too Large` saat upload | Naikkan `upload_max_filesize=16M` & `post_max_size=48M` via *MultiPHP INI Editor*, atau buat `.user.ini` berisi nilai tsb. di folder `public` (tunggu ±5 menit). Masih 413 → minta hosting naikkan batas body request (mod_security/LiteSpeed) |
