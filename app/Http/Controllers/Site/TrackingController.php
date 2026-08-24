@@ -36,7 +36,7 @@ class TrackingController extends Controller
             'order' => $order,
             'notFound' => $notFound,
             'ongoing' => $showOngoing
-                ? Order::where('status', 'active')->latest()->take(10)->get()
+                ? Order::with('items')->where('status', 'active')->latest()->take(10)->get()
                 : collect(),
         ]);
     }

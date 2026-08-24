@@ -91,9 +91,10 @@ class PublicSiteTest extends TestCase
 
         $response->assertOk()
             ->assertSee('Sedang Kami Kerjakan')
-            ->assertSee($order->order_number)
-            ->assertDontSee('Seragam Kantor') // nama proyek tidak boleh tampil
-            ->assertDontSee('Budi');          // nama customer tidak boleh tampil
+            ->assertSee('Kemeja')                     // nama produk boleh tampil
+            ->assertDontSee($order->order_number)     // nomor pesanan TIDAK boleh tampil di daftar
+            ->assertDontSee('Seragam Kantor')         // nama proyek tidak boleh tampil
+            ->assertDontSee('Budi');                  // nama customer tidak boleh tampil
     }
 
     public function test_ongoing_list_hides_completed_orders_and_respects_setting(): void

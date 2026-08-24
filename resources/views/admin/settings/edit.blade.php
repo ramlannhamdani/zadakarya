@@ -129,7 +129,7 @@
             <input type="checkbox" name="show_ongoing" value="1" @checked(($settings['show_ongoing'] ?? '1') === '1') class="mt-0.5 rounded border-line text-brand-600 focus:ring-brand-600">
             <span>
                 Tampilkan daftar "Sedang Kami Kerjakan" di halaman tracking
-                <span class="block text-xs font-normal text-neutral-500">Daftar publik pesanan aktif: nomor pesanan (bisa disalin), progress tahap, tanggal pesan, dan deadline. Tanpa nama customer atau nama proyek.</span>
+                <span class="block text-xs font-normal text-neutral-500">Daftar publik pesanan aktif: nama produk, progress tahap, tanggal pesan, dan deadline. Tanpa nomor pesanan, nama customer, maupun nama proyek.</span>
             </span>
         </label>
     </div>
