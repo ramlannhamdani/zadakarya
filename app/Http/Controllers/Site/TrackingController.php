@@ -29,10 +29,15 @@ class TrackingController extends Controller
             $notFound = $order === null;
         }
 
+        $showOngoing = setting('show_ongoing', '1') === '1';
+
         return view('site.tracking', [
             'number' => $number,
             'order' => $order,
             'notFound' => $notFound,
+            'ongoing' => $showOngoing
+                ? Order::where('status', 'active')->latest()->take(10)->get()
+                : collect(),
         ]);
     }
 

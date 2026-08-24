@@ -83,6 +83,32 @@ class PublicSiteTest extends TestCase
         $this->get(route('tracking.photo', $internal))->assertNotFound();
     }
 
+    public function test_tracking_lists_ongoing_orders_without_sensitive_data(): void
+    {
+        $order = $this->makeOrder();
+
+        $response = $this->get('/tracking');
+
+        $response->assertOk()
+            ->assertSee('Sedang Kami Kerjakan')
+            ->assertSee($order->order_number)
+            ->assertDontSee('Seragam Kantor') // nama proyek tidak boleh tampil
+            ->assertDontSee('Budi');          // nama customer tidak boleh tampil
+    }
+
+    public function test_ongoing_list_hides_completed_orders_and_respects_setting(): void
+    {
+        $order = $this->makeOrder();
+        $order->update(['status' => 'completed']);
+
+        $this->get('/tracking')->assertOk()->assertDontSee('Sedang Kami Kerjakan');
+
+        $order->update(['status' => 'active']);
+        \App\Models\Setting::set('show_ongoing', '0');
+
+        $this->get('/tracking')->assertOk()->assertDontSee('Sedang Kami Kerjakan');
+    }
+
     public function test_consultation_form_stores_inquiry(): void
     {
         $response = $this->post('/konsultasi', [

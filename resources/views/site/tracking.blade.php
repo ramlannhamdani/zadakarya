@@ -12,7 +12,7 @@
 
         <form method="GET" action="{{ route('tracking.index') }}" class="mx-auto mt-8 flex max-w-md gap-2"
               onsubmit="if(window.gtag){gtag('event','tracking_search');}">
-            <input type="text" name="order" value="{{ $number }}" placeholder="ZDK-0001"
+            <input type="text" name="order" value="{{ $number }}" id="tracking-input" placeholder="ZDK-0001"
                    class="form-input flex-1 !py-3 text-center font-mono text-base uppercase tracking-widest" required>
             <button type="submit" class="btn-primary !px-6">Lacak Pesanan</button>
         </form>
@@ -152,6 +152,63 @@
                     <p class="mt-1.5 text-sm text-neutral-600">{{ $info['desc'] }}</p>
                 </div>
             @endforeach
+        </div>
+    @endif
+
+    {{-- Pesanan yang sedang berjalan (publik, non-clickable, data terbatas) --}}
+    @if(!$order && $ongoing->isNotEmpty())
+        <div class="mt-8 rounded-xl border border-line bg-white p-6 sm:p-8"
+             x-data="{
+                copied: null,
+                copy(num) {
+                    if (navigator.clipboard) navigator.clipboard.writeText(num);
+                    const el = document.getElementById('tracking-input');
+                    if (el) el.value = num;
+                    this.copied = num;
+                    setTimeout(() => this.copied = null, 2000);
+                }
+             }">
+            <h2 class="text-lg font-extrabold text-ink">Sedang Kami Kerjakan</h2>
+            <p class="mt-1 text-sm text-neutral-500">Pesanan yang sedang berjalan di workshop kami. Klik <span class="font-semibold">Salin</span> pada nomor pesanan Anda — nomor otomatis terisi ke form pelacakan di atas.</p>
+
+            <div class="mt-5 overflow-x-auto">
+                <table class="w-full min-w-[560px] text-sm">
+                    <thead>
+                        <tr class="border-b border-line text-left text-xs font-bold uppercase tracking-wider text-neutral-500">
+                            <th class="pb-2.5 pr-4">No. Pesanan</th>
+                            <th class="pb-2.5 pr-4">Progress</th>
+                            <th class="pb-2.5 pr-4">Tanggal Pesan</th>
+                            <th class="pb-2.5">Deadline</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-line">
+                        @foreach($ongoing as $o)
+                            <tr>
+                                <td class="py-3 pr-4">
+                                    <div class="flex items-center gap-2">
+                                        <span class="font-mono font-bold text-ink">{{ $o->order_number }}</span>
+                                        <button type="button" @click="copy('{{ $o->order_number }}')"
+                                                class="rounded-md border border-line px-2 py-1 text-[11px] font-semibold text-neutral-500 transition hover:border-brand-600 hover:text-brand-600">
+                                            <span x-show="copied !== '{{ $o->order_number }}'">Salin</span>
+                                            <span x-show="copied === '{{ $o->order_number }}'" x-cloak class="font-bold text-green-600">&check; Tersalin</span>
+                                        </button>
+                                    </div>
+                                </td>
+                                <td class="py-3 pr-4">
+                                    <div class="flex items-center gap-2.5">
+                                        <div class="h-1.5 w-20 shrink-0 overflow-hidden rounded-full bg-line">
+                                            <div class="h-full rounded-full bg-brand-600" style="width: {{ round($o->current_stage / 7 * 100) }}%"></div>
+                                        </div>
+                                        <span class="whitespace-nowrap text-neutral-600">{{ $o->current_stage }}/7 &bull; {{ $o->current_stage_name }}</span>
+                                    </div>
+                                </td>
+                                <td class="py-3 pr-4 text-neutral-600">{{ $o->created_at->translatedFormat('d M Y') }}</td>
+                                <td class="py-3 text-neutral-600">{{ $o->deadline?->translatedFormat('d M Y') ?? '—' }}</td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
         </div>
     @endif
 </section>

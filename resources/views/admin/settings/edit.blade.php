@@ -123,6 +123,18 @@
     </div>
 
     <div class="admin-card mt-5">
+        <h2 class="font-extrabold text-ink">Halaman Tracking</h2>
+        <label class="mt-4 flex items-start gap-2.5 text-sm font-medium">
+            <input type="hidden" name="show_ongoing" value="0">
+            <input type="checkbox" name="show_ongoing" value="1" @checked(($settings['show_ongoing'] ?? '1') === '1') class="mt-0.5 rounded border-line text-brand-600 focus:ring-brand-600">
+            <span>
+                Tampilkan daftar "Sedang Kami Kerjakan" di halaman tracking
+                <span class="block text-xs font-normal text-neutral-500">Daftar publik pesanan aktif: nomor pesanan (bisa disalin), progress tahap, tanggal pesan, dan deadline. Tanpa nama customer atau nama proyek.</span>
+            </span>
+        </label>
+    </div>
+
+    <div class="admin-card mt-5">
         <h2 class="font-extrabold text-ink">Informasi Invoice</h2>
         <div class="mt-4 grid gap-5">
             <div>

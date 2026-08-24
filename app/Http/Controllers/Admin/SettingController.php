@@ -15,7 +15,7 @@ class SettingController extends Controller
         'instagram', 'facebook', 'tiktok', 'google_maps_url', 'footer_text',
         'seo_title', 'seo_description',
         'invoice_company_name', 'invoice_address', 'invoice_bank_info',
-        'analytics_id',
+        'analytics_id', 'show_ongoing',
     ];
 
     public function edit()
@@ -45,6 +45,7 @@ class SettingController extends Controller
             'invoice_address' => ['nullable', 'string', 'max:500'],
             'invoice_bank_info' => ['nullable', 'string', 'max:1000'],
             'analytics_id' => ['nullable', 'string', 'max:50'],
+            'show_ongoing' => ['nullable', 'in:0,1'],
             'logo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
             'logo_light' => ['nullable', 'image', 'mimes:png,webp', 'max:2048'],
             'favicon' => ['nullable', 'file', 'mimes:ico,png', 'max:512'],
