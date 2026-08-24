@@ -24,7 +24,9 @@
         <meta property="og:image" content="@yield('og_image')">
     @endif
 
-    @if(setting('logo'))
+    @if(setting('favicon'))
+        <link rel="icon" href="{{ asset('storage/'.setting('favicon')) }}">
+    @elseif(setting('logo'))
         <link rel="icon" href="{{ asset('storage/'.setting('logo')) }}">
     @endif
 
@@ -108,8 +110,13 @@
         <div class="grid gap-10 md:grid-cols-2 lg:grid-cols-4">
             <div>
                 <div class="flex items-center gap-2.5">
-                    <span class="flex h-9 w-9 items-center justify-center rounded-lg bg-white/10 text-sm font-extrabold text-white">ZK</span>
-                    <span class="font-extrabold tracking-tight">Zada Karya Production</span>
+                    @if(setting('logo_light'))
+                        <img src="{{ asset('storage/'.setting('logo_light')) }}" alt="{{ $siteName }}" class="h-10 w-auto">
+                        <span class="sr-only">{{ $siteName }}</span>
+                    @else
+                        <span class="flex h-9 w-9 items-center justify-center rounded-lg bg-white/10 text-sm font-extrabold text-white">ZK</span>
+                        <span class="font-extrabold tracking-tight">Zada Karya Production</span>
+                    @endif
                 </div>
                 <p class="mt-4 text-sm leading-relaxed text-white/70">{{ setting('footer_text') }}</p>
             </div>

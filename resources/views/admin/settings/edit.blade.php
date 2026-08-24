@@ -34,11 +34,30 @@
                 <input class="form-input" type="text" id="city" name="city" value="{{ old('city', $settings['city'] ?? '') }}">
             </div>
             <div>
-                <label class="form-label" for="logo">Logo</label>
+                <label class="form-label" for="logo">Logo (latar terang)</label>
                 @if(!empty($settings['logo']))
                     <img src="{{ asset('storage/'.$settings['logo']) }}" alt="Logo" class="mb-2 h-12 object-contain">
                 @endif
                 <input class="form-input !py-2" type="file" id="logo" name="logo" accept="image/*">
+                <p class="mt-1 text-xs text-neutral-500">Dipakai di navbar. Jika ada, teks nama brand disembunyikan (tetap terbaca SEO).</p>
+            </div>
+            <div>
+                <label class="form-label" for="logo_light">Logo Putih (latar gelap)</label>
+                @if(!empty($settings['logo_light']))
+                    <span class="mb-2 inline-block rounded-lg bg-brand-800 p-2">
+                        <img src="{{ asset('storage/'.$settings['logo_light']) }}" alt="Logo putih" class="h-10 object-contain">
+                    </span>
+                @endif
+                <input class="form-input !py-2" type="file" id="logo_light" name="logo_light" accept=".png,.webp">
+                <p class="mt-1 text-xs text-neutral-500">Dipakai di footer. Wajib PNG/WebP dengan latar transparan.</p>
+            </div>
+            <div>
+                <label class="form-label" for="favicon">Favicon</label>
+                @if(!empty($settings['favicon']))
+                    <img src="{{ asset('storage/'.$settings['favicon']) }}" alt="Favicon" class="mb-2 h-8 w-8 object-contain">
+                @endif
+                <input class="form-input !py-2" type="file" id="favicon" name="favicon" accept=".ico,.png">
+                <p class="mt-1 text-xs text-neutral-500">Ikon tab browser. PNG atau ICO persegi, disarankan minimal 48&times;48 px, maks 512 KB.</p>
             </div>
         </div>
     </div>

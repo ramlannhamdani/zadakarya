@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Setting;
 use App\Support\ImageUploader;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class SettingController extends Controller
 {
@@ -45,6 +46,8 @@ class SettingController extends Controller
             'invoice_bank_info' => ['nullable', 'string', 'max:1000'],
             'analytics_id' => ['nullable', 'string', 'max:50'],
             'logo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+            'logo_light' => ['nullable', 'image', 'mimes:png,webp', 'max:2048'],
+            'favicon' => ['nullable', 'file', 'mimes:ico,png', 'max:512'],
         ]);
 
         foreach (self::KEYS as $key) {
@@ -57,6 +60,24 @@ class SettingController extends Controller
             ImageUploader::delete(Setting::get('logo'));
             [$path] = ImageUploader::store($request->file('logo'), 'branding', 'public', 600, 200);
             Setting::set('logo', $path);
+        }
+
+        if ($request->hasFile('logo_light')) {
+            ImageUploader::delete(Setting::get('logo_light'));
+            [$path] = ImageUploader::store($request->file('logo_light'), 'branding', 'public', 600, 200);
+            Setting::set('logo_light', $path);
+        }
+
+        if ($request->hasFile('favicon')) {
+            // Disimpan apa adanya (GD tidak bisa memproses .ico); nama acak agar cache browser terganti.
+            ImageUploader::delete(Setting::get('favicon'));
+            $file = $request->file('favicon');
+            $path = $file->storeAs(
+                'branding',
+                'favicon-'.Str::random(6).'.'.strtolower($file->getClientOriginalExtension()),
+                'public'
+            );
+            Setting::set('favicon', $path);
         }
 
         return back()->with('success', 'Pengaturan disimpan.');
