@@ -8,11 +8,11 @@
     <div class="mx-auto max-w-3xl px-4 py-14 text-center sm:px-6 lg:px-8">
         <p class="text-xs font-bold uppercase tracking-widest text-warm-600">Tracking</p>
         <h1 class="mt-2 text-4xl font-extrabold tracking-tight text-ink">Lacak Pesanan Anda</h1>
-        <p class="mt-4 text-neutral-600">Masukkan nomor pesanan Anda secara lengkap (contoh: <span class="font-mono font-semibold text-ink">ZDK-0012-143524</span>) untuk melihat progress produksi.</p>
+        <p class="mt-4 text-neutral-600">Masukkan nomor pesanan Anda secara lengkap (contoh: <span class="font-mono font-semibold text-ink">ZDK-0012-140226</span>) untuk melihat progress produksi.</p>
 
         <form method="GET" action="{{ route('tracking.index') }}" class="mx-auto mt-8 flex max-w-md gap-2"
               onsubmit="if(window.gtag){gtag('event','tracking_search');}">
-            <input type="text" name="order" value="{{ $number }}" id="tracking-input" placeholder="ZDK-0012-143524"
+            <input type="text" name="order" value="{{ $number }}" id="tracking-input" placeholder="ZDK-0012-140226"
                    class="form-input flex-1 !py-3 text-center font-mono text-base uppercase tracking-widest" required>
             <button type="submit" class="btn-primary !px-6">Lacak Pesanan</button>
         </form>

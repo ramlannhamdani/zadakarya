@@ -17,7 +17,7 @@ Website company profile + sistem manajemen pesanan & tracking produksi untuk **Z
 **Admin Panel** (`/admin`)
 - Dashboard berorientasi tindakan (ringkasan, "perlu tindakan", pesanan & inquiry terbaru)
 - Customer, Inquiry (ubah status, konversi ke customer)
-- Pesanan: nomor **ZDK-XXXX-HHMMTT** otomatis (inti berurutan + akhiran waktu agar tidak bisa ditebak), multi-item, deadline, file attachment (internal), catatan internal, riwayat aktivitas
+- Pesanan: nomor **ZDK-XXXX-HHMMTT** otomatis (inti berurutan + akhiran tanggal-bulan-tahun pembuatan, contoh `ZDK-0012-140226`), multi-item, deadline, file attachment (internal), catatan internal, riwayat aktivitas
 - Tracking 7 tahap: Mulai / Selesaikan / Buka Kembali — tahap berikutnya otomatis berjalan
 - Foto produksi per tahap dengan visibilitas **Internal (default) / Public**
 - Invoice **INV-0001** sequential, terpisah dari nomor order, preview + **download PDF**
@@ -79,7 +79,7 @@ php artisan test
 ## Keputusan Produk yang Dikunci (dari PRD)
 
 - Order hanya dibuat admin setelah deal via WhatsApp — tidak ada checkout customer.
-- Nomor order `ZDK-XXXX-HHMMTT` otomatis (inti sequential + akhiran jam-menit-tanggal), tidak bisa diketik manual, dipakai sebagai nomor tracking.
+- Nomor order `ZDK-XXXX-HHMMTT` otomatis (inti sequential + akhiran tanggal-bulan-tahun, mis. 14 Feb 2026 → `140226`), tidak bisa diketik manual, dipakai sebagai nomor tracking.
 - Nomor invoice `INV-0001` terpisah dari nomor order.
 - Tracking publik tepat 7 tahap dan tidak pernah menampilkan data sensitif (catatan internal, file internal, foto internal, margin).
 - Foto produksi default **Internal**; admin harus eksplisit menjadikannya Public.

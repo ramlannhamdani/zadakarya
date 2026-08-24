@@ -35,12 +35,13 @@ class Sequence
     }
 
     /**
-     * Format: ZDK-XXXX-HHMMTT — XXXX berurutan, akhiran jam+menit+tanggal
-     * pembuatan agar nomor tidak dapat ditebak dari urutannya.
+     * Format: ZDK-XXXX-HHMMTT — XXXX berurutan; akhiran tanggal pembuatan
+     * (HH=tanggal, MM=bulan, TT=tahun; contoh 14 Feb 2026 → 140226) agar
+     * nomor tidak dapat ditebak hanya dari urutannya.
      */
     public static function orderNumber(): string
     {
-        return sprintf('ZDK-%04d-%s', self::next('order'), now()->format('Hid'));
+        return sprintf('ZDK-%04d-%s', self::next('order'), now()->format('dmy'));
     }
 
     public static function invoiceNumber(): string

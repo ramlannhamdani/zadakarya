@@ -43,7 +43,7 @@ class OrderFlowTest extends TestCase
         $first = $this->createOrder();
         $second = $this->createOrder();
 
-        // Format: ZDK-XXXX-HHMMTT — inti berurutan, akhiran waktu pembuatan.
+        // Format: ZDK-XXXX-HHMMTT — inti berurutan, akhiran tanggal-bulan-tahun pembuatan.
         $this->assertMatchesRegularExpression('/^ZDK-0001-\d{6}$/', $first->order_number);
         $this->assertMatchesRegularExpression('/^ZDK-0002-\d{6}$/', $second->order_number);
         $this->assertNotSame($first->order_number, $second->order_number);

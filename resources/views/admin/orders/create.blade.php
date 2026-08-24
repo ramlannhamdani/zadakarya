@@ -10,7 +10,7 @@
     <div class="mt-6 flex items-center gap-3">
         <button type="submit" class="btn-primary">Buat Pesanan</button>
         <a href="{{ route('admin.orders.index') }}" class="btn-outline">Batal</a>
-        <p class="text-sm text-neutral-500">Nomor pesanan dibuat otomatis (format ZDK-XXXX-HHMMTT, berurutan + akhiran waktu).</p>
+        <p class="text-sm text-neutral-500">Nomor pesanan dibuat otomatis (format ZDK-XXXX-HHMMTT: berurutan + tanggal-bulan-tahun pembuatan).</p>
     </div>
 </form>
 @endsection
