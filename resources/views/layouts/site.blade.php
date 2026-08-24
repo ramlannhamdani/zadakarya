@@ -111,7 +111,7 @@
             <div>
                 <div class="flex items-center gap-2.5">
                     @if(setting('logo_light'))
-                        <img src="{{ asset('storage/'.setting('logo_light')) }}" alt="{{ $siteName }}" class="h-10 w-auto">
+                        <img src="{{ asset('storage/'.setting('logo_light')) }}" alt="{{ $siteName }}" class="h-16 w-auto">
                         <span class="sr-only">{{ $siteName }}</span>
                     @else
                         <span class="flex h-9 w-9 items-center justify-center rounded-lg bg-white/10 text-sm font-extrabold text-white">ZK</span>
