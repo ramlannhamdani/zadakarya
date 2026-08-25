@@ -44,4 +44,24 @@ class AdminPagesTest extends TestCase
             $this->actingAs($admin)->get($url)->assertOk();
         }
     }
+
+    public function test_dashboard_shows_revenue_from_payments(): void
+    {
+        $admin = User::factory()->create();
+        $customer = Customer::create(['name' => 'Budi']);
+        $order = \App\Models\Order::create([
+            'order_number' => 'ZDK-0001-010126',
+            'customer_id' => $customer->id,
+            'name' => 'Uji Revenue',
+            'grand_total' => 10000000,
+        ]);
+        $order->payments()->create(['amount' => 4000000, 'payment_date' => now()->toDateString(), 'method' => 'transfer']);
+        $order->refreshPaymentStatus();
+
+        $this->actingAs($admin)->get(route('admin.dashboard'))
+            ->assertOk()
+            ->assertSee('Total Pendapatan')
+            ->assertSee('Rp 4.000.000')   // terbayar
+            ->assertSee('Rp 6.000.000');  // piutang
+    }
 }

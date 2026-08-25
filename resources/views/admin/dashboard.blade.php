@@ -19,6 +19,45 @@
     @endforeach
 </div>
 
+{{-- Revenue --}}
+<div class="mt-6 grid gap-5 lg:grid-cols-3">
+    <div class="grid gap-4 sm:grid-cols-2 lg:col-span-2">
+        <div class="admin-card border-l-4 !border-l-green-500">
+            <p class="text-xs font-bold uppercase tracking-wider text-neutral-500">Total Pendapatan (Terbayar)</p>
+            <p class="mt-2 text-2xl font-extrabold text-green-600">{{ rupiah($revenue['total']) }}</p>
+            <p class="mt-1 text-xs text-neutral-500">Seluruh pembayaran yang sudah masuk</p>
+        </div>
+        <div class="admin-card border-l-4 !border-l-brand-600">
+            <p class="text-xs font-bold uppercase tracking-wider text-neutral-500">Pendapatan Bulan Ini</p>
+            <p class="mt-2 text-2xl font-extrabold text-brand-600">{{ rupiah($revenue['this_month']) }}</p>
+            <p class="mt-1 text-xs text-neutral-500">{{ now()->translatedFormat('F Y') }}</p>
+        </div>
+        <div class="admin-card border-l-4 !border-l-amber-500">
+            <p class="text-xs font-bold uppercase tracking-wider text-neutral-500">Piutang (Sisa Tagihan)</p>
+            <p class="mt-2 text-2xl font-extrabold text-amber-600">{{ rupiah($revenue['receivable']) }}</p>
+            <p class="mt-1 text-xs text-neutral-500">Belum dibayar dari pesanan non-batal</p>
+        </div>
+        <div class="admin-card border-l-4 !border-l-neutral-400">
+            <p class="text-xs font-bold uppercase tracking-wider text-neutral-500">Total Nilai Pesanan</p>
+            <p class="mt-2 text-2xl font-extrabold text-ink">{{ rupiah($revenue['order_value']) }}</p>
+            <p class="mt-1 text-xs text-neutral-500">Grand total semua pesanan non-batal</p>
+        </div>
+    </div>
+
+    <div class="admin-card">
+        <h2 class="font-extrabold text-ink">Pendapatan 6 Bulan Terakhir</h2>
+        <div class="mt-5 flex h-40 items-end gap-2">
+            @foreach($monthly as $m)
+                <div class="group flex flex-1 flex-col items-center justify-end gap-1.5" title="{{ $m['full'] }}: {{ rupiah($m['amount']) }}">
+                    <span class="text-[10px] font-semibold text-neutral-500 opacity-0 transition group-hover:opacity-100">{{ $m['amount'] > 0 ? number_format($m['amount'] / 1000000, 1, ',', '.').' jt' : '' }}</span>
+                    <div class="w-full rounded-t-md {{ $m['amount'] > 0 ? 'bg-brand-600' : 'bg-line' }}" style="height: {{ max(4, round($m['amount'] / $monthlyMax * 100)) }}%"></div>
+                    <span class="text-xs font-medium text-neutral-500">{{ $m['label'] }}</span>
+                </div>
+            @endforeach
+        </div>
+    </div>
+</div>
+
 {{-- Action required --}}
 <div class="mt-6 grid gap-5 lg:grid-cols-3">
     <div class="admin-card">
