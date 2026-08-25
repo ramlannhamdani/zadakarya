@@ -125,7 +125,7 @@
         </div>
     </div>
 
-    <div class="mt-6 flex items-center gap-3">
+    <div class="mt-6 flex flex-wrap items-center gap-3">
         <button type="submit" class="btn-primary">{{ $invoice->exists ? 'Simpan Perubahan' : 'Buat Invoice' }}</button>
         <a href="{{ route('admin.invoices.index') }}" class="btn-outline">Batal</a>
         @unless($invoice->exists)<p class="text-sm text-neutral-500">Nomor invoice (INV-xxxx) dibuat otomatis.</p>@endunless

@@ -89,7 +89,7 @@
             <div class="admin-card">
                 <h2 class="font-extrabold text-ink">Item Produk</h2>
                 <div class="mt-4 overflow-x-auto">
-                    <table class="w-full text-sm">
+                    <table class="w-full min-w-[30rem] text-sm">
                         <thead>
                             <tr class="border-b border-line text-left text-xs font-bold uppercase tracking-wider text-neutral-500">
                                 <th class="pb-2 pr-3">Produk</th>
@@ -105,16 +105,16 @@
                                         <span class="font-medium text-ink">{{ $item->product_name }}</span>
                                         @if($item->description)<span class="block text-xs text-neutral-500">{{ $item->description }}</span>@endif
                                     </td>
-                                    <td class="py-2.5 pr-3 text-right">{{ number_format($item->quantity, 0, ',', '.') }} {{ $item->unit }}</td>
-                                    <td class="py-2.5 pr-3 text-right">{{ rupiah($item->unit_price) }}</td>
-                                    <td class="py-2.5 text-right font-semibold">{{ rupiah($item->total) }}</td>
+                                    <td class="whitespace-nowrap py-2.5 pr-3 text-right">{{ number_format($item->quantity, 0, ',', '.') }} {{ $item->unit }}</td>
+                                    <td class="whitespace-nowrap py-2.5 pr-3 text-right">{{ rupiah($item->unit_price) }}</td>
+                                    <td class="whitespace-nowrap py-2.5 text-right font-semibold">{{ rupiah($item->total) }}</td>
                                 </tr>
                             @endforeach
                         </tbody>
                         <tfoot>
                             <tr class="border-t-2 border-line">
                                 <td colspan="3" class="pt-3 text-right text-xs font-bold uppercase tracking-wider text-neutral-500">Grand Total</td>
-                                <td class="pt-3 text-right text-lg font-extrabold text-brand-600">{{ rupiah($order->grand_total) }}</td>
+                                <td class="whitespace-nowrap pt-3 text-right text-lg font-extrabold text-brand-600">{{ rupiah($order->grand_total) }}</td>
                             </tr>
                         </tfoot>
                     </table>
@@ -190,10 +190,10 @@
                                             <button type="submit" class="rounded-lg border border-line px-3 py-1.5 text-xs font-semibold text-neutral-600 transition hover:border-amber-400 hover:text-amber-600">Mulai Tahap</button>
                                         </form>
                                     @elseif($stage->isInProgress())
-                                        <form method="POST" action="{{ route('admin.orders.stages.complete', [$order, $stage]) }}" class="flex gap-1.5">
+                                        <form method="POST" action="{{ route('admin.orders.stages.complete', [$order, $stage]) }}" class="flex w-full gap-1.5 sm:w-auto">
                                             @csrf
-                                            <input type="text" name="note" placeholder="Catatan (opsional)" class="form-input !w-44 !px-2.5 !py-1.5 text-xs">
-                                            <button type="submit" class="rounded-lg bg-green-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-green-700">Selesaikan Tahap</button>
+                                            <input type="text" name="note" placeholder="Catatan (opsional)" class="form-input min-w-0 flex-1 !px-2.5 !py-1.5 text-xs sm:!w-44 sm:flex-none">
+                                            <button type="submit" class="whitespace-nowrap rounded-lg bg-green-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-green-700">Selesaikan Tahap</button>
                                         </form>
                                     @else
                                         <form method="POST" action="{{ route('admin.orders.stages.reopen', [$order, $stage]) }}"

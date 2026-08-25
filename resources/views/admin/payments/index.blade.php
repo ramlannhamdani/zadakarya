@@ -4,7 +4,7 @@
 
 @section('content')
 <form method="GET" class="flex gap-2">
-    <input type="search" name="q" value="{{ request('q') }}" placeholder="Cari nomor order..." class="form-input !w-64">
+    <input type="search" name="q" value="{{ request('q') }}" placeholder="Cari nomor order..." class="form-input min-w-0 flex-1 sm:!w-64">
     <button type="submit" class="btn-outline !px-4 !py-2.5">Cari</button>
 </form>
 

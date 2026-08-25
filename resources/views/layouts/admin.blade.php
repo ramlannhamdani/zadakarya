@@ -66,11 +66,11 @@
     {{-- Main --}}
     <div class="flex min-w-0 flex-1 flex-col">
         <header class="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-line bg-white px-4 sm:px-6">
-            <div class="flex items-center gap-3">
+            <div class="flex min-w-0 flex-1 items-center gap-3">
                 <button @click="sidebar = true" class="rounded-lg p-2 text-neutral-600 hover:bg-cream lg:hidden" aria-label="Menu">
                     <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M4 7h16M4 12h16M4 17h16"/></svg>
                 </button>
-                <h1 class="text-lg font-extrabold text-ink">@yield('title', 'Dashboard')</h1>
+                <h1 class="min-w-0 truncate text-lg font-extrabold text-ink">@yield('title', 'Dashboard')</h1>
             </div>
             <div class="flex items-center gap-3">
                 <span class="hidden text-sm text-neutral-500 sm:inline">{{ auth()->user()->name }}</span>

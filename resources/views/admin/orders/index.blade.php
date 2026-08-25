@@ -10,10 +10,10 @@
                class="rounded-full px-3.5 py-1.5 text-sm font-semibold {{ $status === $key || (!$status && !$key) ? 'bg-brand-600 text-white' : 'border border-line bg-white text-neutral-600' }}">{{ $label }}</a>
         @endforeach
     </div>
-    <div class="flex gap-2">
-        <form method="GET" class="flex gap-2">
+    <div class="flex w-full flex-wrap items-center gap-2 sm:w-auto">
+        <form method="GET" class="flex min-w-0 flex-1 gap-2">
             @if($status)<input type="hidden" name="status" value="{{ $status }}">@endif
-            <input type="search" name="q" value="{{ request('q') }}" placeholder="No. order / customer..." class="form-input !w-52">
+            <input type="search" name="q" value="{{ request('q') }}" placeholder="No. order / customer..." class="form-input min-w-0 flex-1 sm:!w-52">
             <button type="submit" class="btn-outline !px-4 !py-2.5">Cari</button>
         </form>
         <a href="{{ route('admin.orders.create') }}" class="btn-primary">+ Buat Pesanan</a>

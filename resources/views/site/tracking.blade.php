@@ -161,7 +161,26 @@
             <h2 class="text-lg font-extrabold text-ink">Sedang Kami Kerjakan</h2>
             <p class="mt-1 text-sm text-neutral-500">Pesanan yang sedang berjalan di workshop kami. Untuk melacak pesanan Anda sendiri, gunakan nomor pesanan yang dikirim admin via WhatsApp.</p>
 
-            <div class="no-scrollbar mt-5 overflow-x-auto">
+            {{-- Mobile: kartu bertumpuk (tanpa geser) --}}
+            <div class="mt-5 space-y-3 sm:hidden">
+                @foreach($ongoing as $o)
+                    <div class="rounded-lg border border-line p-4">
+                        <p class="font-semibold text-ink">{{ $o->items->first()?->product_name ?? 'Pesanan custom' }}@if($o->items->count() > 1)<span class="font-normal text-neutral-500"> +{{ $o->items->count() - 1 }} item lainnya</span>@endif</p>
+                        <div class="mt-2 flex items-center gap-2.5">
+                            <div class="h-1.5 w-24 shrink-0 overflow-hidden rounded-full bg-line">
+                                <div class="h-full rounded-full bg-brand-600" style="width: {{ round($o->current_stage / 7 * 100) }}%"></div>
+                            </div>
+                            <span class="text-sm text-neutral-600">{{ $o->current_stage }}/7 &bull; {{ $o->current_stage_name }}</span>
+                        </div>
+                        <div class="mt-2 flex justify-between text-xs text-neutral-500">
+                            <span>Dipesan {{ $o->created_at->translatedFormat('F Y') }}</span>
+                            <span>Deadline {{ $o->deadline?->translatedFormat('d M Y') ?? '—' }}</span>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+
+            <div class="no-scrollbar mt-5 hidden overflow-x-auto sm:block">
                 <table class="w-full min-w-[560px] text-sm">
                     <thead>
                         <tr class="border-b border-line text-left text-xs font-bold uppercase tracking-wider text-neutral-500">

@@ -7,7 +7,7 @@
     @csrf @method('PUT')
     @include('admin.orders._form', ['order' => $order])
 
-    <div class="mt-6 flex items-center gap-3">
+    <div class="mt-6 flex flex-wrap items-center gap-3">
         <button type="submit" class="btn-primary">Simpan Perubahan</button>
         <a href="{{ route('admin.orders.show', $order) }}" class="btn-outline">Batal</a>
     </div>

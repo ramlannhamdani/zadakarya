@@ -14,7 +14,7 @@
     </div>
     <form method="GET" class="flex gap-2">
         @if(request('status'))<input type="hidden" name="status" value="{{ request('status') }}">@endif
-        <input type="search" name="q" value="{{ request('q') }}" placeholder="Cari..." class="form-input !w-48">
+        <input type="search" name="q" value="{{ request('q') }}" placeholder="Cari..." class="form-input min-w-0 flex-1 sm:!w-48">
         <button type="submit" class="btn-outline !px-4 !py-2.5">Cari</button>
     </form>
 </div>
