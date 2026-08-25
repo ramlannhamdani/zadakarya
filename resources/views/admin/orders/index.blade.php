@@ -20,7 +20,28 @@
     </div>
 </div>
 
-<div class="admin-card mt-5 overflow-x-auto !p-0">
+{{-- Mobile: kartu (tabel di md+) --}}
+<div class="mt-5 space-y-3 md:hidden">
+    @forelse($orders as $order)
+        <a href="{{ route('admin.orders.show', $order) }}" class="admin-card block !p-4">
+            <div class="flex items-start justify-between gap-3">
+                <span class="font-mono text-sm font-bold text-brand-600">{{ $order->order_number }}</span>
+                <x-order-status-badge :status="$order->status" />
+            </div>
+            <p class="mt-1.5 font-semibold text-ink">{{ $order->customer->name }}@if($order->customer->company)<span class="font-normal text-neutral-500"> &bull; {{ $order->customer->company }}</span>@endif</p>
+            <p class="text-xs text-neutral-500">{{ $order->items->first()?->product_name }}{{ $order->items->count() > 1 ? ' +'.($order->items->count()-1).' item' : '' }}</p>
+            <div class="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-line pt-3 text-xs">
+                <span class="font-bold text-ink">{{ rupiah($order->grand_total) }}</span>
+                <x-payment-badge :status="$order->payment_status" />
+                <span class="text-neutral-500">{{ $order->current_stage }}/7 &bull; {{ $order->current_stage_name }}</span>
+            </div>
+            @if($order->deadline)<p class="mt-2 text-xs text-neutral-500">Deadline {{ $order->deadline->format('d/m/Y') }}</p>@endif
+        </a>
+    @empty
+        <div class="admin-card py-8 text-center text-neutral-500">Tidak ada pesanan.</div>
+    @endforelse
+</div>
+<div class="admin-card mt-5 hidden overflow-x-auto !p-0 md:block">
     <table class="w-full min-w-[860px] text-sm">
         <thead>
             <tr class="border-b border-line bg-cream/60 text-left text-xs font-bold uppercase tracking-wider text-neutral-500">

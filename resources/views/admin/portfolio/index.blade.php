@@ -13,7 +13,39 @@
             <a href="{{ route('admin.portfolio.create') }}" class="btn-primary">+ Portfolio Baru</a>
         </div>
 
-        <div class="admin-card mt-5 overflow-x-auto !p-0">
+        {{-- Mobile: kartu (tabel di md+) --}}
+<div class="mt-5 space-y-3 md:hidden">
+    @forelse($portfolios as $portfolio)
+        <div class="admin-card !p-4">
+            <div class="flex gap-3">
+                @if($portfolio->cover_image)
+                    <img src="{{ asset('storage/'.$portfolio->cover_image) }}" alt="" class="h-16 w-16 shrink-0 rounded-lg object-cover">
+                @else
+                    <span class="flex h-16 w-16 shrink-0 items-center justify-center rounded-lg bg-cream text-lg font-bold text-warm-600">{{ mb_substr($portfolio->title, 0, 1) }}</span>
+                @endif
+                <div class="min-w-0 flex-1">
+                    <p class="font-semibold leading-snug text-ink">{{ $portfolio->title }}</p>
+                    <p class="mt-1 text-xs text-neutral-500">{{ $portfolio->category?->name ?? 'Tanpa kategori' }} &bull; {{ $portfolio->production_year ?? '—' }}</p>
+                    <div class="mt-1.5 flex flex-wrap gap-1.5">
+                        <span class="rounded-full px-2 py-0.5 text-[11px] font-bold {{ $portfolio->is_published ? 'bg-green-100 text-green-700' : 'bg-neutral-100 text-neutral-500' }}">{{ $portfolio->is_published ? 'Publish' : 'Draft' }}</span>
+                        @if($portfolio->is_featured)<span class="rounded-full bg-brand-100 px-2 py-0.5 text-[11px] font-bold text-brand-600">Featured</span>@endif
+                    </div>
+                </div>
+            </div>
+            <div class="mt-3 flex items-center gap-4 border-t border-line pt-3 text-xs font-semibold">
+                <a href="{{ route('portfolio.show', $portfolio) }}" target="_blank" class="text-neutral-500">Lihat</a>
+                <a href="{{ route('admin.portfolio.edit', $portfolio) }}" class="text-brand-600">Edit</a>
+                <form method="POST" action="{{ route('admin.portfolio.destroy', $portfolio) }}" onsubmit="return confirm('Hapus portfolio ini beserta semua gambarnya?')" class="ml-auto">
+                    @csrf @method('DELETE')
+                    <button type="submit" class="text-red-500">Hapus</button>
+                </form>
+            </div>
+        </div>
+    @empty
+        <div class="admin-card py-8 text-center text-neutral-500">Belum ada portfolio.</div>
+    @endforelse
+</div>
+<div class="admin-card mt-5 hidden overflow-x-auto !p-0 md:block">
             <table class="w-full min-w-[640px] text-sm">
                 <thead>
                     <tr class="border-b border-line bg-cream/60 text-left text-xs font-bold uppercase tracking-wider text-neutral-500">

@@ -13,7 +13,41 @@
             <a href="{{ route('admin.articles.create') }}" class="btn-primary">+ Artikel Baru</a>
         </div>
 
-        <div class="admin-card mt-5 overflow-x-auto !p-0">
+        {{-- Mobile: kartu (tabel di md+) --}}
+<div class="mt-5 space-y-3 md:hidden">
+    @forelse($articles as $article)
+        <div class="admin-card !p-4">
+            <div class="flex gap-3">
+                @if($article->featured_image)
+                    <img src="{{ asset('storage/'.$article->featured_image) }}" alt="" class="h-16 w-16 shrink-0 rounded-lg object-cover">
+                @else
+                    <span class="flex h-16 w-16 shrink-0 items-center justify-center rounded-lg bg-cream text-lg font-bold text-warm-600">{{ mb_substr($article->title, 0, 1) }}</span>
+                @endif
+                <div class="min-w-0 flex-1">
+                    <p class="font-semibold leading-snug text-ink">{{ $article->title }}</p>
+                    <p class="mt-1 text-xs text-neutral-500">{{ $article->category?->name ?? 'Tanpa kategori' }} &bull; {{ $article->published_at?->format('d/m/Y') ?? 'belum terbit' }}</p>
+                    <div class="mt-1.5 flex flex-wrap gap-1.5">
+                        <span class="rounded-full px-2 py-0.5 text-[11px] font-bold {{ $article->published_at ? 'bg-green-100 text-green-700' : 'bg-neutral-100 text-neutral-500' }}">{{ $article->published_at ? 'Publish' : 'Draft' }}</span>
+                        @if($article->is_featured)<span class="rounded-full bg-brand-100 px-2 py-0.5 text-[11px] font-bold text-brand-600">Unggulan</span>@endif
+                    </div>
+                </div>
+            </div>
+            <div class="mt-3 flex items-center gap-4 border-t border-line pt-3 text-xs font-semibold">
+                @if($article->published_at)
+                    <a href="{{ route('blog.show', $article) }}" target="_blank" class="text-neutral-500">Lihat</a>
+                @endif
+                <a href="{{ route('admin.articles.edit', $article) }}" class="text-brand-600">Edit</a>
+                <form method="POST" action="{{ route('admin.articles.destroy', $article) }}" onsubmit="return confirm('Hapus artikel ini?')" class="ml-auto">
+                    @csrf @method('DELETE')
+                    <button type="submit" class="text-red-500">Hapus</button>
+                </form>
+            </div>
+        </div>
+    @empty
+        <div class="admin-card py-8 text-center text-neutral-500">Belum ada artikel.</div>
+    @endforelse
+</div>
+<div class="admin-card mt-5 hidden overflow-x-auto !p-0 md:block">
             <table class="w-full min-w-[640px] text-sm">
                 <thead>
                     <tr class="border-b border-line bg-cream/60 text-left text-xs font-bold uppercase tracking-wider text-neutral-500">
