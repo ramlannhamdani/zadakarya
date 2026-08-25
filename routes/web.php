@@ -32,7 +32,7 @@ Route::post('/konsultasi', [Site\ConsultationController::class, 'store'])
     ->name('consultation.store');
 
 Route::get('/tracking', [Site\TrackingController::class, 'index'])
-    ->middleware('throttle:60,1')
+    ->middleware('throttle:30,1')
     ->name('tracking.index');
 Route::get('/tracking/foto/{photo}', [Site\TrackingController::class, 'photo'])->name('tracking.photo');
 
@@ -48,12 +48,13 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::middleware('guest')->group(function () {
         Route::get('login', [Admin\AuthController::class, 'showLogin'])->name('login');
         Route::post('login', [Admin\AuthController::class, 'login'])
-            ->middleware('throttle:5,1')
+            ->middleware('throttle:30,1')
             ->name('login.attempt');
     });
 
     Route::middleware('auth')->group(function () {
         Route::post('logout', [Admin\AuthController::class, 'logout'])->name('logout');
+        Route::patch('password', [Admin\PasswordController::class, 'update'])->name('password.update');
 
         Route::get('/', [Admin\DashboardController::class, 'index'])->name('dashboard');
 

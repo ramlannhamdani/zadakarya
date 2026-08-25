@@ -154,4 +154,26 @@
 
     <button type="submit" class="btn-primary mt-6">Simpan Pengaturan</button>
 </form>
+
+{{-- Ganti password admin (form terpisah dari form pengaturan) --}}
+<form method="POST" action="{{ route('admin.password.update') }}" class="admin-card mt-8 max-w-3xl">
+    @csrf @method('PATCH')
+    <h2 class="font-extrabold text-ink">Akun Admin — Ganti Password</h2>
+    <p class="mt-1 text-sm text-neutral-500">Login sebagai <span class="font-semibold">{{ auth()->user()->email }}</span>. Minimal 10 karakter, mengandung huruf dan angka. Sesi di perangkat lain akan diputus.</p>
+    <div class="mt-4 grid gap-5 sm:grid-cols-3">
+        <div>
+            <label class="form-label" for="current_password">Password Saat Ini</label>
+            <input class="form-input" type="password" id="current_password" name="current_password" autocomplete="current-password" required>
+        </div>
+        <div>
+            <label class="form-label" for="password">Password Baru</label>
+            <input class="form-input" type="password" id="password" name="password" autocomplete="new-password" required>
+        </div>
+        <div>
+            <label class="form-label" for="password_confirmation">Ulangi Password Baru</label>
+            <input class="form-input" type="password" id="password_confirmation" name="password_confirmation" autocomplete="new-password" required>
+        </div>
+    </div>
+    <button type="submit" class="btn-primary mt-5">Ganti Password</button>
+</form>
 @endsection

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Article;
 use App\Models\ArticleCategory;
+use App\Support\Html;
 use App\Support\ImageUploader;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -107,6 +108,7 @@ class ArticleController extends Controller
         ]);
 
         $data['slug'] = ($data['slug'] ?? null) ?: Str::slug($data['title']);
+        $data['content'] = Html::clean($data['content']);
         $data['is_featured'] = $request->boolean('is_featured');
         $data['tags'] = collect(explode(',', (string) ($data['tags_text'] ?? '')))
             ->map(fn ($t) => trim($t))

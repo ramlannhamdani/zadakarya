@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Service;
+use App\Support\Html;
 use App\Support\ImageUploader;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -94,6 +95,7 @@ class ServiceController extends Controller
         ]);
 
         $data['slug'] = ($data['slug'] ?? null) ?: Str::slug($data['name']);
+        $data['description'] = Html::clean($data['description'] ?? null);
         $data['is_published'] = $request->boolean('is_published');
         $data['sort_order'] = $data['sort_order'] ?? 0;
         $data['features'] = collect(preg_split('/\r?\n/', (string) ($data['features_text'] ?? '')))

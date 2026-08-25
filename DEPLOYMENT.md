@@ -77,6 +77,7 @@ DB_USERNAME=namacpanel_user
 DB_PASSWORD=password-database
 
 QUEUE_CONNECTION=sync
+SESSION_SECURE_COOKIE=true
 
 ADMIN_NAME="Admin Zada Karya"
 ADMIN_EMAIL=admin@zadakarya.id
