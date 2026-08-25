@@ -19,7 +19,7 @@
     </div>
 </section>
 
-<section class="mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8">
+<section class="mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8" data-reveal>
     <div class="flex flex-wrap items-center gap-3 text-sm">
         @if($portfolio->category)
             <span class="rounded-full bg-brand-100 px-3 py-1 font-semibold text-brand-600">{{ $portfolio->category->name }}</span>
@@ -74,7 +74,7 @@
 <section class="border-t border-line bg-cream">
     <div class="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
         <h2 class="text-2xl font-extrabold tracking-tight text-ink">Portfolio Lainnya</h2>
-        <div class="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <div class="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3" data-reveal-stagger>
             @foreach($related as $item)
                 <x-portfolio-card :portfolio="$item" />
             @endforeach

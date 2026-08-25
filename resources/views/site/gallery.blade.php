@@ -27,7 +27,7 @@
         </div>
     @else
         {{-- Masonry: gambar tampil sesuai rasio aslinya, tersusun per kolom --}}
-        <div class="columns-2 gap-4 sm:columns-3 lg:columns-4">
+        <div class="columns-2 gap-4 sm:columns-3 lg:columns-4" data-reveal-stagger>
             @foreach($items as $item)
                 <div class="group relative mb-4 break-inside-avoid overflow-hidden rounded-xl bg-cream">
                     <img src="{{ asset('storage/'.($item->thumb_path ?: $item->image_path)) }}"
@@ -44,7 +44,7 @@
 </section>
 
 <section class="bg-brand-600">
-    <div class="mx-auto max-w-7xl px-4 py-14 text-center sm:px-6 lg:px-8">
+    <div class="mx-auto max-w-7xl px-4 py-14 text-center sm:px-6 lg:px-8" data-reveal>
         <h2 class="text-2xl font-extrabold text-white sm:text-3xl">Ingin hasil seperti ini untuk kebutuhan Anda?</h2>
         <a href="{{ wa_link('Halo Zada Karya Production, saya ingin berkonsultasi mengenai kebutuhan konveksi.') }}"
            target="_blank" rel="noopener"

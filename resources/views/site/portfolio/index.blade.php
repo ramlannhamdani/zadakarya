@@ -5,7 +5,7 @@
 
 @section('content')
 <section class="border-b border-line bg-cream">
-    <div class="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
+    <div class="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8" data-reveal>
         <p class="text-xs font-bold uppercase tracking-widest text-warm-600">Portfolio</p>
         <h1 class="mt-2 text-4xl font-extrabold tracking-tight text-ink">Hasil Produksi Kami</h1>
         <p class="mt-4 max-w-2xl text-neutral-600">Beberapa hasil produksi yang telah kami kerjakan untuk berbagai kebutuhan.</p>
@@ -24,7 +24,7 @@
         </div>
     @endif
 
-    <div class="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+    <div class="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3" data-reveal-stagger>
         @forelse($portfolios as $portfolio)
             <x-portfolio-card :portfolio="$portfolio" />
         @empty
@@ -38,7 +38,7 @@
 {{-- Ulasan Google Maps --}}
 @if($reviews->isNotEmpty())
 <section class="border-t border-line bg-cream">
-    <div class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+    <div class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8" data-reveal>
         <x-review-carousel :reviews="$reviews" />
     </div>
 </section>

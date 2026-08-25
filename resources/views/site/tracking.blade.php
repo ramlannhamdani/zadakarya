@@ -5,7 +5,7 @@
 
 @section('content')
 <section class="border-b border-line bg-cream">
-    <div class="mx-auto max-w-3xl px-4 py-14 text-center sm:px-6 lg:px-8">
+    <div class="mx-auto max-w-3xl px-4 py-14 text-center sm:px-6 lg:px-8" data-reveal>
         <p class="text-xs font-bold uppercase tracking-widest text-warm-600">Tracking</p>
         <h1 class="mt-2 text-4xl font-extrabold tracking-tight text-ink">Lacak Pesanan Anda</h1>
         <p class="mt-4 text-neutral-600">Masukkan nomor pesanan Anda secara lengkap (contoh: <span class="font-mono font-semibold text-ink">ZDK-0012-140226</span>) untuk melihat progress produksi.</p>
@@ -28,7 +28,7 @@
         </div>
     @elseif($order)
         {{-- Order summary --}}
-        <div class="rounded-xl border border-line bg-white p-6 sm:p-8">
+        <div class="rounded-xl border border-line bg-white p-6 sm:p-8" data-reveal>
             <div class="flex flex-wrap items-start justify-between gap-4">
                 <div>
                     <p class="text-xs font-bold uppercase tracking-widest text-neutral-500">Nomor Pesanan</p>
@@ -72,9 +72,9 @@
         </div>
 
         {{-- Timeline 7 tahap --}}
-        <div class="mt-8 rounded-xl border border-line bg-white p-6 sm:p-8">
+        <div class="mt-8 rounded-xl border border-line bg-white p-6 sm:p-8" data-reveal>
             <h2 class="text-lg font-extrabold text-ink">Progress Produksi</h2>
-            <ol class="mt-6">
+            <ol class="mt-6" data-reveal-stagger>
                 @foreach($order->stages as $stage)
                     <li class="relative flex gap-4 pb-8 {{ $loop->last ? '!pb-0' : '' }}">
                         @unless($loop->last)
@@ -140,7 +140,7 @@
             <a href="{{ wa_link('Halo Zada Karya Production, saya ingin menanyakan pesanan '.$order->order_number.'.') }}" target="_blank" rel="noopener" class="font-semibold text-brand-600 hover:underline">Hubungi kami via WhatsApp</a>
         </p>
     @else
-        <div class="grid gap-5 sm:grid-cols-3">
+        <div class="grid gap-5 sm:grid-cols-3" data-reveal-stagger>
             @foreach([
                 ['step' => '1', 'title' => 'Masukkan Nomor', 'desc' => 'Gunakan nomor pesanan lengkap yang Anda terima dari admin via WhatsApp.'],
                 ['step' => '2', 'title' => 'Lihat Progress', 'desc' => 'Pantau 7 tahap produksi pesanan Anda secara real-time.'],
@@ -157,7 +157,7 @@
 
     {{-- Pesanan yang sedang berjalan (publik, non-clickable, data terbatas — tanpa nomor pesanan) --}}
     @if(!$order && $ongoing->isNotEmpty())
-        <div class="mt-8 rounded-xl border border-line bg-white p-6 sm:p-8">
+        <div class="mt-8 rounded-xl border border-line bg-white p-6 sm:p-8" data-reveal>
             <h2 class="text-lg font-extrabold text-ink">Sedang Kami Kerjakan</h2>
             <p class="mt-1 text-sm text-neutral-500">Pesanan yang sedang berjalan di workshop kami. Untuk melacak pesanan Anda sendiri, gunakan nomor pesanan yang dikirim admin via WhatsApp.</p>
 

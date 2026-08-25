@@ -112,4 +112,38 @@ Alpine.data('mediaPicker', ({ pickerUrl, uploadUrl, csrf, multiple = false }) =>
     },
 }));
 
+// Scroll reveal: elemen [data-reveal] muncul saat masuk viewport; anak
+// [data-reveal-stagger] muncul berurutan (70ms per item, diulang tiap 6).
+const initReveal = () => {
+    document.querySelectorAll('[data-reveal-stagger]').forEach((container) => {
+        [...container.children].forEach((child, i) => {
+            child.setAttribute('data-reveal', '');
+            child.style.transitionDelay = `${(i % 6) * 70}ms`;
+        });
+    });
+
+    const targets = document.querySelectorAll('[data-reveal]');
+    if (!('IntersectionObserver' in window)) {
+        targets.forEach((el) => el.classList.add('is-visible'));
+        return;
+    }
+
+    const io = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('is-visible');
+                io.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.1, rootMargin: '0px 0px -6% 0px' });
+
+    targets.forEach((el) => io.observe(el));
+};
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initReveal);
+} else {
+    initReveal();
+}
+
 Alpine.start();

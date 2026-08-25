@@ -8,7 +8,7 @@
 {{-- Hero --}}
 <section class="border-b border-line bg-cream">
     <div class="mx-auto grid max-w-7xl items-center gap-12 px-4 py-16 sm:px-6 lg:grid-cols-2 lg:px-8 lg:py-24">
-        <div>
+        <div data-reveal>
             <p class="inline-flex items-center gap-2 rounded-full border border-warm-500/40 bg-white px-3.5 py-1.5 text-xs font-bold uppercase tracking-wider text-warm-600">
                 <span class="h-1.5 w-1.5 rounded-full bg-brand-600"></span>
                 Jasa Konveksi &amp; Garment Custom
@@ -38,7 +38,7 @@
                 </div>
             </dl>
         </div>
-        <div class="grid grid-cols-2 gap-4">
+        <div class="grid grid-cols-2 gap-4" data-reveal-stagger>
             {{-- Slot terisi cover portfolio bergambar (featured dulu); sisanya placeholder --}}
             @foreach(['Seragam', 'Polo Shirt', 'Kaos Sablon', 'Custom'] as $i => $label)
                 @php $p = $heroPortfolios[$i] ?? null; @endphp
@@ -56,14 +56,14 @@
 
 {{-- Layanan Unggulan --}}
 <section class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
-    <div class="flex flex-wrap items-end justify-between gap-4">
+    <div class="flex flex-wrap items-end justify-between gap-4" data-reveal>
         <div>
             <p class="text-xs font-bold uppercase tracking-widest text-warm-600">Layanan Kami</p>
             <h2 class="mt-2 text-3xl font-extrabold tracking-tight text-ink">Layanan Konveksi Unggulan</h2>
         </div>
         <a href="{{ route('services.index') }}" class="text-sm font-semibold text-brand-600 hover:underline">Semua Layanan &rarr;</a>
     </div>
-    <div class="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+    <div class="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4" data-reveal-stagger>
         @foreach($services as $service)
             <x-service-card :service="$service" />
         @endforeach
@@ -73,11 +73,11 @@
 {{-- Why Choose Us --}}
 <section class="border-y border-line bg-cream">
     <div class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
-        <div class="max-w-2xl">
+        <div class="max-w-2xl" data-reveal>
             <p class="text-xs font-bold uppercase tracking-widest text-warm-600">Kenapa Zada Karya</p>
             <h2 class="mt-2 text-3xl font-extrabold tracking-tight text-ink">Produksi Terukur, Hasil Konsisten</h2>
         </div>
-        <div class="mt-10 grid gap-x-8 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
+        <div class="mt-10 grid gap-x-8 gap-y-10 sm:grid-cols-2 lg:grid-cols-3" data-reveal-stagger>
             @foreach([
                 ['title' => 'Produksi Custom', 'desc' => 'Model, ukuran, bahan, dan desain menyesuaikan kebutuhan Anda — bukan sebaliknya.'],
                 ['title' => 'Konsultasi Kebutuhan', 'desc' => 'Tim kami membantu menentukan bahan dan model paling tepat sebelum produksi dimulai.'],
@@ -100,11 +100,11 @@
 
 {{-- Proses Produksi --}}
 <section class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
-    <div class="max-w-2xl">
+    <div class="max-w-2xl" data-reveal>
         <p class="text-xs font-bold uppercase tracking-widest text-warm-600">Cara Kerja</p>
         <h2 class="mt-2 text-3xl font-extrabold tracking-tight text-ink">Proses Produksi Kami</h2>
     </div>
-    <ol class="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-6">
+    <ol class="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-6" data-reveal-stagger>
         @foreach(['Konsultasi', 'Penawaran', 'Persetujuan', 'Produksi', 'Quality Check', 'Pengiriman'] as $i => $step)
             <li class="relative rounded-xl border border-line bg-white p-5 lg:p-4">
                 <span class="text-3xl font-extrabold text-brand-100">{{ sprintf('%02d', $i + 1) }}</span>
@@ -121,14 +121,14 @@
 @if($featuredPortfolios->isNotEmpty())
 <section class="border-y border-line bg-cream">
     <div class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
-        <div class="flex flex-wrap items-end justify-between gap-4">
+        <div class="flex flex-wrap items-end justify-between gap-4" data-reveal>
             <div>
                 <p class="text-xs font-bold uppercase tracking-widest text-warm-600">Hasil Produksi</p>
                 <h2 class="mt-2 text-3xl font-extrabold tracking-tight text-ink">Portfolio Terbaru</h2>
             </div>
             <a href="{{ route('portfolio.index') }}" class="btn-outline !py-2.5">Lihat Semua Portfolio</a>
         </div>
-        <div class="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <div class="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3" data-reveal-stagger>
             @foreach($featuredPortfolios as $portfolio)
                 <x-portfolio-card :portfolio="$portfolio" />
             @endforeach
@@ -139,7 +139,7 @@
 
 {{-- CTA --}}
 <section class="bg-brand-600">
-    <div class="mx-auto max-w-7xl px-4 py-16 text-center sm:px-6 lg:px-8">
+    <div class="mx-auto max-w-7xl px-4 py-16 text-center sm:px-6 lg:px-8" data-reveal>
         <h2 class="mx-auto max-w-2xl text-3xl font-extrabold tracking-tight text-white sm:text-4xl">Punya kebutuhan konveksi?</h2>
         <p class="mx-auto mt-4 max-w-xl text-lg text-white/80">Konsultasikan kebutuhan produksi Anda bersama Zada Karya Production.</p>
         <a href="{{ wa_link('Halo Zada Karya Production, saya ingin berkonsultasi mengenai kebutuhan konveksi.') }}"
@@ -154,14 +154,14 @@
 {{-- Blog --}}
 @if($articles->isNotEmpty())
 <section class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
-    <div class="flex flex-wrap items-end justify-between gap-4">
+    <div class="flex flex-wrap items-end justify-between gap-4" data-reveal>
         <div>
             <p class="text-xs font-bold uppercase tracking-widest text-warm-600">Blog</p>
             <h2 class="mt-2 text-3xl font-extrabold tracking-tight text-ink">Artikel Terbaru</h2>
         </div>
         <a href="{{ route('blog.index') }}" class="text-sm font-semibold text-brand-600 hover:underline">Semua Artikel &rarr;</a>
     </div>
-    <div class="mt-8 grid gap-5 md:grid-cols-3">
+    <div class="mt-8 grid gap-5 md:grid-cols-3" data-reveal-stagger>
         @foreach($articles as $article)
             <x-article-card :article="$article" />
         @endforeach

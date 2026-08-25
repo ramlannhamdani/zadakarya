@@ -5,14 +5,14 @@
 
 @section('content')
 <section class="border-b border-line bg-cream">
-    <div class="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
+    <div class="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8" data-reveal>
         <p class="text-xs font-bold uppercase tracking-widest text-warm-600">Tentang Kami</p>
         <h1 class="mt-2 max-w-3xl text-4xl font-extrabold tracking-tight text-ink">Partner Produksi Konveksi yang Bisa Anda Andalkan</h1>
     </div>
 </section>
 
 <section class="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
-    <div class="grid gap-12 lg:grid-cols-2">
+    <div class="grid gap-12 lg:grid-cols-2" data-reveal-stagger>
         <div>
             <h2 class="text-2xl font-extrabold tracking-tight text-ink">Cerita Kami</h2>
             <div class="prose-zada mt-4">
@@ -44,7 +44,7 @@
         </div>
     </div>
 
-    <div class="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+    <div class="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-4" data-reveal-stagger>
         @foreach([
             ['title' => 'Konsultatif', 'desc' => 'Kami mendengar kebutuhan Anda sebelum menyarankan solusi.'],
             ['title' => 'Transparan', 'desc' => 'Progress produksi dapat dilacak melalui nomor pesanan.'],
@@ -61,7 +61,7 @@
 
 <section class="border-t border-line bg-cream">
     <div class="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
-        <div class="grid items-center gap-10 lg:grid-cols-2">
+        <div class="grid items-center gap-10 lg:grid-cols-2" data-reveal-stagger>
             <div>
                 <h2 class="text-2xl font-extrabold tracking-tight text-ink">Workshop Kami</h2>
                 <p class="mt-4 leading-relaxed text-neutral-600">Workshop kami berlokasi di {{ setting('address') }}. Anda dapat berkunjung untuk melihat contoh bahan dan hasil produksi — silakan buat janji terlebih dahulu melalui WhatsApp.</p>
@@ -84,7 +84,7 @@
 </section>
 
 <section class="bg-brand-600">
-    <div class="mx-auto max-w-7xl px-4 py-14 text-center sm:px-6 lg:px-8">
+    <div class="mx-auto max-w-7xl px-4 py-14 text-center sm:px-6 lg:px-8" data-reveal>
         <h2 class="text-2xl font-extrabold text-white sm:text-3xl">Siap memulai produksi bersama kami?</h2>
         <a href="{{ route('consultation.create') }}" class="btn-wa mt-6">Konsultasi Sekarang</a>
     </div>

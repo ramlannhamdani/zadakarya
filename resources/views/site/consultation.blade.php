@@ -5,7 +5,7 @@
 
 @section('content')
 <section class="border-b border-line bg-cream">
-    <div class="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
+    <div class="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8" data-reveal>
         <p class="text-xs font-bold uppercase tracking-widest text-warm-600">Konsultasi</p>
         <h1 class="mt-2 text-4xl font-extrabold tracking-tight text-ink">Konsultasikan Kebutuhan Anda</h1>
         <p class="mt-4 max-w-2xl text-neutral-600">Ceritakan kebutuhan produksi Anda — tim kami akan menghubungi Anda untuk membahas bahan, model, jumlah, dan estimasi harga.</p>
@@ -26,7 +26,7 @@
             <p class="mt-4"><a href="{{ route('home') }}" class="text-sm font-medium text-neutral-500 hover:text-brand-600">Kembali ke Beranda</a></p>
         </div>
     @else
-        <div class="grid gap-10 lg:grid-cols-3">
+        <div class="grid gap-10 lg:grid-cols-3" data-reveal-stagger>
             <form method="POST" action="{{ route('consultation.store') }}" enctype="multipart/form-data" class="lg:col-span-2"
                   onsubmit="if(window.gtag){gtag('event','consultation_submit');}">
                 @csrf

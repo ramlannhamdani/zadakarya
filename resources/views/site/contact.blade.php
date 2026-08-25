@@ -5,14 +5,14 @@
 
 @section('content')
 <section class="border-b border-line bg-cream">
-    <div class="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
+    <div class="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8" data-reveal>
         <p class="text-xs font-bold uppercase tracking-widest text-warm-600">Kontak</p>
         <h1 class="mt-2 text-4xl font-extrabold tracking-tight text-ink">Hubungi Kami</h1>
     </div>
 </section>
 
 <section class="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
-    <div class="grid gap-5 md:grid-cols-3">
+    <div class="grid gap-5 md:grid-cols-3" data-reveal-stagger>
         <div class="rounded-xl border border-line bg-white p-6">
             <span class="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-600 text-white">
                 <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z"/></svg>
@@ -45,7 +45,7 @@
         </div>
     @endif
 
-    <div class="mt-10 rounded-xl bg-cream p-8 text-center">
+    <div class="mt-10 rounded-xl bg-cream p-8 text-center" data-reveal>
         <h2 class="text-xl font-bold text-ink">Lebih suka mengisi form?</h2>
         <p class="mt-2 text-neutral-600">Isi form konsultasi dan tim kami akan menghubungi Anda.</p>
         <a href="{{ route('consultation.create') }}" class="btn-primary mt-5">Isi Form Konsultasi</a>

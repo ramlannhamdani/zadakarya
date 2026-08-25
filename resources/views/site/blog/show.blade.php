@@ -11,7 +11,7 @@
     <div class="grid gap-10 lg:grid-cols-3">
 
         {{-- Konten artikel --}}
-        <article class="min-w-0 lg:col-span-2">
+        <article class="min-w-0 lg:col-span-2" data-reveal>
             <nav class="text-sm text-neutral-500">
                 <a href="{{ route('home') }}" class="hover:text-brand-600">Home</a>
                 <span class="mx-1.5">/</span>
@@ -58,7 +58,7 @@
         </article>
 
         {{-- Sidebar --}}
-        <aside class="space-y-9 lg:border-l lg:border-line lg:pl-8">
+        <aside class="space-y-9 lg:border-l lg:border-line lg:pl-8" data-reveal-stagger>
             {{-- Pencarian --}}
             <div>
                 <h2 class="text-sm font-bold uppercase tracking-wider text-neutral-500">Cari Artikel</h2>
@@ -130,7 +130,7 @@
 <section class="border-t border-line bg-cream">
     <div class="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
         <h2 class="text-2xl font-extrabold tracking-tight text-ink">Artikel Terkait</h2>
-        <div class="mt-6 grid gap-5 md:grid-cols-3">
+        <div class="mt-6 grid gap-5 md:grid-cols-3" data-reveal-stagger>
             @foreach($related as $item)
                 <x-article-card :article="$item" />
             @endforeach

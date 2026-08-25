@@ -20,7 +20,7 @@
 </section>
 
 <section class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-    <div class="grid gap-10 lg:grid-cols-3">
+    <div class="grid gap-10 lg:grid-cols-3" data-reveal-stagger>
         <div class="lg:col-span-2">
             @if($service->featured_image)
                 <img src="{{ asset('storage/'.$service->featured_image) }}" alt="{{ $service->name }}" class="w-full rounded-xl object-cover">

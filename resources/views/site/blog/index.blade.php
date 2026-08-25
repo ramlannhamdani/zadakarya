@@ -5,7 +5,7 @@
 
 @section('content')
 <section class="border-b border-line bg-cream">
-    <div class="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
+    <div class="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8" data-reveal>
         <p class="text-xs font-bold uppercase tracking-widest text-warm-600">Blog</p>
         <h1 class="mt-2 text-4xl font-extrabold tracking-tight text-ink">Artikel &amp; Informasi</h1>
         <p class="mt-4 max-w-2xl text-neutral-600">Tips memilih bahan, teknik sablon, dan informasi seputar dunia konveksi.</p>
@@ -29,7 +29,7 @@
         </form>
     </div>
 
-    <div class="mt-8 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+    <div class="mt-8 grid gap-5 md:grid-cols-2 lg:grid-cols-3" data-reveal-stagger>
         @forelse($articles as $article)
             <x-article-card :article="$article" />
         @empty

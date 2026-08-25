@@ -99,3 +99,20 @@
 .prose-zada blockquote {
     @apply my-6 border-l-4 border-warm-500 pl-4 italic text-neutral-600;
 }
+
+/* Scroll reveal (halaman publik): fade + naik halus saat masuk viewport.
+   Hanya aktif jika JS jalan (html.js) dan pengguna tidak minta reduce-motion. */
+@media (prefers-reduced-motion: no-preference) {
+    .js [data-reveal],
+    .js [data-reveal-stagger] > * {
+        opacity: 0;
+        transform: translateY(16px);
+        transition: opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1), transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+        will-change: opacity, transform;
+    }
+    .js [data-reveal].is-visible,
+    .js [data-reveal-stagger] > .is-visible {
+        opacity: 1;
+        transform: none;
+    }
+}
