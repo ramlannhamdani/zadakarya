@@ -54,8 +54,17 @@
     </div>
 </section>
 
-{{-- Layanan Unggulan --}}
-<section class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
+{{-- Klien / Dipercaya oleh --}}
+@if($clients->isNotEmpty())
+<section class="border-b border-line bg-white">
+    <div class="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8" data-reveal>
+        <p class="text-center text-xs font-bold uppercase tracking-widest text-neutral-500">Dipercaya oleh</p>
+        <x-client-marquee :clients="$clients" class="mt-6" />
+    </div>
+</section>
+@endif
+
+{{-- Layanan Unggulan --}}<section class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
     <div class="flex flex-wrap items-end justify-between gap-4" data-reveal>
         <div>
             <p class="text-xs font-bold uppercase tracking-widest text-warm-600">Layanan Kami</p>

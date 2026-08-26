@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Site;
 
 use App\Http\Controllers\Controller;
 use App\Models\Article;
+use App\Models\Client;
 use App\Models\Portfolio;
 use App\Models\Service;
 
@@ -25,6 +26,7 @@ class HomeController extends Controller
                 ->latest()
                 ->take(4)
                 ->get(),
+            'clients' => Client::active()->get(),
             'articles' => Article::published()->with('category')->latest('published_at')->take(3)->get(),
         ]);
     }

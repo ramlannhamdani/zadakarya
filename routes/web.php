@@ -108,6 +108,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::delete('portfolio-categories/{category}', [Admin\PortfolioCategoryController::class, 'destroy'])->name('portfolio-categories.destroy');
 
         Route::resource('reviews', Admin\ReviewController::class)->except(['show']);
+        Route::resource('clients', Admin\ClientController::class)->except(['show']);
 
         Route::get('gallery/picker', [Admin\GalleryController::class, 'picker'])->name('gallery.picker');
         Route::get('gallery', [Admin\GalleryController::class, 'index'])->name('gallery.index');
