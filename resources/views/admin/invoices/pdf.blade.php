@@ -27,50 +27,49 @@
     <meta charset="utf-8">
     <title>{{ $invoice->invoice_number }}</title>
     <style>
-        @page { margin: 26px 34px; }
+        @page { margin: 40px 48px; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: "Times New Roman", Times, serif; font-size: 12px; color: #202020; }
+        body { font-family: "Times New Roman", Times, serif; font-size: 12px; color: #6C1005; line-height: 1.35; }
         table { border-collapse: collapse; }
         td { vertical-align: top; }
-        .maroon { color: #6C1005; }
-        .bold { font-weight: bold; }
 
         .header { width: 100%; }
-        .brand { font-size: 19px; font-weight: bold; color: #6C1005; letter-spacing: 0.5px; }
-        .contact { font-size: 10.5px; line-height: 1.5; margin-top: 2px; }
-        .contact td { padding: 0 4px 0 0; }
-        .title-box { border: 2px solid #6C1005; padding: 9px 24px; font-size: 26px; font-weight: bold; color: #6C1005; letter-spacing: 1px; text-align: center; }
-        .meta { font-size: 10.5px; text-align: right; margin-top: 5px; color: #444; }
-        .rule { border-top: 3px solid #6C1005; margin: 8px 0 10px; }
+        .logo-cell { width: 1%; white-space: nowrap; padding-right: 14px; }
+        .brand { font-size: 17px; font-weight: bold; letter-spacing: 0.4px; }
+        .contact { font-size: 11px; line-height: 1.5; margin-top: 3px; }
+        .contact td { padding: 0 5px 0 0; }
+        .title-box { border: 2px solid #6C1005; padding: 8px 22px; font-size: 22px; font-weight: bold; letter-spacing: 1px; text-align: center; }
+        .meta { font-size: 10.5px; text-align: right; margin-top: 5px; }
+        .rule { border-top: 3px solid #6C1005; margin: 10px 0 12px; }
 
-        .section-title { font-size: 14px; font-weight: bold; color: #6C1005; margin-bottom: 5px; }
-        .kv td { padding: 1.5px 0; font-size: 11.5px; }
-        .kv .k { width: 112px; }
+        .section-title { font-size: 13px; font-weight: bold; margin-bottom: 6px; }
+        .kv td { padding: 2px 0; font-size: 11.5px; }
+        .kv .k { width: 118px; }
         .kv .c { width: 10px; }
-        .dots { border-bottom: 1px dotted #888; display: inline-block; min-width: 120px; }
+        .dots { border-bottom: 1px dotted #6C1005; display: inline-block; min-width: 120px; }
 
-        .items { width: 100%; margin-top: 12px; border: 2px solid #6C1005; }
-        .items th { border: 1px solid #6C1005; border-bottom: 2px solid #6C1005; padding: 5px 7px; font-size: 12.5px; font-weight: bold; text-align: center; }
-        .items td { border: 1px solid #6C1005; padding: 5px 7px; height: 30px; font-size: 11.5px; }
+        .items { width: 100%; margin-top: 14px; border: 2px solid #6C1005; }
+        .items th { border: 1px solid #6C1005; border-bottom: 2px solid #6C1005; padding: 6px 8px; font-size: 12px; font-weight: bold; text-align: center; }
+        .items td { border: 1px solid #6C1005; padding: 6px 8px; height: 30px; font-size: 11.5px; }
         .items .no { width: 34px; text-align: center; }
         .items .qty { width: 120px; text-align: center; }
         .items .price, .items .total { width: 130px; text-align: right; }
 
-        .bottom { width: 100%; margin-top: 10px; }
+        .bottom { width: 100%; margin-top: 12px; }
         .bottom td { vertical-align: top; }
-        .note-title { font-size: 14px; }
-        .note-line { border-bottom: 1px dotted #888; height: 16px; }
-        .terms { margin-top: 12px; font-size: 9.5px; font-weight: bold; }
+        .note-title { font-size: 13px; font-weight: bold; }
+        .note-line { border-bottom: 1px dotted #6C1005; height: 16px; }
+        .terms { margin-top: 12px; font-size: 10.5px; font-weight: bold; }
         .terms p { margin-bottom: 2px; letter-spacing: 0.2px; }
-        .terms li { margin-left: 14px; margin-bottom: 1px; text-transform: uppercase; }
-        .total-label { font-size: 14px; font-weight: bold; }
-        .total-value { font-size: 14px; font-weight: bold; text-align: right; }
-        .sub td { font-size: 11px; padding: 1px 0; }
+        .terms li { margin-left: 14px; margin-bottom: 2px; text-transform: uppercase; }
+        .total-label { font-size: 13px; font-weight: bold; }
+        .total-value { font-size: 13px; font-weight: bold; text-align: right; }
+        .sub td { font-size: 11.5px; padding: 1px 0; }
         .sign { width: 100%; margin-top: 22px; }
         .sign td { text-align: center; font-size: 11.5px; padding: 0 12px; }
         .sign .line { border-top: 2px solid #6C1005; height: 0; margin-top: 44px; }
-        .box { display: inline-block; width: 11px; height: 11px; border: 1px solid #202020; vertical-align: middle; margin-left: 4px; }
-        .box.on { background: #6C1005; border-color: #6C1005; }
+        .box { display: inline-block; width: 11px; height: 11px; border: 1px solid #6C1005; vertical-align: middle; margin-left: 4px; }
+        .box.on { background: #6C1005; }
     </style>
 </head>
 <body>
@@ -78,9 +77,9 @@
     {{-- Header --}}
     <table class="header">
         <tr>
-            <td style="width: 72px;">
+            <td class="logo-cell">
                 @if($logo)
-                    <img src="{{ $logo }}" style="height: 60px; width: auto;">
+                    <img src="{{ $logo }}" style="height: 56px; width: auto; max-width: 240px;">
                 @else
                     <div style="width: 58px; height: 58px; background: #6C1005; color: #fff; font-weight: bold; font-size: 22px; text-align: center; line-height: 58px;">ZK</div>
                 @endif
