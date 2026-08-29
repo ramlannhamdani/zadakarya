@@ -27,50 +27,56 @@
     <meta charset="utf-8">
     <title>{{ $invoice->invoice_number }}</title>
     <style>
-        @page { margin-top: 36px; margin-right: 44px; margin-bottom: 36px; margin-left: 44px; }
+        @page { margin: 0; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: "Times New Roman", Times, serif; font-size: 12px; color: #6C1005; line-height: 1.35; margin: 0; }
+        body { font-family: "Times New Roman", Times, serif; font-size: 13px; color: #6C1005; line-height: 1.3; margin: 0; }
         /* dompdf mengabaikan @page margin di versi ini -> margin halaman dibuat dari padding wrapper. */
-        .sheet { padding: 30px 42px; }
+        .sheet { padding: 24px 42px; }
         table { border-collapse: collapse; }
         td { vertical-align: top; }
 
         .header { width: 100%; }
         .logo-cell { width: 1%; white-space: nowrap; padding-right: 18px; }
-        .brand { font-size: 17px; font-weight: bold; letter-spacing: 0.4px; }
-        .contact { font-size: 11px; line-height: 1.5; margin-top: 3px; padding-top: 4px; }
+        .brand { font-size: 19px; font-weight: bold; letter-spacing: 0.4px; }
+        .contact { font-size: 12.5px; line-height: 1.45; margin-top: 2px; }
         .contact td { padding: 0 5px 0 0; }
-        .title-box { border: 2px solid #6C1005; padding: 8px 22px; font-size: 22px; font-weight: bold; letter-spacing: 1px; text-align: center; }
-        .meta { font-size: 10.5px; text-align: right; margin-top: 5px; }
-        .rule { border-top: 3px solid #6C1005; margin: 10px 0 12px; }
+        .title-box { border: 2px solid #6C1005; padding: 8px 26px; font-size: 26px; font-weight: bold; letter-spacing: 1px; text-align: center; }
+        .meta { font-size: 12px; text-align: right; margin-top: 4px; }
+        .rule { border-top: 3px solid #6C1005; margin: 8px 0 10px; }
 
-        .section-title { font-size: 13px; font-weight: bold; margin-bottom: 6px; }
-        .kv td { padding: 2px 0; font-size: 11.5px; }
-        .kv .k { width: 118px; }
+        .section-title { font-size: 15px; font-weight: bold; margin-bottom: 4px; }
+        .kv td { padding: 2px 0; font-size: 13px; }
+        .kv .k { width: 128px; }
         .kv .c { width: 10px; }
         .dots { border-bottom: 1px dotted #6C1005; display: inline-block; min-width: 120px; }
 
-        .items { width: 100%; margin-top: 14px; border: 2px solid #6C1005; }
-        .items th { border: 1px solid #6C1005; border-bottom: 2px solid #6C1005; padding: 6px 8px; font-size: 12px; font-weight: bold; text-align: center; }
-        .items td { border: 1px solid #6C1005; padding: 6px 8px; height: 30px; font-size: 11.5px; }
-        .items .no { width: 34px; text-align: center; }
+        .items { width: 100%; margin-top: 12px; border: 2px solid #6C1005; }
+        .items th { border: 1px solid #6C1005; border-bottom: 2px solid #6C1005; padding: 6px 9px; font-size: 13.5px; font-weight: bold; text-align: center; }
+        .items td { border: 1px solid #6C1005; padding: 6px 9px; height: 30px; font-size: 13px; }
+        .items .no { width: 36px; text-align: center; }
         .items .qty { width: 120px; text-align: center; }
-        .items .price, .items .total { width: 130px; text-align: right; }
+        .items .price, .items .total { width: 140px; text-align: right; }
 
-        .bottom { width: 100%; margin-top: 12px; }
+        .bottom { width: 100%; margin-top: 10px; }
         .bottom td { vertical-align: top; }
-        .note-title { font-size: 13px; font-weight: bold; }
-        .note-line { border-bottom: 1px dotted #6C1005; height: 16px; }
-        .terms { margin-top: 12px; font-size: 10.5px; font-weight: bold; }
+        .note-title { font-size: 15px; font-weight: bold; }
+        .note-text { font-size: 12.5px; margin-top: 2px; white-space: pre-line; }
+        .note-line { border-bottom: 1px dotted #6C1005; height: 15px; }
+        .terms { margin-top: 8px; font-size: 12px; font-weight: bold; }
         .terms p { margin-bottom: 2px; letter-spacing: 0.2px; }
         .terms li { margin-left: 14px; margin-bottom: 2px; text-transform: uppercase; }
-        .total-label { font-size: 13px; font-weight: bold; }
-        .total-value { font-size: 13px; font-weight: bold; text-align: right; }
-        .sub td { font-size: 11.5px; padding: 1px 0; }
-        .sign { width: 100%; margin-top: 22px; }
-        .sign td { text-align: center; font-size: 11.5px; padding: 0 12px; }
-        .sign .line { border-top: 2px solid #6C1005; height: 0; margin-top: 44px; }
-        .box { display: inline-block; width: 11px; height: 11px; border: 1px solid #6C1005; vertical-align: middle; margin-left: 4px; }
+
+        .totals { width: 100%; }
+        .totals td { padding: 1px 0; text-align: right; }
+        .totals .lbl { font-size: 13px; }
+        .totals .amt { font-size: 13px; width: 160px; padding-left: 18px; }
+        .totals .total-label { font-size: 16px; font-weight: bold; padding-top: 4px; }
+        .totals .total-value { font-size: 16px; font-weight: bold; width: 160px; padding-left: 18px; padding-top: 4px; }
+
+        .sign { width: 100%; margin-top: 14px; }
+        .sign td { text-align: center; font-size: 13px; padding: 0 12px; }
+        .sign .line { border-top: 2px solid #6C1005; height: 0; margin-top: 40px; }
+        .box { display: inline-block; width: 12px; height: 12px; border: 1px solid #6C1005; vertical-align: middle; margin-left: 4px; }
         .box.on { background: #6C1005; }
     </style>
 </head>
@@ -108,7 +114,7 @@
     {{-- Invoice to / rekening / payment details --}}
     <table style="width: 100%;">
         <tr>
-            <td style="width: 34%;">
+            <td style="width: 36%; padding-right: 10px;">
                 <div class="section-title">INVOICE TO :</div>
                 <table class="kv">
                     <tr><td class="k">Nama</td><td class="c">:</td><td>{{ $customer->name }}</td></tr>
@@ -118,7 +124,7 @@
                     <tr><td class="k">No. Pesanan</td><td class="c">:</td><td>{{ $order->order_number }}</td></tr>
                 </table>
             </td>
-            <td style="width: 33%; padding-top: 22px;">
+            <td style="width: 32%; padding-top: 22px; padding-right: 10px;">
                 <table class="kv">
                     @if($bankLines->isNotEmpty())
                         @foreach($bankLines as $i => $line)
@@ -136,7 +142,7 @@
                     @endif
                 </table>
             </td>
-            <td style="width: 33%;">
+            <td style="width: 32%;">
                 <div class="section-title">PAYMENT DETAILS :</div>
                 <table class="kv">
                     <tr><td class="k">Uang Muka (DP)</td><td class="c">:</td><td>{{ $dp > 0 ? rupiah($dp) : '-' }}</td></tr>
@@ -184,7 +190,7 @@
             <td style="width: 55%; padding-right: 24px;">
                 <div class="note-title">Keterangan Tambahan</div>
                 @if($invoice->notes)
-                    <div style="font-size: 11px; margin-top: 3px; white-space: pre-line;">{{ $invoice->notes }}</div>
+                    <div class="note-text">{{ $invoice->notes }}</div>
                 @else
                     <div class="note-line" style="width: 70%;"></div>
                     <div class="note-line" style="width: 70%;"></div>
@@ -200,16 +206,13 @@
                 </div>
             </td>
             <td style="width: 45%;">
-                <table style="width: 100%;">
+                <table class="totals">
                     @if($invoice->discount > 0 || $invoice->additional_cost > 0)
-                        <tr class="sub"><td>Subtotal</td><td style="text-align: right;">{{ rupiah($invoice->subtotal) }}</td></tr>
-                        @if($invoice->discount > 0)<tr class="sub"><td>Diskon</td><td style="text-align: right;">- {{ rupiah($invoice->discount) }}</td></tr>@endif
-                        @if($invoice->additional_cost > 0)<tr class="sub"><td>{{ $invoice->additional_cost_label ?: 'Biaya Tambahan' }}</td><td style="text-align: right;">+ {{ rupiah($invoice->additional_cost) }}</td></tr>@endif
+                        <tr><td class="lbl">Subtotal :</td><td class="amt">{{ rupiah($invoice->subtotal) }}</td></tr>
+                        @if($invoice->discount > 0)<tr><td class="lbl">Diskon :</td><td class="amt">- {{ rupiah($invoice->discount) }}</td></tr>@endif
+                        @if($invoice->additional_cost > 0)<tr><td class="lbl">{{ $invoice->additional_cost_label ?: 'Biaya Tambahan' }} :</td><td class="amt">+ {{ rupiah($invoice->additional_cost) }}</td></tr>@endif
                     @endif
-                    <tr>
-                        <td class="total-label" style="padding-top: 4px;">TOTAL :</td>
-                        <td class="total-value" style="padding-top: 4px;">{{ rupiah($invoice->grand_total) }}</td>
-                    </tr>
+                    <tr><td class="total-label">TOTAL :</td><td class="total-value">{{ rupiah($invoice->grand_total) }}</td></tr>
                 </table>
                 <table class="sign">
                     <tr>
