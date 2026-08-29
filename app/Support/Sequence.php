@@ -44,8 +44,4 @@ class Sequence
         return sprintf('ZDK-%04d-%s', self::next('order'), now()->format('dmy'));
     }
 
-    public static function invoiceNumber(): string
-    {
-        return sprintf('INV-%04d', self::next('invoice'));
-    }
 }

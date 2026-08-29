@@ -20,7 +20,7 @@ Website company profile + sistem manajemen pesanan & tracking produksi untuk **Z
 - Pesanan: nomor **ZDK-XXXX-HHMMTT** otomatis (inti berurutan + akhiran tanggal-bulan-tahun pembuatan, contoh `ZDK-0012-140226`), multi-item, deadline, file attachment (internal), catatan internal, riwayat aktivitas
 - Tracking 7 tahap: Mulai / Selesaikan / Buka Kembali — tahap berikutnya otomatis berjalan
 - Foto produksi per tahap dengan visibilitas **Internal (default) / Public**
-- Invoice bernomor **sama dengan nomor pesanan** (invoice tambahan: akhiran -2, -3), preview + **download PDF** landscape ber-branding
+- Invoice bernomor **sama dengan nomor pesanan** (invoice tambahan: akhiran -2, -3), preview + **download PDF** landscape ber-branding dengan watermark status **LUNAS / BELUM LUNAS**, nama penandatangan & gambar tanda tangan/stempel dari Pengaturan
 - Pembayaran DP & pelunasan — status Belum Dibayar / DP / Lunas dihitung otomatis
 - CMS: Layanan, Portfolio (+kategori, galeri, thumbnail otomatis), Blog (+kategori, draft/publish), Ulasan Google (disalin admin dari Google Maps), Pengaturan (kontak, logo, link Google Maps, SEO default, info rekening invoice)
 

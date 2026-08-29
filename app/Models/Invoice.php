@@ -53,6 +53,45 @@ class Invoice extends Model
         return $number;
     }
 
+    /**
+     * Selaraskan invoice lama (mis. INV-0004) dengan nomor pesanannya.
+     * Dipanggil sekali oleh migrasi; aman diulang — hanya menyentuh nomor yang belum sesuai.
+     * Mengembalikan jumlah invoice yang diubah.
+     */
+    public static function renumberLegacy(): int
+    {
+        $changed = 0;
+
+        static::with('order')->orderBy('id')->get()->groupBy('order_id')->each(function ($invoices) use (&$changed) {
+            $order = $invoices->first()->order;
+            if (! $order) {
+                return;
+            }
+
+            $base = $order->order_number;
+            $conforms = fn (string $n) => $n === $base || str_starts_with($n, $base.'-');
+            $used = $invoices->pluck('invoice_number')->filter($conforms)->all();
+
+            foreach ($invoices as $invoice) {
+                if ($conforms($invoice->invoice_number)) {
+                    continue;
+                }
+
+                $i = 1;
+                do {
+                    $candidate = $i === 1 ? $base : $base.'-'.$i;
+                    $i++;
+                } while (in_array($candidate, $used, true) || static::where('invoice_number', $candidate)->exists());
+
+                $invoice->update(['invoice_number' => $candidate]);
+                $used[] = $candidate;
+                $changed++;
+            }
+        });
+
+        return $changed;
+    }
+
     public function refreshTotals(): void
     {
         $this->subtotal = (int) $this->items()->sum('total');

@@ -77,17 +77,20 @@
         .totals .total-label { font-size: 18px; font-weight: bold; padding-top: 2px; }
         .totals .total-value { font-size: 18px; font-weight: bold; width: 170px; padding-left: 18px; padding-top: 2px; }
 
-        .sign { width: 100%; margin-top: 6px; }
+        .sign { width: 100%; margin-top: 26px; }
         .sign td { text-align: center; font-size: 14.5px; padding: 0 10px; width: 50%; }
         .sign .space { height: 64px; vertical-align: bottom; }
         .sign .space img { height: 58px; width: auto; }
         .sign .line { border-top: 2px solid #6C1005; height: 0; margin-bottom: 3px; }
         .sign .name { font-size: 13.5px; }
-        .box { display: inline-block; width: 13px; height: 13px; border: 1px solid #6C1005; vertical-align: middle; margin-left: 4px; }
-        .box.on { background: #6C1005; }
+        /* Watermark status pembayaran: anak pertama <body> + z-index -1 -> dirender paling awal (di belakang konten). */
+        .watermark { position: absolute; z-index: -1; left: 0; width: 100%; text-align: center; font-weight: bold; color: #6C1005; opacity: 0.08; letter-spacing: 6px; transform: rotate(-18deg); }
+        .watermark.paid { top: 290px; font-size: 170px; }
+        .watermark.unpaid { top: 310px; font-size: 118px; }
     </style>
 </head>
 <body>
+<div class="watermark {{ $isPaid ? 'paid' : 'unpaid' }}">{{ $isPaid ? 'LUNAS' : 'BELUM LUNAS' }}</div>
 <div class="sheet">
 
     {{-- Header --}}
@@ -158,10 +161,6 @@
                     <tr><td class="k">Pelunasan</td><td class="c">:</td><td>{{ rupiah($settlement) }}</td></tr>
                     <tr><td class="k">Terbayar</td><td class="c">:</td><td>{{ rupiah($order->amount_paid) }}</td></tr>
                     <tr><td class="k">Sisa Tagihan</td><td class="c">:</td><td>{{ rupiah($order->remaining) }}</td></tr>
-                    <tr>
-                        <td class="k">Status</td><td class="c">:</td>
-                        <td>Lunas <span class="box{{ $isPaid ? ' on' : '' }}"></span> &nbsp;&nbsp; Belum Lunas <span class="box{{ $isPaid ? '' : ' on' }}"></span></td>
-                    </tr>
                 </table>
             </td>
         </tr>

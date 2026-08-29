@@ -169,6 +169,29 @@ class OrderFlowTest extends TestCase
         $this->assertSame(8500000, \App\Models\Invoice::where('invoice_number', $n.'-2')->first()->grand_total);
     }
 
+    public function test_legacy_invoice_numbers_are_aligned_to_the_order_number(): void
+    {
+        $order = $this->createOrder(['create_invoice' => 0]);
+        $order->invoices()->create(['invoice_number' => 'INV-0004', 'date' => now()->toDateString()]);
+        $order->invoices()->create(['invoice_number' => 'INV-0005', 'date' => now()->toDateString()]);
+
+        $this->assertSame(2, \App\Models\Invoice::renumberLegacy());
+        $this->assertSame(0, \App\Models\Invoice::renumberLegacy()); // idempoten
+
+        $n = $order->order_number;
+        $this->assertSame([$n, $n.'-2'], $order->invoices()->orderBy('id')->pluck('invoice_number')->all());
+    }
+
+    public function test_invoice_pdf_shows_payment_status_as_watermark(): void
+    {
+        $order = $this->createOrder();
+        $invoice = $order->invoices()->first()->load(['order.customer', 'order.payments', 'items']);
+
+        $html = view('admin.invoices.pdf', compact('invoice'))->render();
+        $this->assertStringContainsString('class="watermark unpaid">BELUM LUNAS<', $html);
+        $this->assertStringNotContainsString('>Status<', $html);
+    }
+
     public function test_invoice_pdf_downloads(): void
     {
         $order = $this->createOrder();
