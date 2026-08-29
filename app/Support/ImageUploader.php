@@ -78,6 +78,46 @@ class ImageUploader
         return [$path, $thumbPath];
     }
 
+    /**
+     * Apakah gambar punya area transparan di tepinya (ciri foto "potongan"/cut-out).
+     * Dipakai untuk memilih gaya tampilan foto hero secara otomatis.
+     */
+    public static function hasTransparentEdges(string $absolutePath): bool
+    {
+        if (! extension_loaded('gd') || ! is_file($absolutePath)) {
+            return false;
+        }
+
+        $mime = @getimagesize($absolutePath)['mime'] ?? '';
+
+        $image = match ($mime) {
+            'image/png' => function_exists('imagecreatefrompng') ? @imagecreatefrompng($absolutePath) : null,
+            'image/webp' => function_exists('imagecreatefromwebp') ? @imagecreatefromwebp($absolutePath) : null,
+            default => null,
+        };
+
+        if (! $image) {
+            return false;
+        }
+
+        $w = imagesx($image) - 1;
+        $h = imagesy($image) - 1;
+        $points = [[0, 0], [$w, 0], [0, $h], [$w, $h], [intdiv($w, 2), 0]];
+        $transparent = false;
+
+        foreach ($points as [$x, $y]) {
+            // Bit 24-30 pada warna GD = alpha (0 = opak, 127 = transparan penuh).
+            if (((imagecolorat($image, $x, $y) >> 24) & 0x7F) > 100) {
+                $transparent = true;
+                break;
+            }
+        }
+
+        imagedestroy($image);
+
+        return $transparent;
+    }
+
     public static function delete(?string $path, string $disk = 'public'): void
     {
         if ($path && Storage::disk($disk)->exists($path)) {

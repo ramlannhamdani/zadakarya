@@ -77,8 +77,9 @@
         </div>
 
         {{-- ---------- Kolom visual ---------- --}}
+        @php $framed = ! ($hero['image'] && $hero['style'] === 'cutout'); @endphp
         <div class="hero-visual">
-            <div class="hero-stage">
+            <div class="hero-stage {{ $framed ? 'hero-stage--framed' : '' }}">
                 {{-- Bidang maroon abstrak + gema garis --}}
                 <svg class="hero-backdrop" viewBox="0 0 520 560" preserveAspectRatio="none" aria-hidden="true" focusable="false">
                     <defs>
@@ -92,11 +93,19 @@
                 </svg>
 
                 {{-- Foto: upload admin > cover portfolio > ilustrasi --}}
-                @if($hero['image'])
+                @if($hero['image'] && $hero['style'] === 'cutout')
                     <div class="hero-photo-wrap">
                         <img src="{{ asset('storage/'.$hero['image']) }}"
                              alt="Model mengenakan hasil produksi {{ setting('company_name', 'Zada Karya Production') }}"
                              fetchpriority="high" decoding="async" class="hero-photo">
+                    </div>
+                @elseif($hero['image'])
+                    <div class="hero-photo-wrap hero-photo-wrap--framed">
+                        <span class="hero-photo-frame">
+                            <img src="{{ asset('storage/'.$hero['image']) }}"
+                                 alt="Hasil produksi {{ setting('company_name', 'Zada Karya Production') }}"
+                                 fetchpriority="high" decoding="async" class="hero-photo-framed">
+                        </span>
                     </div>
                 @elseif($hero['portfolio'])
                     <div class="hero-photo-wrap hero-photo-wrap--framed">
@@ -199,16 +208,6 @@
 </section>
 @endif
 
-{{-- Klien / Dipercaya oleh --}}
-@if($clients->isNotEmpty())
-<section class="border-b border-line bg-white">
-    <div class="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8" data-reveal>
-        <p class="text-center text-xs font-bold uppercase tracking-widest text-neutral-500">Dipercaya oleh</p>
-        <x-client-marquee :clients="$clients" class="mt-6" />
-    </div>
-</section>
-@endif
-
 {{-- Layanan Unggulan --}}<section class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
     <div class="flex flex-wrap items-end justify-between gap-4" data-reveal>
         <div>
@@ -291,9 +290,20 @@
 </section>
 @endif
 
+{{-- Klien / Dipercaya oleh — ditaruh di blok bukti sosial (setelah Portfolio,
+     sebelum Testimoni) supaya tidak berdempetan dengan bar statistik hero. --}}
+@if($clients->isNotEmpty())
+<section class="border-t border-line bg-white">
+    <div class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8" data-reveal>
+        <p class="text-center text-xs font-bold uppercase tracking-widest text-neutral-500">Dipercaya oleh</p>
+        <x-client-marquee :clients="$clients" class="mt-7" />
+    </div>
+</section>
+@endif
+
 {{-- Testimoni --}}
 @if($reviews->isNotEmpty())
-<section id="testimoni" class="scroll-mt-28 border-b border-line bg-white">
+<section id="testimoni" class="scroll-mt-28 border-b border-line bg-cream">
     <div class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20" data-reveal>
         <x-review-carousel :reviews="$reviews" />
     </div>

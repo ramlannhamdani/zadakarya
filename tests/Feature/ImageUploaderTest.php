@@ -30,6 +30,34 @@ class ImageUploaderTest extends TestCase
         $this->assertLessThanOrEqual(480, $thumbWidth);
     }
 
+    public function test_transparent_edges_are_detected_for_cutout_images(): void
+    {
+        $dir = sys_get_temp_dir().'/zdk-alpha-test';
+        @mkdir($dir, 0777, true);
+
+        // PNG dengan sudut transparan (ciri foto potongan).
+        $cutout = imagecreatetruecolor(60, 60);
+        imagesavealpha($cutout, true);
+        imagefill($cutout, 0, 0, imagecolorallocatealpha($cutout, 0, 0, 0, 127));
+        imagefilledellipse($cutout, 30, 30, 30, 30, imagecolorallocate($cutout, 120, 20, 10));
+        imagepng($cutout, $dir.'/cutout.png');
+        imagedestroy($cutout);
+
+        // PNG opak penuh (foto biasa).
+        $solid = imagecreatetruecolor(60, 60);
+        imagefill($solid, 0, 0, imagecolorallocate($solid, 200, 200, 200));
+        imagepng($solid, $dir.'/solid.png');
+        imagedestroy($solid);
+
+        $this->assertTrue(ImageUploader::hasTransparentEdges($dir.'/cutout.png'));
+        $this->assertFalse(ImageUploader::hasTransparentEdges($dir.'/solid.png'));
+        $this->assertFalse(ImageUploader::hasTransparentEdges($dir.'/tidak-ada.png'));
+
+        @unlink($dir.'/cutout.png');
+        @unlink($dir.'/solid.png');
+        @rmdir($dir);
+    }
+
     public function test_store_works_on_private_disk_for_production_photos(): void
     {
         Storage::fake('local');

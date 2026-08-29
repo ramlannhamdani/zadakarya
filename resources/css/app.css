@@ -268,3 +268,25 @@
     .hero-cards > li:nth-child(2),
     .js .hero-cards > li:nth-child(2).is-visible { transform: translateX(-12px); }
 }
+
+/* Gaya "dibingkai": foto produk biasa (bukan potongan latar transparan).
+   Bidang maroon dibuat lebih landscape agar tetap terlihat di belakang foto. */
+.hero-stage--framed .hero-backdrop,
+.hero-photo-wrap--framed { width: min(300px, 88%); height: 250px; }
+.hero-photo-frame { width: 88%; height: 88%; }
+
+@media (min-width: 640px) and (max-width: 1023px) {
+    .hero-stage--framed { grid-template-rows: 360px auto auto; }
+    .hero-stage--framed .hero-backdrop,
+    .hero-photo-wrap--framed { width: 430px; height: 330px; }
+}
+
+@media (min-width: 1024px) {
+    .hero-stage--framed .hero-backdrop,
+    .hero-photo-wrap--framed { width: 430px; height: 340px; margin-bottom: 90px; }
+}
+
+@media (min-width: 1280px) {
+    .hero-stage--framed .hero-backdrop,
+    .hero-photo-wrap--framed { width: 520px; height: 400px; margin-left: 1rem; margin-bottom: 96px; }
+}

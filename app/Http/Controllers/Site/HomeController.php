@@ -51,6 +51,10 @@ class HomeController extends Controller
                 ->get()
                 ->first(fn ($portfolio) => is_file(storage_path('app/public/'.$portfolio->cover_image)));
 
+        // Foto potongan (latar transparan) berdiri di atas bidang maroon;
+        // foto biasa ditampilkan sebagai kartu berbingkai miring.
+        $heroStyle = setting('hero_image_style') === 'cutout' ? 'cutout' : 'framed';
+
         return view('site.home', [
             'services' => $services,
             'panelServices' => $services->take(5),
@@ -71,6 +75,7 @@ class HomeController extends Controller
                 'rating_text' => $ratingText ?: HeroDefaults::RATING_TEXT,
                 'rating_subtext' => HeroDefaults::RATING_SUBTEXT,
                 'image' => $heroImage,
+                'style' => $heroStyle,
                 'portfolio' => $heroPortfolio,
                 'avatars' => array_values($avatars),
             ],

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Setting;
 use App\Support\ImageUploader;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class SettingController extends Controller
@@ -15,7 +16,7 @@ class SettingController extends Controller
         'instagram', 'facebook', 'tiktok', 'google_maps_url', 'footer_text',
         'seo_title', 'seo_description',
         'invoice_company_name', 'invoice_address', 'invoice_bank_info', 'invoice_terms', 'invoice_signer',
-        'hero_badge', 'hero_title', 'hero_title_accent', 'hero_text', 'hero_rating_text', 'hero_stats',
+        'hero_badge', 'hero_title', 'hero_title_accent', 'hero_text', 'hero_rating_text', 'hero_stats', 'hero_image_style',
         'analytics_id', 'show_ongoing',
     ];
 
@@ -57,6 +58,7 @@ class SettingController extends Controller
             'hero_stats' => ['nullable', 'string', 'max:1000'],
             'hero_image' => ['nullable', 'image', 'mimes:png,webp,jpg,jpeg', 'max:4096'],
             'hero_image_pick' => ['nullable', 'integer', 'exists:gallery_items,id'],
+            'hero_image_style' => ['nullable', 'in:cutout,framed'],
             'analytics_id' => ['nullable', 'string', 'max:50'],
             'show_ongoing' => ['nullable', 'in:0,1'],
             'logo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
@@ -120,9 +122,11 @@ class SettingController extends Controller
             }
 
             Setting::set('hero_image', $path);
+            $this->detectHeroStyle($path);
         } elseif ($request->filled('hero_image_pick') && ($res = ImageUploader::fromGalleryId($request->input('hero_image_pick'), 'hero', 'public', 1400, 480))) {
             ImageUploader::delete(Setting::get('hero_image'));
             Setting::set('hero_image', $res[0]);
+            $this->detectHeroStyle($res[0]);
         }
 
         if ($request->hasFile('favicon')) {
@@ -138,5 +142,18 @@ class SettingController extends Controller
         }
 
         return back()->with('success', 'Pengaturan disimpan.');
+    }
+
+    /**
+     * Gambar baru menentukan gaya tampilnya: latar transparan = potongan model
+     * yang berdiri di atas bidang maroon, selain itu ditampilkan sebagai foto
+     * berbingkai. Admin tetap bisa mengubahnya lewat pilihan di form.
+     */
+    private function detectHeroStyle(string $path): void
+    {
+        Setting::set(
+            'hero_image_style',
+            ImageUploader::hasTransparentEdges(Storage::disk('public')->path($path)) ? 'cutout' : 'framed'
+        );
     }
 }

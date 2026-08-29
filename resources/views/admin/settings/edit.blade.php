@@ -18,7 +18,7 @@
     $tabFields = [
         'perusahaan' => ['company_name', 'tagline', 'whatsapp', 'email', 'address', 'city'],
         'branding' => ['logo', 'logo_light', 'favicon', 'workshop_photo_1', 'workshop_photo_2', 'workshop_photo_3'],
-        'beranda' => ['hero_image', 'hero_badge', 'hero_title', 'hero_title_accent', 'hero_text', 'hero_rating_text', 'hero_stats'],
+        'beranda' => ['hero_image', 'hero_image_style', 'hero_badge', 'hero_title', 'hero_title_accent', 'hero_text', 'hero_rating_text', 'hero_stats'],
         'sosial' => ['instagram', 'facebook', 'tiktok', 'google_maps_url', 'footer_text'],
         'seo' => ['seo_title', 'seo_description', 'analytics_id'],
         'tracking' => ['show_ongoing'],
@@ -166,7 +166,15 @@
                             </span>
                         @endif
                         <x-admin.media-picker name="hero_image" />
-                        <p class="mt-1 text-xs text-neutral-500">PNG/WebP <strong>latar transparan</strong> (foto model dipotong, bagian bawah rata), tinggi minimal 1000 px, maks 4 MB. Kosong = memakai cover portfolio terbaru, lalu ilustrasi bawaan.</p>
+                        <p class="mt-1 text-xs text-neutral-500">Ambil dari <strong>Galeri</strong> atau upload baru, maks 4 MB. Kosong = memakai cover portfolio terbaru, lalu ilustrasi bawaan.</p>
+                    </div>
+                    <div>
+                        <label class="form-label" for="hero_image_style">Gaya Tampilan Foto</label>
+                        <select class="form-input" id="hero_image_style" name="hero_image_style">
+                            <option value="framed" @selected(($settings['hero_image_style'] ?? 'framed') !== 'cutout')>Foto dibingkai — foto produk biasa, tampil miring di atas bidang maroon</option>
+                            <option value="cutout" @selected(($settings['hero_image_style'] ?? '') === 'cutout')>Potongan model — PNG latar transparan, berdiri di atas bidang maroon</option>
+                        </select>
+                        <p class="mt-1 text-xs text-neutral-500">Terisi otomatis saat memilih gambar baru (terdeteksi dari transparansi); ubah di sini kalau hasilnya kurang pas.</p>
                     </div>
                     <div>
                         <label class="form-label" for="hero_badge">Badge (label kecil di atas judul)</label>
