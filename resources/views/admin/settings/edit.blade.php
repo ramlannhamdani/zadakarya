@@ -155,7 +155,21 @@
                 <textarea class="form-input" id="invoice_terms" name="invoice_terms" rows="3" placeholder="Barang yang sudah dipesan tidak bisa dibatalkan&#10;Pelunasan wajib dilakukan sebelum pengambilan barang">{{ old('invoice_terms', $settings['invoice_terms'] ?? '') }}</textarea>
                 <p class="mt-1 text-xs text-neutral-500">Satu baris = satu poin. Kosongkan untuk memakai ketentuan bawaan.</p>
             </div>
-        </div>
+            <div>
+                <label class="form-label" for="invoice_signer">Nama Penandatangan ("Hormat kami")</label>
+                <input class="form-input" type="text" id="invoice_signer" name="invoice_signer" value="{{ old('invoice_signer', $settings['invoice_signer'] ?? '') }}" placeholder="Contoh: Hilmi Rifai — Zada Karya Production">
+                <p class="mt-1 text-xs text-neutral-500">Tampil di bawah garis tanda tangan. Kosong = nama perusahaan.</p>
+            </div>
+            <div>
+                <label class="form-label">Gambar Tanda Tangan / Stempel (opsional)</label>
+                @if(!empty($settings['invoice_signature']))
+                    <span class="mb-2 inline-flex h-20 items-center rounded-lg bg-cream px-4">
+                        <img src="{{ asset('storage/'.$settings['invoice_signature']) }}" alt="Tanda tangan" class="max-h-16 w-auto object-contain">
+                    </span>
+                @endif
+                <x-admin.media-picker name="invoice_signature" />
+                <p class="mt-1 text-xs text-neutral-500">PNG/WebP latar transparan. Otomatis dipasang di kolom "Hormat kami" pada setiap PDF invoice.</p>
+            </div>        </div>
     </div>
 
     <button type="submit" class="btn-primary mt-6">Simpan Pengaturan</button>

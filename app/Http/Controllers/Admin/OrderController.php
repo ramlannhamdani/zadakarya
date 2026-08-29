@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Customer;
+use App\Models\Invoice;
 use App\Models\Order;
 use App\Models\Payment;
 use App\Support\Sequence;
@@ -75,7 +76,7 @@ class OrderController extends Controller
             $invoice = null;
             if ($data['create_invoice']) {
                 $invoice = $order->invoices()->create([
-                    'invoice_number' => Sequence::invoiceNumber(),
+                    'invoice_number' => Invoice::nextNumberFor($order),
                     'date' => now()->toDateString(),
                     'due_date' => $data['deadline'] ?? null,
                 ]);

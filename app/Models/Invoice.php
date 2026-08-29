@@ -36,6 +36,23 @@ class Invoice extends Model
         return $this->hasMany(Payment::class);
     }
 
+    /**
+     * Nomor invoice mengikuti nomor pesanan (ZDK-XXXX-HHMMTT).
+     * Invoice kedua dan seterusnya untuk pesanan yang sama diberi akhiran -2, -3, ...
+     */
+    public static function nextNumberFor(Order $order): string
+    {
+        $count = static::where('order_id', $order->id)->count();
+        $number = $count === 0 ? $order->order_number : $order->order_number.'-'.($count + 1);
+
+        while (static::where('invoice_number', $number)->exists()) {
+            $count++;
+            $number = $order->order_number.'-'.($count + 1);
+        }
+
+        return $number;
+    }
+
     public function refreshTotals(): void
     {
         $this->subtotal = (int) $this->items()->sum('total');

@@ -5,6 +5,10 @@
     $logoFile = setting('logo') ? storage_path('app/public/'.setting('logo')) : null;
     $logo = ($logoFile && file_exists($logoFile)) ? $logoFile : null;
 
+    $signFile = setting('invoice_signature') ? storage_path('app/public/'.setting('invoice_signature')) : null;
+    $signature = ($signFile && file_exists($signFile)) ? $signFile : null;
+    $signer = setting('invoice_signer') ?: setting('invoice_company_name', setting('company_name', 'Zada Karya Production'));
+
     $instagram = setting('instagram');
     $igHandle = $instagram ? '@'.trim(basename(rtrim($instagram, '/')), '@') : null;
 
@@ -29,54 +33,57 @@
     <style>
         @page { margin: 0; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: "Times New Roman", Times, serif; font-size: 13px; color: #6C1005; line-height: 1.3; margin: 0; }
+        body { font-family: "Times New Roman", Times, serif; font-size: 14.5px; color: #6C1005; line-height: 1.28; margin: 0; }
         /* dompdf mengabaikan @page margin di versi ini -> margin halaman dibuat dari padding wrapper. */
-        .sheet { padding: 24px 42px; }
+        .sheet { padding: 20px 40px; }
         table { border-collapse: collapse; }
         td { vertical-align: top; }
 
         .header { width: 100%; }
         .logo-cell { width: 1%; white-space: nowrap; padding-right: 18px; }
-        .brand { font-size: 19px; font-weight: bold; letter-spacing: 0.4px; }
-        .contact { font-size: 12.5px; line-height: 1.45; margin-top: 2px; }
-        .contact td { padding: 0 5px 0 0; }
-        .title-box { border: 2px solid #6C1005; padding: 8px 26px; font-size: 26px; font-weight: bold; letter-spacing: 1px; text-align: center; }
-        .meta { font-size: 12px; text-align: right; margin-top: 4px; }
-        .rule { border-top: 3px solid #6C1005; margin: 8px 0 10px; }
+        .brand { font-size: 20px; font-weight: bold; letter-spacing: 0.4px; }
+        .contact { font-size: 14px; line-height: 1.4; margin-top: 2px; }
+        .contact td { padding: 0 6px 0 0; }
+        .title-box { border: 2px solid #6C1005; padding: 8px 28px; font-size: 28px; font-weight: bold; letter-spacing: 1px; text-align: center; }
+        .meta { font-size: 13px; text-align: right; margin-top: 4px; }
+        .rule { border-top: 3px solid #6C1005; margin: 8px 0 8px; }
 
-        .section-title { font-size: 15px; font-weight: bold; margin-bottom: 4px; }
-        .kv td { padding: 2px 0; font-size: 13px; }
-        .kv .k { width: 128px; }
-        .kv .c { width: 10px; }
+        .section-title { font-size: 16.5px; font-weight: bold; margin-bottom: 3px; }
+        .kv td { padding: 1.5px 0; font-size: 14.5px; }
+        .kv .k { width: 126px; }
+        .kv .c { width: 11px; }
         .dots { border-bottom: 1px dotted #6C1005; display: inline-block; min-width: 120px; }
 
-        .items { width: 100%; margin-top: 12px; border: 2px solid #6C1005; }
-        .items th { border: 1px solid #6C1005; border-bottom: 2px solid #6C1005; padding: 6px 9px; font-size: 13.5px; font-weight: bold; text-align: center; }
-        .items td { border: 1px solid #6C1005; padding: 6px 9px; height: 30px; font-size: 13px; }
-        .items .no { width: 36px; text-align: center; }
-        .items .qty { width: 120px; text-align: center; }
-        .items .price, .items .total { width: 140px; text-align: right; }
+        .items { width: 100%; margin-top: 10px; border: 2px solid #6C1005; }
+        .items th { border: 1px solid #6C1005; border-bottom: 2px solid #6C1005; padding: 6px 9px; font-size: 15px; font-weight: bold; text-align: center; }
+        .items td { border: 1px solid #6C1005; padding: 5px 9px; height: 29px; font-size: 14.5px; }
+        .items .no { width: 40px; text-align: center; }
+        .items .qty { width: 125px; text-align: center; }
+        .items .price, .items .total { width: 150px; text-align: right; }
 
-        .bottom { width: 100%; margin-top: 10px; }
+        .bottom { width: 100%; margin-top: 8px; }
         .bottom td { vertical-align: top; }
-        .note-title { font-size: 15px; font-weight: bold; }
-        .note-text { font-size: 12.5px; margin-top: 2px; white-space: pre-line; }
+        .note-title { font-size: 16.5px; font-weight: bold; }
+        .note-text { font-size: 14px; margin-top: 2px; white-space: pre-line; }
         .note-line { border-bottom: 1px dotted #6C1005; height: 15px; }
-        .terms { margin-top: 8px; font-size: 12px; font-weight: bold; }
-        .terms p { margin-bottom: 2px; letter-spacing: 0.2px; }
-        .terms li { margin-left: 14px; margin-bottom: 2px; text-transform: uppercase; }
+        .terms { margin-top: 6px; font-size: 13px; font-weight: bold; }
+        .terms p { margin-bottom: 1px; letter-spacing: 0.2px; }
+        .terms li { margin-left: 14px; margin-bottom: 1px; text-transform: uppercase; }
 
         .totals { width: 100%; }
         .totals td { padding: 1px 0; text-align: right; }
-        .totals .lbl { font-size: 13px; }
-        .totals .amt { font-size: 13px; width: 160px; padding-left: 18px; }
-        .totals .total-label { font-size: 16px; font-weight: bold; padding-top: 4px; }
-        .totals .total-value { font-size: 16px; font-weight: bold; width: 160px; padding-left: 18px; padding-top: 4px; }
+        .totals .lbl { font-size: 14.5px; }
+        .totals .amt { font-size: 14.5px; width: 170px; padding-left: 18px; }
+        .totals .total-label { font-size: 18px; font-weight: bold; padding-top: 2px; }
+        .totals .total-value { font-size: 18px; font-weight: bold; width: 170px; padding-left: 18px; padding-top: 2px; }
 
-        .sign { width: 100%; margin-top: 14px; }
-        .sign td { text-align: center; font-size: 13px; padding: 0 12px; }
-        .sign .line { border-top: 2px solid #6C1005; height: 0; margin-top: 40px; }
-        .box { display: inline-block; width: 12px; height: 12px; border: 1px solid #6C1005; vertical-align: middle; margin-left: 4px; }
+        .sign { width: 100%; margin-top: 6px; }
+        .sign td { text-align: center; font-size: 14.5px; padding: 0 10px; width: 50%; }
+        .sign .space { height: 64px; vertical-align: bottom; }
+        .sign .space img { height: 58px; width: auto; }
+        .sign .line { border-top: 2px solid #6C1005; height: 0; margin-bottom: 3px; }
+        .sign .name { font-size: 13.5px; }
+        .box { display: inline-block; width: 13px; height: 13px; border: 1px solid #6C1005; vertical-align: middle; margin-left: 4px; }
         .box.on { background: #6C1005; }
     </style>
 </head>
@@ -103,9 +110,12 @@
                     <tr><td>EMAIL</td><td>:</td><td>{{ setting('email') }}</td></tr>
                 </table>
             </td>
-            <td style="width: 190px; text-align: right;">
+            <td style="width: 210px; text-align: right;">
                 <div class="title-box">INVOICE</div>
-                <div class="meta">No. {{ $invoice->invoice_number }} &nbsp;|&nbsp; {{ $invoice->date->translatedFormat('d F Y') }}</div>
+                <div class="meta">
+                    No. {{ $invoice->invoice_number }} &nbsp;|&nbsp; {{ $invoice->date->translatedFormat('d F Y') }}
+                    @if($invoice->invoice_number !== $order->order_number)<br>Pesanan {{ $order->order_number }}@endif
+                </div>
             </td>
         </tr>
     </table>
@@ -114,17 +124,16 @@
     {{-- Invoice to / rekening / payment details --}}
     <table style="width: 100%;">
         <tr>
-            <td style="width: 36%; padding-right: 10px;">
+            <td style="width: 37%; padding-right: 12px;">
                 <div class="section-title">INVOICE TO :</div>
                 <table class="kv">
                     <tr><td class="k">Nama</td><td class="c">:</td><td>{{ $customer->name }}</td></tr>
                     <tr><td class="k">Alamat/ Instansi</td><td class="c">:</td><td>{{ $customer->company ?: '' }}{{ $customer->company && $customer->address ? ', ' : '' }}{{ $customer->address ?: ($customer->company ? '' : '-') }}</td></tr>
                     <tr><td class="k">No Telepon/ WA</td><td class="c">:</td><td>{{ $customer->whatsapp ?: '-' }}</td></tr>
                     <tr><td class="k">Tanggal Pemesanan</td><td class="c">:</td><td>{{ $order->created_at->translatedFormat('d F Y') }}</td></tr>
-                    <tr><td class="k">No. Pesanan</td><td class="c">:</td><td>{{ $order->order_number }}</td></tr>
                 </table>
             </td>
-            <td style="width: 32%; padding-top: 22px; padding-right: 10px;">
+            <td style="width: 31%; padding-top: 22px; padding-right: 12px;">
                 <table class="kv">
                     @if($bankLines->isNotEmpty())
                         @foreach($bankLines as $i => $line)
@@ -147,7 +156,8 @@
                 <table class="kv">
                     <tr><td class="k">Uang Muka (DP)</td><td class="c">:</td><td>{{ $dp > 0 ? rupiah($dp) : '-' }}</td></tr>
                     <tr><td class="k">Pelunasan</td><td class="c">:</td><td>{{ rupiah($settlement) }}</td></tr>
-                    <tr><td class="k">Terbayar</td><td class="c">:</td><td>{{ rupiah($order->amount_paid) }} &nbsp;(sisa {{ rupiah($order->remaining) }})</td></tr>
+                    <tr><td class="k">Terbayar</td><td class="c">:</td><td>{{ rupiah($order->amount_paid) }}</td></tr>
+                    <tr><td class="k">Sisa Tagihan</td><td class="c">:</td><td>{{ rupiah($order->remaining) }}</td></tr>
                     <tr>
                         <td class="k">Status</td><td class="c">:</td>
                         <td>Lunas <span class="box{{ $isPaid ? ' on' : '' }}"></span> &nbsp;&nbsp; Belum Lunas <span class="box{{ $isPaid ? '' : ' on' }}"></span></td>
@@ -214,15 +224,25 @@
                     @endif
                     <tr><td class="total-label">TOTAL :</td><td class="total-value">{{ rupiah($invoice->grand_total) }}</td></tr>
                 </table>
+
                 <table class="sign">
                     <tr>
-                        <td style="width: 50%;">Customer<div class="line"></div></td>
-                        <td style="width: 50%;">Hormat kami<div class="line"></div></td>
+                        <td>Customer,</td>
+                        <td>Hormat kami,</td>
+                    </tr>
+                    <tr>
+                        <td class="space"></td>
+                        <td class="space">@if($signature)<img src="{{ $signature }}">@endif</td>
+                    </tr>
+                    <tr>
+                        <td><div class="line"></div><span class="name">{{ $customer->name }}</span></td>
+                        <td><div class="line"></div><span class="name">{{ $signer }}</span></td>
                     </tr>
                 </table>
             </td>
         </tr>
     </table>
+
 </div>
 </body>
 </html>

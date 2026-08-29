@@ -48,7 +48,7 @@ class InvoiceController extends Controller
 
         $invoice = DB::transaction(function () use ($data) {
             $invoice = Invoice::create([
-                'invoice_number' => Sequence::invoiceNumber(),
+                'invoice_number' => Invoice::nextNumberFor(Order::findOrFail($data['order_id'])),
                 'order_id' => $data['order_id'],
                 'date' => $data['date'],
                 'due_date' => $data['due_date'] ?? null,

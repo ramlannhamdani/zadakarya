@@ -20,7 +20,7 @@ Website company profile + sistem manajemen pesanan & tracking produksi untuk **Z
 - Pesanan: nomor **ZDK-XXXX-HHMMTT** otomatis (inti berurutan + akhiran tanggal-bulan-tahun pembuatan, contoh `ZDK-0012-140226`), multi-item, deadline, file attachment (internal), catatan internal, riwayat aktivitas
 - Tracking 7 tahap: Mulai / Selesaikan / Buka Kembali — tahap berikutnya otomatis berjalan
 - Foto produksi per tahap dengan visibilitas **Internal (default) / Public**
-- Invoice **INV-0001** sequential, terpisah dari nomor order, preview + **download PDF**
+- Invoice bernomor **sama dengan nomor pesanan** (invoice tambahan: akhiran -2, -3), preview + **download PDF** landscape ber-branding
 - Pembayaran DP & pelunasan — status Belum Dibayar / DP / Lunas dihitung otomatis
 - CMS: Layanan, Portfolio (+kategori, galeri, thumbnail otomatis), Blog (+kategori, draft/publish), Ulasan Google (disalin admin dari Google Maps), Pengaturan (kontak, logo, link Google Maps, SEO default, info rekening invoice)
 
@@ -80,7 +80,7 @@ php artisan test
 
 - Order hanya dibuat admin setelah deal via WhatsApp — tidak ada checkout customer.
 - Nomor order `ZDK-XXXX-HHMMTT` otomatis (inti sequential + akhiran tanggal-bulan-tahun, mis. 14 Feb 2026 → `140226`), tidak bisa diketik manual, dipakai sebagai nomor tracking.
-- Nomor invoice `INV-0001` terpisah dari nomor order.
+- Nomor invoice mengikuti nomor pesanan (`ZDK-0012-140226`); invoice tambahan untuk pesanan yang sama diberi akhiran `-2`, `-3`.
 - Tracking publik tepat 7 tahap dan tidak pernah menampilkan data sensitif (catatan internal, file internal, foto internal, margin).
 - Foto produksi default **Internal**; admin harus eksplisit menjadikannya Public.
 

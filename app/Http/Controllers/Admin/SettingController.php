@@ -14,7 +14,7 @@ class SettingController extends Controller
         'company_name', 'tagline', 'whatsapp', 'email', 'address', 'city',
         'instagram', 'facebook', 'tiktok', 'google_maps_url', 'footer_text',
         'seo_title', 'seo_description',
-        'invoice_company_name', 'invoice_address', 'invoice_bank_info', 'invoice_terms',
+        'invoice_company_name', 'invoice_address', 'invoice_bank_info', 'invoice_terms', 'invoice_signer',
         'analytics_id', 'show_ongoing',
     ];
 
@@ -45,6 +45,9 @@ class SettingController extends Controller
             'invoice_address' => ['nullable', 'string', 'max:500'],
             'invoice_bank_info' => ['nullable', 'string', 'max:1000'],
             'invoice_terms' => ['nullable', 'string', 'max:2000'],
+            'invoice_signer' => ['nullable', 'string', 'max:150'],
+            'invoice_signature' => ['nullable', 'image', 'mimes:png,webp', 'max:1024'],
+            'invoice_signature_pick' => ['nullable', 'integer', 'exists:gallery_items,id'],
             'analytics_id' => ['nullable', 'string', 'max:50'],
             'show_ongoing' => ['nullable', 'in:0,1'],
             'logo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
@@ -66,7 +69,7 @@ class SettingController extends Controller
             }
         }
 
-        foreach (['logo', 'logo_light'] as $key) {
+        foreach (['logo', 'logo_light', 'invoice_signature'] as $key) {
             if ($request->hasFile($key)) {
                 ImageUploader::delete(Setting::get($key));
                 [$path] = ImageUploader::store($request->file($key), 'branding', 'public', 600, 200);

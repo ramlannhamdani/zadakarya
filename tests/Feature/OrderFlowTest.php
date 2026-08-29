@@ -133,7 +133,7 @@ class OrderFlowTest extends TestCase
         $invoice = $order->invoices()->first();
 
         $this->assertNotNull($invoice);
-        $this->assertSame('INV-0001', $invoice->invoice_number);
+        $this->assertSame($order->order_number, $invoice->invoice_number); // nomor invoice = nomor pesanan
         $this->assertSame(1, $invoice->items()->count());
         $this->assertSame(8500000, $invoice->grand_total);
         $this->assertSame(8500000, $order->grand_total);   // DP tidak mengurangi grand total
@@ -149,7 +149,7 @@ class OrderFlowTest extends TestCase
         $this->assertSame(0, \App\Models\Invoice::count());
     }
 
-    public function test_invoice_numbers_are_sequential_and_independent_from_orders(): void
+    public function test_invoice_numbers_follow_the_order_number(): void
     {
         $order = $this->createOrder();
 
@@ -163,9 +163,10 @@ class OrderFlowTest extends TestCase
         $this->actingAs($this->admin)->post(route('admin.invoices.store'), $payload)->assertRedirect();
 
         $numbers = $order->invoices()->orderBy('id')->pluck('invoice_number');
-        // INV-0001 dibuat otomatis saat pesanan dibuat; dua invoice manual menyusul.
-        $this->assertSame(['INV-0001', 'INV-0002', 'INV-0003'], $numbers->all());
-        $this->assertSame(8500000, \App\Models\Invoice::where('invoice_number', 'INV-0002')->first()->grand_total);
+        // Invoice pertama otomatis memakai nomor pesanan; invoice tambahan diberi akhiran -2, -3.
+        $n = $order->order_number;
+        $this->assertSame([$n, $n.'-2', $n.'-3'], $numbers->all());
+        $this->assertSame(8500000, \App\Models\Invoice::where('invoice_number', $n.'-2')->first()->grand_total);
     }
 
     public function test_invoice_pdf_downloads(): void
