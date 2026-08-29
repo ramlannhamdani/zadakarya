@@ -45,7 +45,7 @@
         <div class="mt-4 grid gap-5 sm:grid-cols-3">
             <div class="sm:col-span-2">
                 <label class="form-label" for="order_id">Pesanan <span class="text-brand-600">*</span></label>
-                <select class="form-input" id="order_id" name="order_id" required>
+                <select class="form-input" id="order_id" name="order_id" required @unless($invoice->exists) onchange="if (this.value) window.location = '{{ route('admin.invoices.create') }}?order=' + this.value" @endunless>
                     <option value="">— Pilih pesanan —</option>
                     @foreach($orders as $o)
                         <option value="{{ $o->id }}" @selected(old('order_id', $invoice->order_id ?? $order?->id) == $o->id)>

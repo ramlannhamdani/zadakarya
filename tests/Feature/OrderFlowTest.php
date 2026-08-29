@@ -116,8 +116,40 @@ class OrderFlowTest extends TestCase
         $this->assertSame(0, $order->remaining);
     }
 
-    public function test_invoice_numbers_are_sequential_and_independent_from_orders(): void
+    public function test_order_creation_auto_creates_invoice_and_records_dp(): void
     {
+        $this->actingAs($this->admin)->post(route('admin.orders.store'), [
+            'customer_id' => $this->customer->id,
+            'name' => 'Pesanan DP',
+            'dp_amount' => 3000000,
+            'create_invoice' => 1,
+            'record_dp' => 1,
+            'dp_date' => now()->toDateString(),
+            'dp_method' => 'cash',
+            'items' => [['product_name' => 'Polo', 'quantity' => 100, 'unit' => 'pcs', 'unit_price' => 85000]],
+        ])->assertRedirect();
+
+        $order = Order::latest('id')->first();
+        $invoice = $order->invoices()->first();
+
+        $this->assertNotNull($invoice);
+        $this->assertSame('INV-0001', $invoice->invoice_number);
+        $this->assertSame(1, $invoice->items()->count());
+        $this->assertSame(8500000, $invoice->grand_total);
+        $this->assertSame(8500000, $order->grand_total);   // DP tidak mengurangi grand total
+        $this->assertSame(3000000, $order->amount_paid);    // ...tapi tercatat sebagai pembayaran
+        $this->assertSame(5500000, $order->remaining);
+        $this->assertSame('partial', $order->payment_status);
+    }
+
+    public function test_auto_invoice_can_be_skipped(): void
+    {
+        $this->createOrder(['create_invoice' => 0]);
+
+        $this->assertSame(0, \App\Models\Invoice::count());
+    }
+
+    public function test_invoice_numbers_are_sequential_and_independent_from_orders(): void    {
         $order = $this->createOrder();
 
         $payload = [
@@ -130,8 +162,9 @@ class OrderFlowTest extends TestCase
         $this->actingAs($this->admin)->post(route('admin.invoices.store'), $payload)->assertRedirect();
 
         $numbers = $order->invoices()->orderBy('id')->pluck('invoice_number');
-        $this->assertSame(['INV-0001', 'INV-0002'], $numbers->all());
-        $this->assertSame(8500000, $order->invoices()->first()->grand_total);
+        // INV-0001 dibuat otomatis saat pesanan dibuat; dua invoice manual menyusul.
+        $this->assertSame(['INV-0001', 'INV-0002', 'INV-0003'], $numbers->all());
+        $this->assertSame(8500000, \App\Models\Invoice::where('invoice_number', 'INV-0002')->first()->grand_total);
     }
 
     public function test_invoice_pdf_downloads(): void
@@ -144,7 +177,7 @@ class OrderFlowTest extends TestCase
             'items' => [['description' => 'Polo Shirt', 'quantity' => 100, 'unit' => 'pcs', 'unit_price' => 85000]],
         ]);
 
-        $invoice = $order->invoices()->first();
+        $invoice = $order->invoices()->orderByDesc('id')->first(); // invoice manual (dengan diskon)
         $this->assertSame(8000000, $invoice->grand_total);
 
         $response = $this->actingAs($this->admin)->get(route('admin.invoices.pdf', $invoice));

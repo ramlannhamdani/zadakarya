@@ -295,7 +295,7 @@
         <div class="admin-card">
             <div class="flex items-center justify-between">
                 <h2 class="font-extrabold text-ink">Invoice</h2>
-                <a href="{{ route('admin.invoices.create', ['order' => $order->id]) }}" class="btn-primary !px-4 !py-2 text-xs">+ Buat Invoice</a>
+                <a href="{{ route('admin.invoices.create', ['order' => $order->id]) }}" class="btn-primary !px-4 !py-2 text-xs">{{ $order->invoices->isNotEmpty() ? '+ Invoice Tambahan' : '+ Buat Invoice' }}</a>
             </div>
             <div class="mt-4 overflow-x-auto">
                 <table class="w-full min-w-[560px] text-sm">

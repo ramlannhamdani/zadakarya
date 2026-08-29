@@ -10,6 +10,7 @@
     <div class="mt-6 flex flex-wrap items-center gap-3">
         <button type="submit" class="btn-primary">Simpan Perubahan</button>
         <a href="{{ route('admin.orders.show', $order) }}" class="btn-outline">Batal</a>
+        <p class="text-sm text-neutral-500">Perubahan item tidak otomatis mengubah invoice yang sudah dibuat — sesuaikan di tab Invoice bila perlu.</p>
     </div>
 </form>
 @endsection

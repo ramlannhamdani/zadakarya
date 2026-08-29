@@ -44,7 +44,37 @@
             <div>
                 <label class="form-label" for="dp_amount">Nominal DP (Rp)</label>
                 <input class="form-input" type="number" id="dp_amount" name="dp_amount" min="0" value="{{ old('dp_amount', $order->dp_amount ?? '') }}" placeholder="Contoh: 5000000">
+                <p class="mt-1 text-xs text-neutral-500">DP tidak mengurangi grand total — DP dicatat sebagai pembayaran dan mengurangi <em>sisa tagihan</em>.</p>
             </div>
+            @unless($order)
+            <div class="rounded-lg bg-cream p-4 sm:col-span-2" x-data="{ dp: {{ old('record_dp') ? 'true' : 'false' }} }">
+                <label class="flex items-center gap-2 text-sm font-medium">
+                    <input type="hidden" name="create_invoice" value="0">
+                    <input type="checkbox" name="create_invoice" value="1" @checked(old('create_invoice', true)) class="rounded border-line text-brand-600 focus:ring-brand-600">
+                    Buat invoice otomatis dari item pesanan ini (nomor INV-xxxx)
+                </label>
+                <label class="mt-3 flex items-center gap-2 text-sm font-medium">
+                    <input type="hidden" name="record_dp" value="0">
+                    <input type="checkbox" name="record_dp" value="1" x-model="dp" class="rounded border-line text-brand-600 focus:ring-brand-600">
+                    DP sudah diterima — catat sebagai pembayaran sekarang
+                </label>
+                <div x-show="dp" x-cloak class="mt-3 grid gap-4 sm:grid-cols-2">
+                    <div>
+                        <label class="form-label" for="dp_date">Tanggal DP Diterima</label>
+                        <input class="form-input" type="date" id="dp_date" name="dp_date" value="{{ old('dp_date', now()->toDateString()) }}">
+                    </div>
+                    <div>
+                        <label class="form-label" for="dp_method">Metode</label>
+                        <select class="form-input" id="dp_method" name="dp_method">
+                            @foreach(\App\Models\Payment::METHODS as $key => $label)
+                                <option value="{{ $key }}" @selected(old('dp_method') === $key)>{{ $label }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+                <p class="mt-2 text-xs text-neutral-500">Nominal yang dicatat = Nominal DP di atas. Pesanan langsung berstatus <strong>DP</strong> dan sisa tagihan berkurang.</p>
+            </div>
+            @endunless
             <div class="sm:col-span-2">
                 <label class="form-label" for="notes">Catatan Internal</label>
                 <textarea class="form-input" id="notes" name="notes" rows="2">{{ old('notes', $order->notes ?? '') }}</textarea>

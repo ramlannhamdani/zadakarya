@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Customer;
 use App\Models\Order;
+use App\Models\Payment;
 use App\Support\Sequence;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -69,6 +70,42 @@ class OrderController extends Controller
             $order->createInitialStages();
             $order->refreshTotals();
             $order->logActivity('Pesanan dibuat dengan nomor '.$order->order_number);
+
+            // Invoice otomatis dari item yang sama (bisa dimatikan lewat centang di form).
+            $invoice = null;
+            if ($data['create_invoice']) {
+                $invoice = $order->invoices()->create([
+                    'invoice_number' => Sequence::invoiceNumber(),
+                    'date' => now()->toDateString(),
+                    'due_date' => $data['deadline'] ?? null,
+                ]);
+                foreach ($order->items as $i => $item) {
+                    $invoice->items()->create([
+                        'description' => trim($item->product_name.($item->description ? ' — '.$item->description : '')),
+                        'quantity' => $item->quantity,
+                        'unit' => $item->unit,
+                        'unit_price' => $item->unit_price,
+                        'total' => $item->total,
+                        'sort_order' => $i,
+                    ]);
+                }
+                $invoice->refreshTotals();
+                $order->logActivity('Invoice '.$invoice->invoice_number.' dibuat otomatis dari pesanan');
+            }
+
+            // DP yang sudah diterima langsung dicatat sebagai pembayaran (mengurangi sisa, bukan total).
+            if ($data['record_dp'] && ! empty($data['dp_amount'])) {
+                $order->payments()->create([
+                    'invoice_id' => $invoice?->id,
+                    'amount' => (int) $data['dp_amount'],
+                    'payment_date' => $data['dp_date'] ?? now()->toDateString(),
+                    'method' => $data['dp_method'] ?? 'transfer',
+                    'note' => 'DP',
+                    'recorded_by' => auth()->id(),
+                ]);
+                $order->refreshPaymentStatus();
+                $order->logActivity('DP '.rupiah((int) $data['dp_amount']).' dicatat saat pesanan dibuat — status: '.$order->payment_status_label);
+            }
 
             return $order;
         });
@@ -171,10 +208,14 @@ class OrderController extends Controller
 
     private function validated(Request $request): array
     {
-        return $request->validate([
+        $data = $request->validate([
             'customer_id' => ['required', 'exists:customers,id'],
             'name' => ['required', 'string', 'max:200'],
             'dp_amount' => ['nullable', 'integer', 'min:0'],
+            'create_invoice' => ['nullable', 'boolean'],
+            'record_dp' => ['nullable', 'boolean'],
+            'dp_date' => ['nullable', 'date'],
+            'dp_method' => ['nullable', Rule::in(array_keys(Payment::METHODS))],
             'deadline' => ['nullable', 'date'],
             'estimated_completion' => ['nullable', 'date'],
             'notes' => ['nullable', 'string', 'max:10000'],
@@ -187,5 +228,11 @@ class OrderController extends Controller
         ], [
             'items.required' => 'Minimal satu item produk harus diisi.',
         ]);
+
+        // Default: invoice dibuat otomatis kecuali admin mematikan centangnya.
+        $data['create_invoice'] = $request->has('create_invoice') ? $request->boolean('create_invoice') : true;
+        $data['record_dp'] = $request->boolean('record_dp');
+
+        return $data;
     }
 }
