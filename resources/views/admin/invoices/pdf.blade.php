@@ -2,8 +2,9 @@
     $order = $invoice->order;
     $customer = $order->customer;
 
-    $logoFile = setting('logo') ? storage_path('app/public/'.setting('logo')) : null;
-    $logo = ($logoFile && file_exists($logoFile)) ? $logoFile : null;
+    // Header memakai emblem saja (tanpa teks) = gambar favicon. Harus raster (png/jpg/webp); dompdf tidak bisa membaca .ico.
+    $markFile = setting('favicon') ? storage_path('app/public/'.setting('favicon')) : null;
+    $logo = ($markFile && file_exists($markFile) && in_array(strtolower(pathinfo($markFile, PATHINFO_EXTENSION)), ['png', 'jpg', 'jpeg', 'webp'], true)) ? $markFile : null;
 
     $signFile = setting('invoice_signature') ? storage_path('app/public/'.setting('invoice_signature')) : null;
     $signature = ($signFile && file_exists($signFile)) ? $signFile : null;
@@ -98,15 +99,13 @@
         <tr>
             <td class="logo-cell">
                 @if($logo)
-                    <img src="{{ $logo }}" style="height: 62px; width: auto; max-width: 260px;">
+                    <img src="{{ $logo }}" style="height: 74px; width: auto;">
                 @else
-                    <div style="width: 58px; height: 58px; background: #6C1005; color: #fff; font-weight: bold; font-size: 22px; text-align: center; line-height: 58px;">ZK</div>
+                    <div style="width: 74px; height: 74px; background: #6C1005; color: #fff; font-weight: bold; font-size: 26px; text-align: center; line-height: 74px;">ZK</div>
                 @endif
             </td>
             <td>
-                @unless($logo)
-                    <div class="brand">{{ strtoupper(setting('invoice_company_name', setting('company_name', 'Zada Karya Production'))) }}</div>
-                @endunless
+                <div class="brand">{{ strtoupper(setting('invoice_company_name', setting('company_name', 'Zada Karya Production'))) }}</div>
                 <table class="contact">
                     @if($igHandle)<tr><td>IG</td><td>:</td><td>{{ $igHandle }}</td></tr>@endif
                     <tr><td>WA</td><td>:</td><td>{{ setting('whatsapp') }}</td></tr>

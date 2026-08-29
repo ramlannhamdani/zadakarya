@@ -57,7 +57,7 @@
                     <img src="{{ asset('storage/'.$settings['favicon']) }}" alt="Favicon" class="mb-2 h-8 w-8 object-contain">
                 @endif
                 <input class="form-input !py-2" type="file" id="favicon" name="favicon" accept=".ico,.png">
-                <p class="mt-1 text-xs text-neutral-500">Ikon tab browser. PNG atau ICO persegi, disarankan minimal 48&times;48 px, maks 512 KB.</p>
+                <p class="mt-1 text-xs text-neutral-500">Ikon tab browser <strong>sekaligus emblem di header PDF invoice</strong>. Gunakan PNG persegi minimal 256&times;256 px (ICO tidak bisa dipakai di PDF), maks 512 KB.</p>
             </div>
         </div>
     </div>
