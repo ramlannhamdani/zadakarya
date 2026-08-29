@@ -47,20 +47,16 @@
 
 {{-- Navbar --}}
 @php
-    $primaryNav = [
+    // Satu daftar menu untuk desktop dan panel mobile — tidak ada menu kedua.
+    $nav = [
         ['label' => 'Beranda', 'href' => route('home'), 'match' => 'home'],
         ['label' => 'Koleksi', 'href' => route('portfolio.index'), 'match' => 'portfolio.*'],
         ['label' => 'Layanan', 'href' => route('services.index'), 'match' => 'services.*'],
-        ['label' => 'Cara Order', 'href' => route('home').'#cara-order', 'match' => null],
-        ['label' => 'Testimoni', 'href' => route('home').'#testimoni', 'match' => null],
+        ['label' => 'Galeri', 'href' => route('gallery.index'), 'match' => 'gallery.*'],
         ['label' => 'Blog', 'href' => route('blog.index'), 'match' => 'blog.*'],
+        ['label' => 'Tracking', 'href' => route('tracking.index'), 'match' => 'tracking.*'],
+        ['label' => 'Tentang Kami', 'href' => route('about'), 'match' => 'about'],
         ['label' => 'Kontak', 'href' => route('contact'), 'match' => 'contact'],
-    ];
-    $secondaryNav = [
-        ['label' => 'Galeri', 'href' => route('gallery.index')],
-        ['label' => 'Tentang Kami', 'href' => route('about')],
-        ['label' => 'Tracking', 'href' => route('tracking.index')],
-        ['label' => 'Konsultasi', 'href' => route('consultation.create')],
     ];
     // Emblem = favicon (PNG). ICO tidak bisa dipakai <img>, jatuh ke kotak "ZK".
     $emblem = setting('favicon') && \Illuminate\Support\Str::endsWith(strtolower(setting('favicon')), ['.png', '.webp'])
@@ -87,10 +83,10 @@
             <span class="sr-only">{{ $siteName }}</span>
         </a>
 
-        {{-- Link utama (desktop) --}}
-        <nav class="hidden items-center gap-5 lg:flex xl:gap-7" aria-label="Navigasi utama">
-            @foreach($primaryNav as $link)
-                @php $active = $link['match'] && request()->routeIs($link['match']); @endphp
+        {{-- Menu (desktop lebar) --}}
+        <nav class="hidden items-center gap-5 xl:flex xl:gap-6" aria-label="Navigasi utama">
+            @foreach($nav as $link)
+                @php $active = request()->routeIs($link['match']); @endphp
                 <a href="{{ $link['href'] }}" @if($active) aria-current="page" @endif
                    class="relative whitespace-nowrap text-[15px] font-medium transition {{ $active
                         ? 'text-brand-600 after:absolute after:-bottom-2 after:left-0 after:h-[3px] after:w-7 after:rounded-full after:bg-brand-600 after:content-[\'\']'
@@ -98,37 +94,33 @@
             @endforeach
         </nav>
 
-        {{-- CTA + hamburger --}}
+        {{-- CTA + hamburger (hamburger hanya saat menu desktop disembunyikan) --}}
         <div class="flex shrink-0 items-center gap-2 lg:gap-3">
             <a href="{{ route('consultation.create') }}"
-               class="inline-flex h-11 w-11 items-center justify-center gap-2 rounded-full bg-brand-600 text-white transition hover:bg-brand-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 focus-visible:ring-offset-2 lg:h-13 lg:w-auto lg:px-6 xl:px-7">
-                <svg class="h-5 w-5 shrink-0" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.297-.497.1-.198.05-.371-.025-.52-.074-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 00-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-                <span class="hidden text-[15px] font-bold lg:inline">Konsultasi Gratis</span>
-                <span class="sr-only lg:hidden">Konsultasi Gratis</span>
+               class="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-brand-600 px-5 text-white transition hover:bg-brand-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 focus-visible:ring-offset-2 lg:h-13 lg:px-6">
+                <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z"/></svg>
+                <span class="whitespace-nowrap text-[14px] font-bold sm:text-[15px]">Konsultasi Gratis</span>
             </a>
             <button type="button" @click="open = !open" :aria-expanded="open ? 'true' : 'false'" aria-controls="site-menu" aria-label="Menu"
-                    class="flex h-11 w-11 items-center justify-center rounded-xl border border-neutral-300 text-ink transition hover:border-brand-600 hover:text-brand-600 lg:h-13 lg:w-13">
+                    class="flex h-11 w-11 items-center justify-center rounded-xl border border-neutral-300 text-ink transition hover:border-brand-600 hover:text-brand-600 lg:h-13 lg:w-13 xl:hidden">
                 <svg x-show="!open" class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" d="M4 7h16M4 12h16M4 17h16"/></svg>
                 <svg x-show="open" x-cloak class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" d="M6 6l12 12M18 6L6 18"/></svg>
             </button>
         </div>
 
-        {{-- Panel menu: lembar penuh (<lg), kartu kanan (lg+) --}}
+        {{-- Panel menu: isi sama persis dengan menu desktop --}}
         <div id="site-menu" x-show="open" x-cloak x-transition.opacity.duration.150ms
-             class="absolute -inset-x-4 top-full z-50 max-h-[calc(100vh-5rem)] overflow-y-auto border-t border-line bg-white shadow-xl sm:-inset-x-6 lg:inset-x-auto lg:right-8 lg:mt-2 lg:w-72 lg:rounded-2xl lg:border lg:border-line">
-            <nav class="px-4 py-4 sm:px-6 lg:px-3" aria-label="Menu lengkap">
-                <ul class="space-y-1 lg:hidden">
-                    @foreach($primaryNav as $link)
-                        <li><a href="{{ $link['href'] }}" @click="open = false" class="block rounded-lg px-3 py-2.5 text-[15px] font-medium text-ink hover:bg-cream hover:text-brand-600">{{ $link['label'] }}</a></li>
+             class="absolute -inset-x-4 top-full z-50 max-h-[calc(100vh-5rem)] overflow-y-auto border-t border-line bg-white shadow-xl sm:-inset-x-6 lg:inset-x-auto lg:right-8 lg:mt-2 lg:w-72 lg:rounded-2xl lg:border lg:border-line xl:hidden">
+            <nav class="px-4 py-3 sm:px-6 lg:px-3" aria-label="Menu">
+                <ul class="space-y-1">
+                    @foreach($nav as $link)
+                        @php $active = request()->routeIs($link['match']); @endphp
+                        <li>
+                            <a href="{{ $link['href'] }}" @click="open = false" @if($active) aria-current="page" @endif
+                               class="block rounded-lg px-3 py-2.5 text-[15px] font-medium {{ $active ? 'bg-brand-50 text-brand-600' : 'text-ink hover:bg-cream hover:text-brand-600' }}">{{ $link['label'] }}</a>
+                        </li>
                     @endforeach
                 </ul>
-                <p class="mt-3 px-3 text-[11px] font-bold uppercase tracking-widest text-neutral-400 lg:mt-0">Lainnya</p>
-                <ul class="mt-1 space-y-1">
-                    @foreach($secondaryNav as $link)
-                        <li><a href="{{ $link['href'] }}" @click="open = false" class="block rounded-lg px-3 py-2.5 text-[15px] font-medium text-neutral-700 hover:bg-cream hover:text-brand-600">{{ $link['label'] }}</a></li>
-                    @endforeach
-                </ul>
-                <a href="{{ wa_link('Halo Zada Karya Production, saya ingin berkonsultasi mengenai kebutuhan konveksi.') }}" target="_blank" rel="noopener" class="btn-wa mt-3 w-full lg:hidden">Konsultasi via WhatsApp</a>
             </nav>
         </div>
     </div>

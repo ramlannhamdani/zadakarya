@@ -58,14 +58,35 @@ class HomeHeroTest extends TestCase
         $response->assertDontSee(HeroDefaults::TITLE_ACCENT);
     }
 
-    public function test_navbar_links_to_the_new_sections(): void
+    public function test_navbar_has_one_menu_without_section_anchors(): void
     {
         $response = $this->get(route('home'));
 
         $response->assertOk();
-        $response->assertSee('Cara Order');
-        $response->assertSee('Testimoni');
+        // Semua tujuan ada di satu daftar menu (dipakai desktop maupun panel mobile).
+        foreach (['Beranda', 'Koleksi', 'Layanan', 'Galeri', 'Blog', 'Tracking', 'Tentang Kami', 'Kontak'] as $label) {
+            $response->assertSee($label);
+        }
+
+        // Anchor section tetap ada di halaman, tapi tidak lagi jadi item menu.
         $response->assertSee('id="cara-order"', false);
+        $response->assertDontSee('#cara-order', false);
+        $response->assertDontSee('#testimoni', false);
+        $response->assertDontSee('Lainnya');
+    }
+
+    public function test_navbar_cta_points_to_the_consultation_form_not_whatsapp(): void
+    {
+        $response = $this->get(route('home'));
+        $response->assertOk();
+
+        // Hanya periksa <header>: tombol WhatsApp di section CTA halaman tetap ada.
+        $html = $response->getContent();
+        $header = substr($html, strpos($html, '<header'), strpos($html, '</header>') - strpos($html, '<header'));
+
+        $this->assertStringContainsString('Konsultasi Gratis', $header);
+        $this->assertStringContainsString(route('consultation.create'), $header);
+        $this->assertStringNotContainsString('wa.me', $header);
     }
 
     public function test_stats_parser_reads_value_and_label(): void
