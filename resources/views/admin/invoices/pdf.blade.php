@@ -107,8 +107,8 @@
 
 @if($isPaid && $stamp)
     {{-- Blok tanda tangan turun ~29px untuk tiap baris item di atas enam baris. --}}
-    @php $stampTop = 556 + max(0, $rows->count() - $minRows) * 29; @endphp
-    <img src="{{ $stamp }}" class="stamp" style="left: 752px; top: {{ $stampTop }}px;" alt="">
+    @php $stampTop = 562 + max(0, $rows->count() - $minRows) * 29; @endphp
+    <img src="{{ $stamp }}" class="stamp" style="left: 778px; top: {{ $stampTop }}px;" alt="">
 @endif
 <div class="sheet">
 
