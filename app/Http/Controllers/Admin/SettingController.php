@@ -49,6 +49,8 @@ class SettingController extends Controller
             'invoice_terms' => ['nullable', 'string', 'max:2000'],
             'invoice_signer' => ['nullable', 'string', 'max:150'],
             'invoice_signature' => ['nullable', 'image', 'mimes:png,webp', 'max:1024'],
+            'invoice_stamp' => ['nullable', 'image', 'mimes:png,webp', 'max:1024'],
+            'invoice_stamp_pick' => ['nullable', 'integer', 'exists:gallery_items,id'],
             'invoice_signature_pick' => ['nullable', 'integer', 'exists:gallery_items,id'],
             'hero_badge' => ['nullable', 'string', 'max:120'],
             'hero_title' => ['nullable', 'string', 'max:200'],
@@ -80,11 +82,10 @@ class SettingController extends Controller
             }
         }
 
-        foreach (['logo', 'logo_light', 'invoice_signature'] as $key) {
+        foreach (['logo', 'logo_light', 'invoice_signature', 'invoice_stamp'] as $key) {
             if ($request->hasFile($key)) {
                 ImageUploader::delete(Setting::get($key));
-                [$path] = ImageUploader::store($request->file($key), 'branding', 'public', 600, 200);
-                Setting::set($key, $path);
+                Setting::set($key, $this->storeKeepingAlpha($request->file($key), 'branding', 600, 200));
             } elseif ($request->filled($key.'_pick') && ($res = ImageUploader::fromGalleryId($request->input($key.'_pick'), 'branding', 'public', 600, 200))) {
                 ImageUploader::delete(Setting::get($key));
                 Setting::set($key, $res[0]);
@@ -102,25 +103,9 @@ class SettingController extends Controller
             }
         }
 
-        // Foto hero: kalau GD server tidak bisa menulis WebP, ImageUploader akan
-        // meng-encode ke JPEG dan transparansi PNG hilang — simpan apa adanya.
         if ($request->hasFile('hero_image')) {
-            $file = $request->file('hero_image');
-            $keepsAlpha = function_exists('imagewebp')
-                || ! in_array(strtolower($file->getClientOriginalExtension()), ['png', 'webp'], true);
-
             ImageUploader::delete(Setting::get('hero_image'));
-
-            if ($keepsAlpha) {
-                [$path] = ImageUploader::store($file, 'hero', 'public', 1400, 480);
-            } else {
-                $path = $file->storeAs(
-                    'hero',
-                    now()->format('YmdHis').'-'.Str::random(8).'.'.strtolower($file->getClientOriginalExtension()),
-                    'public'
-                );
-            }
-
+            $path = $this->storeKeepingAlpha($request->file('hero_image'), 'hero', 1400, 480);
             Setting::set('hero_image', $path);
             $this->detectHeroStyle($path);
         } elseif ($request->filled('hero_image_pick') && ($res = ImageUploader::fromGalleryId($request->input('hero_image_pick'), 'hero', 'public', 1400, 480))) {
@@ -142,6 +127,29 @@ class SettingController extends Controller
         }
 
         return back()->with('success', 'Pengaturan disimpan.');
+    }
+
+    /**
+     * Simpan gambar yang transparansinya penting (logo putih, tanda tangan,
+     * stempel, foto hero potongan). ImageUploader meng-encode ke WebP bila GD
+     * server mendukungnya — alpha aman; kalau tidak, hasilnya JPEG dan latar
+     * transparan berubah jadi blok putih, jadi file PNG/WebP disimpan apa adanya.
+     */
+    private function storeKeepingAlpha(\Illuminate\Http\UploadedFile $file, string $dir, int $maxWidth, int $thumbWidth): string
+    {
+        $isAlphaFormat = in_array(strtolower($file->getClientOriginalExtension()), ['png', 'webp'], true);
+
+        if (function_exists('imagewebp') || ! $isAlphaFormat) {
+            [$path] = ImageUploader::store($file, $dir, 'public', $maxWidth, $thumbWidth);
+
+            return $path;
+        }
+
+        return $file->storeAs(
+            $dir,
+            now()->format('YmdHis').'-'.Str::random(8).'.'.strtolower($file->getClientOriginalExtension()),
+            'public'
+        );
     }
 
     /**

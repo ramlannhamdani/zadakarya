@@ -192,6 +192,37 @@ class OrderFlowTest extends TestCase
         $this->assertStringNotContainsString('>Status<', $html);
     }
 
+    public function test_paid_invoice_pdf_prints_the_stamp_instead_of_the_watermark(): void
+    {
+        $stampPath = 'branding/stempel-test.png';
+        \Illuminate\Support\Facades\Storage::disk('public')->put($stampPath, 'x'); // isi tidak dibaca saat render HTML
+        \App\Models\Setting::set('invoice_stamp', $stampPath);
+
+        $order = $this->createOrder();
+        $invoice = $order->invoices()->first()->load(['order.customer', 'order.payments', 'items']);
+
+        // Belum lunas: watermark tampil, stempel tidak.
+        $html = view('admin.invoices.pdf', compact('invoice'))->render();
+        $this->assertStringContainsString('class="watermark unpaid"', $html);
+        $this->assertStringNotContainsString('class="stamp"', $html);
+
+        // Lunas: stempel menggantikan watermark.
+        $this->actingAs($this->admin)->post(route('admin.orders.payments.store', $order), [
+            'amount' => $order->grand_total,
+            'payment_date' => now()->toDateString(),
+            'method' => 'transfer',
+        ]);
+
+        $invoice->refresh()->load(['order.customer', 'order.payments', 'items']);
+        $this->assertSame('paid', $invoice->order->payment_status);
+
+        $paidHtml = view('admin.invoices.pdf', ['invoice' => $invoice])->render();
+        $this->assertStringContainsString('class="stamp"', $paidHtml);
+        $this->assertStringNotContainsString('class="watermark', $paidHtml);
+
+        \Illuminate\Support\Facades\Storage::disk('public')->delete($stampPath);
+    }
+
     public function test_invoice_pdf_downloads(): void
     {
         $order = $this->createOrder();

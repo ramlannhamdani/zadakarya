@@ -22,7 +22,7 @@
         'sosial' => ['instagram', 'facebook', 'tiktok', 'google_maps_url', 'footer_text'],
         'seo' => ['seo_title', 'seo_description', 'analytics_id'],
         'tracking' => ['show_ongoing'],
-        'invoice' => ['invoice_company_name', 'invoice_address', 'invoice_bank_info', 'invoice_terms', 'invoice_signer', 'invoice_signature'],
+        'invoice' => ['invoice_company_name', 'invoice_address', 'invoice_bank_info', 'invoice_terms', 'invoice_signer', 'invoice_signature', 'invoice_stamp'],
         'akun' => ['current_password', 'password', 'password_confirmation'],
     ];
     $errorTab = null;
@@ -303,15 +303,27 @@
                         <input class="form-input" type="text" id="invoice_signer" name="invoice_signer" value="{{ old('invoice_signer', $settings['invoice_signer'] ?? '') }}" placeholder="Contoh: Hilmi Rifai — Zada Karya Production">
                         <p class="mt-1 text-xs text-neutral-500">Tampil di bawah garis tanda tangan. Kosong = nama perusahaan.</p>
                     </div>
-                    <div>
-                        <label class="form-label">Gambar Tanda Tangan / Stempel (opsional)</label>
-                        @if(!empty($settings['invoice_signature']))
-                            <span class="mb-2 inline-flex h-20 items-center rounded-lg bg-cream px-4">
-                                <img src="{{ asset('storage/'.$settings['invoice_signature']) }}" alt="Tanda tangan" class="max-h-16 w-auto object-contain">
-                            </span>
-                        @endif
-                        <x-admin.media-picker name="invoice_signature" />
-                        <p class="mt-1 text-xs text-neutral-500">PNG/WebP latar transparan. Otomatis dipasang di kolom "Hormat kami" pada setiap PDF invoice.</p>
+                    <div class="grid gap-5 sm:grid-cols-2">
+                        <div>
+                            <label class="form-label">Gambar Tanda Tangan (opsional)</label>
+                            @if(!empty($settings['invoice_signature']))
+                                <span class="mb-2 inline-flex h-20 items-center rounded-lg bg-cream px-4">
+                                    <img src="{{ asset('storage/'.$settings['invoice_signature']) }}" alt="Tanda tangan" class="max-h-16 w-auto object-contain">
+                                </span>
+                            @endif
+                            <x-admin.media-picker name="invoice_signature" />
+                            <p class="mt-1 text-xs text-neutral-500">PNG/WebP latar transparan. Dipasang di kolom "Hormat kami" pada <strong>setiap</strong> PDF invoice.</p>
+                        </div>
+                        <div>
+                            <label class="form-label">Stempel LUNAS (opsional)</label>
+                            @if(!empty($settings['invoice_stamp']))
+                                <span class="mb-2 inline-flex h-20 items-center rounded-lg bg-cream px-4">
+                                    <img src="{{ asset('storage/'.$settings['invoice_stamp']) }}" alt="Stempel lunas" class="max-h-16 w-auto object-contain">
+                                </span>
+                            @endif
+                            <x-admin.media-picker name="invoice_stamp" />
+                            <p class="mt-1 text-xs text-neutral-500">PNG/WebP latar transparan, sebaiknya persegi. Dicetak otomatis di antara kolom tanda tangan <strong>hanya saat pesanan berstatus Lunas</strong>, menggantikan watermark "LUNAS".</p>
+                        </div>
                     </div>
                 </div>
             </div>

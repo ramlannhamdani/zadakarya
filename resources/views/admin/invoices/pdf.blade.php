@@ -8,6 +8,10 @@
 
     $signFile = setting('invoice_signature') ? storage_path('app/public/'.setting('invoice_signature')) : null;
     $signature = ($signFile && file_exists($signFile)) ? $signFile : null;
+
+    // Stempel LUNAS: hanya dicetak kalau pesanan sudah lunas.
+    $stampFile = setting('invoice_stamp') ? storage_path('app/public/'.setting('invoice_stamp')) : null;
+    $stamp = ($stampFile && file_exists($stampFile)) ? $stampFile : null;
     $signer = setting('invoice_signer') ?: setting('invoice_company_name', setting('company_name', 'Zada Karya Production'));
 
     $instagram = setting('instagram');
@@ -84,6 +88,11 @@
         .sign .space img { height: 58px; width: auto; }
         .sign .line { border-top: 2px solid #6C1005; height: 0; margin-bottom: 3px; }
         .sign .name { font-size: 13.5px; }
+        /* Stempel LUNAS: elemen absolut di level halaman (dompdf hanya menghitung
+           position:absolute dengan benar untuk anak langsung <body>), diletakkan
+           di antara kolom Customer dan Hormat kami seperti stempel basah. */
+        .stamp { position: absolute; width: 146px; height: auto; }
+
         /* Watermark status pembayaran: anak pertama <body> + z-index -1 -> dirender paling awal (di belakang konten). */
         .watermark { position: absolute; z-index: -1; left: 0; width: 100%; text-align: center; font-weight: bold; color: #6C1005; opacity: 0.08; letter-spacing: 6px; transform: rotate(-18deg); }
         .watermark.paid { top: 290px; font-size: 170px; }
@@ -91,7 +100,16 @@
     </style>
 </head>
 <body>
-<div class="watermark {{ $isPaid ? 'paid' : 'unpaid' }}">{{ $isPaid ? 'LUNAS' : 'BELUM LUNAS' }}</div>
+{{-- Kalau stempel LUNAS terpasang, watermark tidak dicetak supaya tidak dobel. --}}
+@unless($isPaid && $stamp)
+    <div class="watermark {{ $isPaid ? 'paid' : 'unpaid' }}">{{ $isPaid ? 'LUNAS' : 'BELUM LUNAS' }}</div>
+@endunless
+
+@if($isPaid && $stamp)
+    {{-- Blok tanda tangan turun ~29px untuk tiap baris item di atas enam baris. --}}
+    @php $stampTop = 556 + max(0, $rows->count() - $minRows) * 29; @endphp
+    <img src="{{ $stamp }}" class="stamp" style="left: 752px; top: {{ $stampTop }}px;" alt="">
+@endif
 <div class="sheet">
 
     {{-- Header --}}
@@ -214,6 +232,7 @@
                 </div>
             </td>
             <td style="width: 45%;">
+                <div>
                 <table class="totals">
                     @if($invoice->discount > 0 || $invoice->additional_cost > 0)
                         <tr><td class="lbl">Subtotal :</td><td class="amt">{{ rupiah($invoice->subtotal) }}</td></tr>
@@ -237,6 +256,7 @@
                         <td><div class="line"></div><span class="name">{{ $signer }}</span></td>
                     </tr>
                 </table>
+                </div>
             </td>
         </tr>
     </table>
