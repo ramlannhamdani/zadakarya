@@ -7,6 +7,7 @@
     $tabs = [
         'perusahaan' => 'Perusahaan',
         'branding' => 'Logo & Foto',
+        'beranda' => 'Beranda',
         'sosial' => 'Sosial & Footer',
         'seo' => 'SEO & Analytics',
         'tracking' => 'Tracking',
@@ -17,6 +18,7 @@
     $tabFields = [
         'perusahaan' => ['company_name', 'tagline', 'whatsapp', 'email', 'address', 'city'],
         'branding' => ['logo', 'logo_light', 'favicon', 'workshop_photo_1', 'workshop_photo_2', 'workshop_photo_3'],
+        'beranda' => ['hero_image', 'hero_badge', 'hero_title', 'hero_title_accent', 'hero_text', 'hero_rating_text', 'hero_stats'],
         'sosial' => ['instagram', 'facebook', 'tiktok', 'google_maps_url', 'footer_text'],
         'seo' => ['seo_title', 'seo_description', 'analytics_id'],
         'tracking' => ['show_ongoing'],
@@ -146,6 +148,55 @@
                             <x-admin.media-picker :name="'workshop_photo_'.$i" />
                         </div>
                     @endforeach
+                </div>
+            </div>
+        </div>
+
+        {{-- ===== Beranda (hero) ===== --}}
+        <div data-tab="beranda" x-show="tab === 'beranda'" x-cloak>
+            <div class="admin-card">
+                <h2 class="font-extrabold text-ink">Hero Halaman Depan</h2>
+                <p class="mt-1 text-sm text-neutral-500">Kosongkan field mana pun untuk memakai teks bawaan.</p>
+                <div class="mt-4 grid gap-5">
+                    <div>
+                        <label class="form-label" for="hero_image">Foto Hero</label>
+                        @if(!empty($settings['hero_image']))
+                            <span class="mb-2 inline-block rounded-lg bg-brand-600 p-3">
+                                <img src="{{ asset('storage/'.$settings['hero_image']) }}" alt="Foto hero" class="h-32 w-auto object-contain">
+                            </span>
+                        @endif
+                        <x-admin.media-picker name="hero_image" />
+                        <p class="mt-1 text-xs text-neutral-500">PNG/WebP <strong>latar transparan</strong> (foto model dipotong, bagian bawah rata), tinggi minimal 1000 px, maks 4 MB. Kosong = memakai cover portfolio terbaru, lalu ilustrasi bawaan.</p>
+                    </div>
+                    <div>
+                        <label class="form-label" for="hero_badge">Badge (label kecil di atas judul)</label>
+                        <input class="form-input" type="text" id="hero_badge" name="hero_badge" value="{{ old('hero_badge', $settings['hero_badge'] ?? '') }}" placeholder="{{ \App\Support\HeroDefaults::BADGE }}">
+                    </div>
+                    <div class="grid gap-5 sm:grid-cols-2">
+                        <div>
+                            <label class="form-label" for="hero_title">Judul (hitam, Enter = baris baru)</label>
+                            <textarea class="form-input" id="hero_title" name="hero_title" rows="2" placeholder="Buat Gayamu,&#10;Kami Wujudkan">{{ old('hero_title', $settings['hero_title'] ?? '') }}</textarea>
+                        </div>
+                        <div>
+                            <label class="form-label" for="hero_title_accent">Judul baris terakhir (maroon)</label>
+                            <input class="form-input" type="text" id="hero_title_accent" name="hero_title_accent" value="{{ old('hero_title_accent', $settings['hero_title_accent'] ?? '') }}" placeholder="{{ \App\Support\HeroDefaults::TITLE_ACCENT }}">
+                            <p class="mt-1 text-xs text-neutral-500">Sebaiknya ringkas agar tetap muat satu baris.</p>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="form-label" for="hero_text">Paragraf</label>
+                        <textarea class="form-input" id="hero_text" name="hero_text" rows="3" placeholder="{{ \App\Support\HeroDefaults::TEXT }}">{{ old('hero_text', $settings['hero_text'] ?? '') }}</textarea>
+                    </div>
+                    <div>
+                        <label class="form-label" for="hero_rating_text">Teks rating</label>
+                        <input class="form-input" type="text" id="hero_rating_text" name="hero_rating_text" value="{{ old('hero_rating_text', $settings['hero_rating_text'] ?? '') }}" placeholder="{{ \App\Support\HeroDefaults::RATING_TEXT }}">
+                        <p class="mt-1 text-xs text-neutral-500">Kosongkan untuk menghitung otomatis dari Ulasan Google (minimal 5 ulasan tampil).</p>
+                    </div>
+                    <div>
+                        <label class="form-label" for="hero_stats">Statistik (satu baris per item, format <code class="rounded bg-cream px-1">Nilai | Label</code>)</label>
+                        <textarea class="form-input" id="hero_stats" name="hero_stats" rows="5" placeholder="{{ \App\Support\HeroDefaults::STATS }}">{{ old('hero_stats', $settings['hero_stats'] ?? '') }}</textarea>
+                        <p class="mt-1 text-xs text-neutral-500">Maksimal 5 baris. Ikon mengikuti urutan: orang, kaos, medali, truk, headset.</p>
+                    </div>
                 </div>
             </div>
         </div>

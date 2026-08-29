@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Setting;
+use App\Support\HeroDefaults;
 use Illuminate\Database\Seeder;
 
 class SettingSeeder extends Seeder
@@ -27,7 +28,7 @@ Account No. : -",
             'invoice_terms' => "Barang yang sudah dipesan tidak bisa dibatalkan
 Pelunasan wajib dilakukan sebelum pengambilan barang
 Terima kasih telah mempercayakan konveksi kepada kami",
-        ];
+        ] + HeroDefaults::all();
 
         foreach ($defaults as $key => $value) {
             Setting::firstOrCreate(['key' => $key], ['value' => $value]);

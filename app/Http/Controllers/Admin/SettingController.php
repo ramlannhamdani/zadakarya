@@ -15,6 +15,7 @@ class SettingController extends Controller
         'instagram', 'facebook', 'tiktok', 'google_maps_url', 'footer_text',
         'seo_title', 'seo_description',
         'invoice_company_name', 'invoice_address', 'invoice_bank_info', 'invoice_terms', 'invoice_signer',
+        'hero_badge', 'hero_title', 'hero_title_accent', 'hero_text', 'hero_rating_text', 'hero_stats',
         'analytics_id', 'show_ongoing',
     ];
 
@@ -48,6 +49,14 @@ class SettingController extends Controller
             'invoice_signer' => ['nullable', 'string', 'max:150'],
             'invoice_signature' => ['nullable', 'image', 'mimes:png,webp', 'max:1024'],
             'invoice_signature_pick' => ['nullable', 'integer', 'exists:gallery_items,id'],
+            'hero_badge' => ['nullable', 'string', 'max:120'],
+            'hero_title' => ['nullable', 'string', 'max:200'],
+            'hero_title_accent' => ['nullable', 'string', 'max:120'],
+            'hero_text' => ['nullable', 'string', 'max:500'],
+            'hero_rating_text' => ['nullable', 'string', 'max:100'],
+            'hero_stats' => ['nullable', 'string', 'max:1000'],
+            'hero_image' => ['nullable', 'image', 'mimes:png,webp,jpg,jpeg', 'max:4096'],
+            'hero_image_pick' => ['nullable', 'integer', 'exists:gallery_items,id'],
             'analytics_id' => ['nullable', 'string', 'max:50'],
             'show_ongoing' => ['nullable', 'in:0,1'],
             'logo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
@@ -89,6 +98,31 @@ class SettingController extends Controller
                 ImageUploader::delete(Setting::get($key));
                 Setting::set($key, $res[0]);
             }
+        }
+
+        // Foto hero: kalau GD server tidak bisa menulis WebP, ImageUploader akan
+        // meng-encode ke JPEG dan transparansi PNG hilang — simpan apa adanya.
+        if ($request->hasFile('hero_image')) {
+            $file = $request->file('hero_image');
+            $keepsAlpha = function_exists('imagewebp')
+                || ! in_array(strtolower($file->getClientOriginalExtension()), ['png', 'webp'], true);
+
+            ImageUploader::delete(Setting::get('hero_image'));
+
+            if ($keepsAlpha) {
+                [$path] = ImageUploader::store($file, 'hero', 'public', 1400, 480);
+            } else {
+                $path = $file->storeAs(
+                    'hero',
+                    now()->format('YmdHis').'-'.Str::random(8).'.'.strtolower($file->getClientOriginalExtension()),
+                    'public'
+                );
+            }
+
+            Setting::set('hero_image', $path);
+        } elseif ($request->filled('hero_image_pick') && ($res = ImageUploader::fromGalleryId($request->input('hero_image_pick'), 'hero', 'public', 1400, 480))) {
+            ImageUploader::delete(Setting::get('hero_image'));
+            Setting::set('hero_image', $res[0]);
         }
 
         if ($request->hasFile('favicon')) {

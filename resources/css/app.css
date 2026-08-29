@@ -132,3 +132,139 @@
     .marquee-track { animation: none; flex-wrap: wrap; width: auto; }
     .marquee-track > [aria-hidden="true"] { display: none; }
 }
+/* ===== Hero beranda =====
+   Panggung visual = grid satu sel: bidang maroon, foto, kartu melayang, dan
+   pill rating menumpuk di sel yang sama pada lg+, lalu turun ke baris sendiri
+   di bawah lg (tanpa absolute positioning, jadi tidak pernah tumpang tindih). */
+.hero-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "copy" "visual";
+    row-gap: 2.5rem;
+    padding-top: 2.5rem;
+    padding-bottom: 3.5rem;
+}
+.hero-copy { grid-area: copy; min-width: 0; }
+.hero-visual { grid-area: visual; min-width: 0; }
+
+.hero-stage {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: 340px auto auto;
+    grid-template-areas: "stage" "cards" "rating";
+    row-gap: 1.25rem;
+}
+.hero-backdrop,
+.hero-photo-wrap { grid-area: stage; }
+
+.hero-backdrop {
+    z-index: 1;
+    width: min(290px, 84%);
+    height: 300px;
+    justify-self: center;
+    align-self: end;
+    margin-bottom: 16px;
+}
+.hero-photo-wrap {
+    z-index: 2;
+    justify-self: center;
+    align-self: end;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    width: 100%;
+    height: 340px;
+}
+.hero-photo {
+    height: 100%;
+    width: auto;
+    max-width: 100%;
+    object-fit: contain;
+    object-position: bottom center;
+}
+
+/* Tanpa foto hero: cover portfolio dibingkai miring di atas bidang maroon. */
+.hero-photo-wrap--framed { align-items: center; width: min(290px, 84%); height: 300px; margin-bottom: 16px; }
+.hero-photo-frame {
+    display: block;
+    width: 84%;
+    height: 84%;
+    transform: rotate(-4deg);
+    border-radius: 1.5rem;
+    overflow: hidden;
+    box-shadow: 0 26px 50px -24px rgba(32, 32, 32, 0.55);
+    outline: 6px solid rgba(255, 255, 255, 0.75);
+    transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.hero-photo-frame:hover { transform: rotate(-2deg) scale(1.02); }
+.hero-photo-framed { width: 100%; height: 100%; object-fit: cover; }
+
+/* Tanpa foto & tanpa portfolio: ilustrasi garis di atas bidang maroon. */
+.hero-photo-wrap--fallback { align-items: center; width: min(290px, 84%); height: 300px; margin-bottom: 16px; }
+
+.hero-cards { grid-area: cards; z-index: 3; display: grid; gap: 0.75rem; }
+.hero-rating { grid-area: rating; z-index: 4; justify-self: center; width: 100%; max-width: 360px; }
+
+@media (min-width: 640px) {
+    .hero-stage { grid-template-rows: 430px auto auto; }
+    .hero-backdrop,
+    .hero-photo-wrap--framed,
+    .hero-photo-wrap--fallback { width: 380px; height: 400px; }
+    .hero-photo-wrap { height: 430px; }
+    .hero-cards { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+@media (min-width: 1024px) {
+    .hero-grid {
+        grid-template-columns: minmax(0, 48fr) minmax(0, 52fr);
+        grid-template-areas: "copy visual";
+        column-gap: 1.5rem;
+        min-height: 600px;
+        align-items: end;
+        padding-top: 0;
+        padding-bottom: 0;
+    }
+    .hero-copy { align-self: start; padding-top: 3.5rem; padding-bottom: 7rem; }
+    .hero-stage {
+        height: 600px;
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-rows: minmax(0, 1fr);
+        grid-template-areas: "stage";
+        row-gap: 0;
+    }
+    .hero-stage > * { grid-area: stage; }
+    .hero-backdrop,
+    .hero-photo-wrap--framed,
+    .hero-photo-wrap--fallback { width: 370px; height: 430px; justify-self: start; margin-bottom: 26px; }
+    .hero-photo-wrap { justify-self: start; width: auto; max-width: calc(100% - 150px); height: 510px; margin-left: 0.5rem; }
+    .hero-cards {
+        justify-self: end;
+        align-self: start;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        margin-top: 2.25rem;
+    }
+    .hero-cards > li { width: 196px; }
+    .hero-rating { justify-self: end; align-self: end; width: 344px; margin: 0 0.25rem 5rem 0; }
+}
+
+@media (min-width: 1280px) {
+    .hero-grid { min-height: 640px; }
+    .hero-copy { padding-top: 4rem; }
+    .hero-stage { height: 640px; }
+    .hero-backdrop,
+    .hero-photo-wrap--framed,
+    .hero-photo-wrap--fallback { width: 470px; height: 520px; margin-left: 1rem; }
+    .hero-photo-wrap { height: 570px; margin-left: 2rem; max-width: calc(100% - 170px); }
+    .hero-cards { margin-top: 2.5rem; }
+    .hero-cards > li { width: 214px; }
+    .hero-rating { width: 356px; margin-right: 0.5rem; margin-bottom: 5.5rem; }
+}
+
+/* Kartu tengah digeser sedikit ke kiri (lg+); ditulis ulang setelah reveal
+   agar transform: none dari .is-visible tidak menghapus offset. */
+@media (min-width: 1024px) {
+    .hero-cards > li:nth-child(2),
+    .js .hero-cards > li:nth-child(2).is-visible { transform: translateX(-12px); }
+}
