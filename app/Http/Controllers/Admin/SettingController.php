@@ -14,7 +14,7 @@ class SettingController extends Controller
         'company_name', 'tagline', 'whatsapp', 'email', 'address', 'city',
         'instagram', 'facebook', 'tiktok', 'google_maps_url', 'footer_text',
         'seo_title', 'seo_description',
-        'invoice_company_name', 'invoice_address', 'invoice_bank_info',
+        'invoice_company_name', 'invoice_address', 'invoice_bank_info', 'invoice_terms',
         'analytics_id', 'show_ongoing',
     ];
 
@@ -44,6 +44,7 @@ class SettingController extends Controller
             'invoice_company_name' => ['nullable', 'string', 'max:150'],
             'invoice_address' => ['nullable', 'string', 'max:500'],
             'invoice_bank_info' => ['nullable', 'string', 'max:1000'],
+            'invoice_terms' => ['nullable', 'string', 'max:2000'],
             'analytics_id' => ['nullable', 'string', 'max:50'],
             'show_ongoing' => ['nullable', 'in:0,1'],
             'logo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],

@@ -147,7 +147,13 @@
             </div>
             <div>
                 <label class="form-label" for="invoice_bank_info">Informasi Rekening (tampil di invoice)</label>
-                <textarea class="form-input" id="invoice_bank_info" name="invoice_bank_info" rows="3" placeholder="Bank BCA&#10;No. Rek: xxxxxxxx&#10;a.n. Zada Karya Production">{{ old('invoice_bank_info', $settings['invoice_bank_info'] ?? '') }}</textarea>
+                <textarea class="form-input" id="invoice_bank_info" name="invoice_bank_info" rows="3" placeholder="Bank : BCA&#10;Account Name : Nama Pemilik&#10;Account No. : 1234567890">{{ old('invoice_bank_info', $settings['invoice_bank_info'] ?? '') }}</textarea>
+                <p class="mt-1 text-xs text-neutral-500">Satu baris per keterangan, format <code class="rounded bg-cream px-1">Label : Nilai</code> agar rapi di PDF.</p>
+            </div>
+            <div>
+                <label class="form-label" for="invoice_terms">Catatan / Ketentuan (bagian bawah invoice)</label>
+                <textarea class="form-input" id="invoice_terms" name="invoice_terms" rows="3" placeholder="Barang yang sudah dipesan tidak bisa dibatalkan&#10;Pelunasan wajib dilakukan sebelum pengambilan barang">{{ old('invoice_terms', $settings['invoice_terms'] ?? '') }}</textarea>
+                <p class="mt-1 text-xs text-neutral-500">Satu baris = satu poin. Kosongkan untuk memakai ketentuan bawaan.</p>
             </div>
         </div>
     </div>

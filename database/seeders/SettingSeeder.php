@@ -21,7 +21,12 @@ class SettingSeeder extends Seeder
             'seo_description' => 'Zada Karya Production adalah jasa konveksi untuk seragam kerja, seragam sekolah, polo shirt, kaos sablon, celana, dan kebutuhan garment custom dengan proses produksi terukur.',
             'invoice_company_name' => 'Zada Karya Production',
             'invoice_address' => "Jl. Masjid 1 No.17, RT.2/RW.10, Sudimara",
-            'invoice_bank_info' => '',
+            'invoice_bank_info' => "Bank : BCA
+Account Name : Zada Karya Production
+Account No. : -",
+            'invoice_terms' => "Barang yang sudah dipesan tidak bisa dibatalkan
+Pelunasan wajib dilakukan sebelum pengambilan barang
+Terima kasih telah mempercayakan konveksi kepada kami",
         ];
 
         foreach ($defaults as $key => $value) {
