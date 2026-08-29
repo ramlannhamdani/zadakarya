@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Site;
 
 use App\Http\Controllers\Controller;
-use App\Models\Article;
 use App\Models\Client;
 use App\Models\Portfolio;
 use App\Models\Review;
@@ -15,7 +14,9 @@ class HomeController extends Controller
 {
     public function index()
     {
-        $services = Service::published()->orderBy('sort_order')->take(8)->get();
+        // Beranda hanya menampilkan lima layanan pada panel di bawah hero;
+        // daftar lengkapnya ada di halaman Layanan.
+        $panelServices = Service::published()->orderBy('sort_order')->take(5)->get();
         $reviews = Review::published()->orderBy('sort_order')->latest('review_date')->get();
 
         // Teks rating: setting > dihitung dari ulasan (min. 5) > bawaan.
@@ -56,8 +57,7 @@ class HomeController extends Controller
         $heroStyle = setting('hero_image_style') === 'cutout' ? 'cutout' : 'framed';
 
         return view('site.home', [
-            'services' => $services,
-            'panelServices' => $services->take(5),
+            'panelServices' => $panelServices,
             'featuredPortfolios' => Portfolio::published()
                 ->with('category')
                 ->orderByDesc('is_featured')
@@ -65,7 +65,6 @@ class HomeController extends Controller
                 ->take(6)
                 ->get(),
             'clients' => Client::active()->get(),
-            'articles' => Article::published()->with('category')->latest('published_at')->take(3)->get(),
             'reviews' => $reviews,
             'hero' => [
                 'badge' => setting('hero_badge') ?: HeroDefaults::BADGE,

@@ -208,20 +208,8 @@
 </section>
 @endif
 
-{{-- Layanan Unggulan --}}<section class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
-    <div class="flex flex-wrap items-end justify-between gap-4" data-reveal>
-        <div>
-            <p class="text-xs font-bold uppercase tracking-widest text-warm-600">Layanan Kami</p>
-            <h2 class="mt-2 text-3xl font-extrabold tracking-tight text-ink">Layanan Konveksi Unggulan</h2>
-        </div>
-        <a href="{{ route('services.index') }}" class="text-sm font-semibold text-brand-600 hover:underline">Semua Layanan &rarr;</a>
-    </div>
-    <div class="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4" data-reveal-stagger>
-        @foreach($services as $service)
-            <x-service-card :service="$service" />
-        @endforeach
-    </div>
-</section>
+{{-- Section "Layanan Unggulan" sengaja tidak ada di beranda: layanan sudah
+     tampil sebagai panel "Apa yang ingin kamu buat?" tepat di bawah hero. --}}
 
 {{-- Why Choose Us --}}
 <section class="border-y border-line bg-cream">
@@ -324,22 +312,6 @@
     </div>
 </section>
 
-{{-- Blog --}}
-@if($articles->isNotEmpty())
-<section class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
-    <div class="flex flex-wrap items-end justify-between gap-4" data-reveal>
-        <div>
-            <p class="text-xs font-bold uppercase tracking-widest text-warm-600">Blog</p>
-            <h2 class="mt-2 text-3xl font-extrabold tracking-tight text-ink">Artikel Terbaru</h2>
-        </div>
-        <a href="{{ route('blog.index') }}" class="text-sm font-semibold text-brand-600 hover:underline">Semua Artikel &rarr;</a>
-    </div>
-    <div class="mt-8 grid gap-5 md:grid-cols-3" data-reveal-stagger>
-        @foreach($articles as $article)
-            <x-article-card :article="$article" />
-        @endforeach
-    </div>
-</section>
-@endif
+{{-- Blog tidak ditampilkan di beranda; artikel dibaca lewat menu Blog. --}}
 
 @endsection
