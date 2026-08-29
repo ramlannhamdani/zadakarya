@@ -27,16 +27,18 @@
     <meta charset="utf-8">
     <title>{{ $invoice->invoice_number }}</title>
     <style>
-        @page { margin: 40px 48px; }
+        @page { margin-top: 36px; margin-right: 44px; margin-bottom: 36px; margin-left: 44px; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: "Times New Roman", Times, serif; font-size: 12px; color: #6C1005; line-height: 1.35; }
+        body { font-family: "Times New Roman", Times, serif; font-size: 12px; color: #6C1005; line-height: 1.35; margin: 0; }
+        /* dompdf mengabaikan @page margin di versi ini -> margin halaman dibuat dari padding wrapper. */
+        .sheet { padding: 30px 42px; }
         table { border-collapse: collapse; }
         td { vertical-align: top; }
 
         .header { width: 100%; }
-        .logo-cell { width: 1%; white-space: nowrap; padding-right: 14px; }
+        .logo-cell { width: 1%; white-space: nowrap; padding-right: 18px; }
         .brand { font-size: 17px; font-weight: bold; letter-spacing: 0.4px; }
-        .contact { font-size: 11px; line-height: 1.5; margin-top: 3px; }
+        .contact { font-size: 11px; line-height: 1.5; margin-top: 3px; padding-top: 4px; }
         .contact td { padding: 0 5px 0 0; }
         .title-box { border: 2px solid #6C1005; padding: 8px 22px; font-size: 22px; font-weight: bold; letter-spacing: 1px; text-align: center; }
         .meta { font-size: 10.5px; text-align: right; margin-top: 5px; }
@@ -73,19 +75,22 @@
     </style>
 </head>
 <body>
+<div class="sheet">
 
     {{-- Header --}}
     <table class="header">
         <tr>
             <td class="logo-cell">
                 @if($logo)
-                    <img src="{{ $logo }}" style="height: 56px; width: auto; max-width: 240px;">
+                    <img src="{{ $logo }}" style="height: 62px; width: auto; max-width: 260px;">
                 @else
                     <div style="width: 58px; height: 58px; background: #6C1005; color: #fff; font-weight: bold; font-size: 22px; text-align: center; line-height: 58px;">ZK</div>
                 @endif
             </td>
             <td>
-                <div class="brand">{{ strtoupper(setting('invoice_company_name', setting('company_name', 'Zada Karya Production'))) }}</div>
+                @unless($logo)
+                    <div class="brand">{{ strtoupper(setting('invoice_company_name', setting('company_name', 'Zada Karya Production'))) }}</div>
+                @endunless
                 <table class="contact">
                     @if($igHandle)<tr><td>IG</td><td>:</td><td>{{ $igHandle }}</td></tr>@endif
                     <tr><td>WA</td><td>:</td><td>{{ setting('whatsapp') }}</td></tr>
@@ -215,6 +220,6 @@
             </td>
         </tr>
     </table>
-
+</div>
 </body>
 </html>
