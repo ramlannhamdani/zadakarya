@@ -149,7 +149,8 @@ class OrderFlowTest extends TestCase
         $this->assertSame(0, \App\Models\Invoice::count());
     }
 
-    public function test_invoice_numbers_are_sequential_and_independent_from_orders(): void    {
+    public function test_invoice_numbers_are_sequential_and_independent_from_orders(): void
+    {
         $order = $this->createOrder();
 
         $payload = [
