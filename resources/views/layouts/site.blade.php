@@ -68,17 +68,17 @@
     <div @click.outside="open = false" class="relative mx-auto flex h-20 max-w-7xl items-center justify-between gap-3 px-4 sm:px-6 lg:h-24 lg:gap-6 lg:px-8">
 
         {{-- Brand --}}
-        <a href="{{ route('home') }}" class="flex shrink-0 items-center gap-2.5 lg:gap-3">
+        <a href="{{ route('home') }}" class="flex min-w-0 items-center gap-2 sm:gap-2.5 lg:gap-3">
             @if($emblem)
-                <img src="{{ $emblem }}" alt="" class="h-11 w-11 object-contain lg:h-14 lg:w-14">
+                <img src="{{ $emblem }}" alt="" class="h-10 w-10 shrink-0 object-contain sm:h-11 sm:w-11 lg:h-14 lg:w-14">
             @elseif(setting('logo'))
-                <img src="{{ asset('storage/'.setting('logo')) }}" alt="" class="h-10 w-auto lg:h-12">
+                <img src="{{ asset('storage/'.setting('logo')) }}" alt="" class="h-9 w-auto shrink-0 sm:h-10 lg:h-12">
             @else
-                <span class="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-600 text-base font-extrabold text-white lg:h-14 lg:w-14 lg:text-lg">ZK</span>
+                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-600 text-base font-extrabold text-white sm:h-11 sm:w-11 lg:h-14 lg:w-14 lg:text-lg">ZK</span>
             @endif
-            <span class="flex flex-col leading-none">
-                <span class="text-[15px] font-extrabold uppercase tracking-tight text-ink lg:text-xl">Zada Karya</span>
-                <span class="mt-1 text-[10px] font-bold uppercase tracking-[0.28em] text-ink lg:text-[13px]">Production</span>
+            <span class="flex min-w-0 flex-col leading-none">
+                <span class="truncate text-[13px] font-extrabold uppercase tracking-tight text-ink sm:text-[15px] lg:text-xl">Zada Karya</span>
+                <span class="mt-0.5 truncate text-[9px] font-bold uppercase tracking-[0.24em] text-ink sm:mt-1 sm:text-[10px] lg:text-[13px]">Production</span>
             </span>
             <span class="sr-only">{{ $siteName }}</span>
         </a>
@@ -97,12 +97,14 @@
         {{-- CTA + hamburger (hamburger hanya saat menu desktop disembunyikan) --}}
         <div class="flex shrink-0 items-center gap-2 lg:gap-3">
             <a href="{{ route('consultation.create') }}"
-               class="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-brand-600 px-5 text-white transition hover:bg-brand-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 focus-visible:ring-offset-2 lg:h-13 lg:px-6">
-                <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z"/></svg>
-                <span class="whitespace-nowrap text-[14px] font-bold sm:text-[15px]">Konsultasi Gratis</span>
+               class="inline-flex h-10 shrink-0 items-center justify-center gap-1.5 rounded-full bg-brand-600 px-3.5 text-white transition hover:bg-brand-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 focus-visible:ring-offset-2 sm:h-11 sm:gap-2 sm:px-5 lg:h-13 lg:px-6">
+                <svg class="h-[18px] w-[18px] shrink-0 sm:h-5 sm:w-5" fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z"/></svg>
+                {{-- Label dipendekkan di layar sempit supaya baris navbar tidak melebar --}}
+                <span class="whitespace-nowrap text-[13px] font-bold sm:hidden">Konsultasi</span>
+                <span class="hidden whitespace-nowrap font-bold sm:inline sm:text-[15px]">Konsultasi Gratis</span>
             </a>
             <button type="button" @click="open = !open" :aria-expanded="open ? 'true' : 'false'" aria-controls="site-menu" aria-label="Menu"
-                    class="flex h-11 w-11 items-center justify-center rounded-xl border border-neutral-300 text-ink transition hover:border-brand-600 hover:text-brand-600 lg:h-13 lg:w-13 xl:hidden">
+                    class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-neutral-300 text-ink transition hover:border-brand-600 hover:text-brand-600 sm:h-11 sm:w-11 lg:h-13 lg:w-13 xl:hidden">
                 <svg x-show="!open" class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" d="M4 7h16M4 12h16M4 17h16"/></svg>
                 <svg x-show="open" x-cloak class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" d="M6 6l12 12M18 6L6 18"/></svg>
             </button>

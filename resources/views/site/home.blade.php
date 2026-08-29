@@ -168,7 +168,8 @@
                 <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12l-7.5 7.5M21 12H3"/></svg>
             </a>
         </div>
-        <ul class="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:mt-0 lg:min-w-0 lg:flex-1 xl:grid-cols-5" data-reveal-stagger>
+        {{-- Satu kolom di ponsel: dua kolom membuat nama layanan & deskripsi pecah banyak baris. --}}
+        <ul class="mt-5 grid gap-3 sm:grid-cols-3 lg:mt-0 lg:min-w-0 lg:flex-1 xl:grid-cols-5" data-reveal-stagger>
             @foreach($panelServices as $service)
                 <li>
                     <a href="{{ route('services.show', $service) }}" class="group flex h-full items-center gap-3 rounded-xl bg-cream p-3 transition hover:bg-brand-50">
@@ -181,7 +182,7 @@
                         @endif
                         <span class="min-w-0">
                             <span class="block text-sm font-bold leading-tight text-ink group-hover:text-brand-600">{{ $service->name }}</span>
-                            <span class="mt-0.5 block text-[11px] leading-snug text-neutral-500">{{ \Illuminate\Support\Str::limit($service->short_description, 28) }}</span>
+                            <span class="mt-0.5 line-clamp-2 block text-[11px] leading-snug text-neutral-500">{{ \Illuminate\Support\Str::limit($service->short_description, 40) }}</span>
                         </span>
                     </a>
                 </li>
