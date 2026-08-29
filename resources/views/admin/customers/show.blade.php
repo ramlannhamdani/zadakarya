@@ -3,7 +3,7 @@
 @section('title', $customer->name)
 
 @section('content')
-<div class="grid gap-5 lg:grid-cols-3">
+<div class="grid gap-5 lg:grid-cols-[17rem_minmax(0,1fr)] xl:grid-cols-3">
     <div class="admin-card">
         <div class="flex items-start justify-between">
             <h2 class="font-extrabold text-ink">Data Customer</h2>
@@ -28,14 +28,14 @@
         </dl>
     </div>
 
-    <div class="lg:col-span-2 space-y-5">
+    <div class="min-w-0 space-y-5 xl:col-span-2">
         <div class="admin-card">
             <div class="flex items-center justify-between">
                 <h2 class="font-extrabold text-ink">Riwayat Pesanan</h2>
                 <a href="{{ route('admin.orders.create', ['customer' => $customer->id]) }}" class="btn-primary !px-4 !py-2 text-xs">+ Buat Pesanan</a>
             </div>
             <div class="mt-4 overflow-x-auto">
-                <table class="w-full min-w-[560px] text-sm">
+                <table class="w-full min-w-[540px] text-sm">
                     <thead>
                         <tr class="border-b border-line text-left text-xs font-bold uppercase tracking-wider text-neutral-500">
                             <th class="pb-2.5 pr-4">No. Order</th>
@@ -48,9 +48,9 @@
                     <tbody class="divide-y divide-line">
                         @forelse($customer->orders as $order)
                             <tr>
-                                <td class="py-3 pr-4"><a href="{{ route('admin.orders.show', $order) }}" class="font-mono font-bold text-brand-600 hover:underline">{{ $order->order_number }}</a></td>
+                                <td class="py-3 pr-4"><a href="{{ route('admin.orders.show', $order) }}" class="whitespace-nowrap font-mono font-bold text-brand-600 hover:underline">{{ $order->order_number }}</a></td>
                                 <td class="py-3 pr-4">{{ $order->name }}</td>
-                                <td class="py-3 pr-4 font-semibold">{{ rupiah($order->grand_total) }}</td>
+                                <td class="whitespace-nowrap py-3 pr-4 font-semibold">{{ rupiah($order->grand_total) }}</td>
                                 <td class="py-3 pr-4"><x-payment-badge :status="$order->payment_status" /></td>
                                 <td class="py-3"><x-order-status-badge :status="$order->status" /></td>
                             </tr>

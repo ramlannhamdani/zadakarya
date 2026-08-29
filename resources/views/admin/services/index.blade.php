@@ -8,7 +8,7 @@
 </div>
 
 {{-- Mobile: kartu (tabel di md+) --}}
-<div class="mt-5 space-y-3 md:hidden">
+<div class="mt-5 grid gap-3 md:grid-cols-2 lg:hidden">
     @forelse($services as $service)
         <div class="admin-card !p-4">
             <div class="flex gap-3">
@@ -33,10 +33,10 @@
             </div>
         </div>
     @empty
-        <div class="admin-card py-8 text-center text-neutral-500">Belum ada layanan.</div>
+        <div class="admin-card py-8 text-center text-neutral-500 md:col-span-2">Belum ada layanan.</div>
     @endforelse
 </div>
-<div class="admin-card mt-5 hidden overflow-x-auto !p-0 md:block">
+<div class="admin-card mt-5 hidden overflow-x-auto !p-0 lg:block">
     <table class="w-full min-w-[680px] text-sm">
         <thead>
             <tr class="border-b border-line bg-cream/60 text-left text-xs font-bold uppercase tracking-wider text-neutral-500">

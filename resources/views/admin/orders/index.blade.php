@@ -20,8 +20,8 @@
     </div>
 </div>
 
-{{-- Mobile: kartu (tabel di md+) --}}
-<div class="mt-5 space-y-3 md:hidden">
+{{-- Mobile & tablet portrait: kartu (2 kolom di md); tabel di lg+ --}}
+<div class="mt-5 grid gap-3 md:grid-cols-2 lg:hidden">
     @forelse($orders as $order)
         <a href="{{ route('admin.orders.show', $order) }}" class="admin-card block !p-4">
             <div class="flex items-start justify-between gap-3">
@@ -38,14 +38,14 @@
             @if($order->deadline)<p class="mt-2 text-xs text-neutral-500">Deadline {{ $order->deadline->format('d/m/Y') }}</p>@endif
         </a>
     @empty
-        <div class="admin-card py-8 text-center text-neutral-500">Tidak ada pesanan.</div>
+        <div class="admin-card py-8 text-center text-neutral-500 md:col-span-2">Tidak ada pesanan.</div>
     @endforelse
 </div>
-<div class="admin-card mt-5 hidden overflow-x-auto !p-0 md:block">
+<div class="admin-card mt-5 hidden overflow-x-auto !p-0 lg:block">
     <table class="w-full min-w-[860px] text-sm">
         <thead>
             <tr class="border-b border-line bg-cream/60 text-left text-xs font-bold uppercase tracking-wider text-neutral-500">
-                <th class="px-5 py-3">No. Order</th>
+                <th class="whitespace-nowrap px-5 py-3">No. Order</th>
                 <th class="px-5 py-3">Customer</th>
                 <th class="px-5 py-3">Produk</th>
                 <th class="px-5 py-3">Total</th>
@@ -58,16 +58,16 @@
         <tbody class="divide-y divide-line">
             @forelse($orders as $order)
                 <tr class="hover:bg-cream/40">
-                    <td class="px-5 py-3.5"><a href="{{ route('admin.orders.show', $order) }}" class="font-mono font-bold text-brand-600 hover:underline">{{ $order->order_number }}</a></td>
+                    <td class="px-5 py-3.5"><a href="{{ route('admin.orders.show', $order) }}" class="whitespace-nowrap font-mono font-bold text-brand-600 hover:underline">{{ $order->order_number }}</a></td>
                     <td class="px-5 py-3.5">
                         <span class="block font-medium text-ink">{{ $order->customer->name }}</span>
                         @if($order->customer->company)<span class="block text-xs text-neutral-500">{{ $order->customer->company }}</span>@endif
                     </td>
                     <td class="px-5 py-3.5 text-neutral-600">{{ $order->items->first()?->product_name }}{{ $order->items->count() > 1 ? ' +'.($order->items->count()-1).' item' : '' }}</td>
-                    <td class="px-5 py-3.5 font-semibold">{{ rupiah($order->grand_total) }}</td>
+                    <td class="whitespace-nowrap px-5 py-3.5 font-semibold">{{ rupiah($order->grand_total) }}</td>
                     <td class="px-5 py-3.5"><x-payment-badge :status="$order->payment_status" /></td>
                     <td class="px-5 py-3.5 text-neutral-600">{{ $order->current_stage }}/7 — {{ $order->current_stage_name }}</td>
-                    <td class="px-5 py-3.5 text-neutral-600">{{ $order->deadline?->format('d/m/Y') ?? '—' }}</td>
+                    <td class="whitespace-nowrap px-5 py-3.5 text-neutral-600">{{ $order->deadline?->format('d/m/Y') ?? '—' }}</td>
                     <td class="px-5 py-3.5"><x-order-status-badge :status="$order->status" /></td>
                 </tr>
             @empty

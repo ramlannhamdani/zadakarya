@@ -27,11 +27,11 @@
         <tbody class="divide-y divide-line">
             @forelse($invoices as $invoice)
                 <tr class="hover:bg-cream/40">
-                    <td class="px-5 py-3.5"><a href="{{ route('admin.invoices.show', $invoice) }}" class="font-mono font-bold text-brand-600 hover:underline">{{ $invoice->invoice_number }}</a></td>
-                    <td class="px-5 py-3.5"><a href="{{ route('admin.orders.show', $invoice->order) }}" class="font-mono text-neutral-600 hover:text-brand-600">{{ $invoice->order->order_number }}</a></td>
+                    <td class="px-5 py-3.5"><a href="{{ route('admin.invoices.show', $invoice) }}" class="whitespace-nowrap font-mono font-bold text-brand-600 hover:underline">{{ $invoice->invoice_number }}</a></td>
+                    <td class="px-5 py-3.5"><a href="{{ route('admin.orders.show', $invoice->order) }}" class="whitespace-nowrap font-mono text-neutral-600 hover:text-brand-600">{{ $invoice->order->order_number }}</a></td>
                     <td class="px-5 py-3.5">{{ $invoice->order->customer->name }}</td>
                     <td class="px-5 py-3.5 text-neutral-600">{{ $invoice->date->format('d/m/Y') }}</td>
-                    <td class="px-5 py-3.5 text-right font-semibold">{{ rupiah($invoice->grand_total) }}</td>
+                    <td class="whitespace-nowrap px-5 py-3.5 text-right font-semibold">{{ rupiah($invoice->grand_total) }}</td>
                     <td class="px-5 py-3.5"><x-payment-badge :status="$invoice->order->payment_status" /></td>
                     <td class="px-5 py-3.5 text-right">
                         <a href="{{ route('admin.invoices.pdf', $invoice) }}" class="text-sm font-semibold text-brand-600 hover:underline">PDF</a>

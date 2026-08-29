@@ -16,6 +16,7 @@ Website company profile + sistem manajemen pesanan & tracking produksi untuk **Z
 
 **Admin Panel** (`/admin`)
 - Dashboard berorientasi tindakan (ringkasan, "perlu tindakan", pesanan & inquiry terbaru)
+- Ramah tablet: pada lebar 768–1279 px sidebar menjadi rail ikon (88 px) sehingga tabel muat tanpa scroll mendatar; sidebar penuh di ≥1280 px, drawer di ponsel
 - Customer, Inquiry (ubah status, konversi ke customer)
 - Pesanan: nomor **ZDK-XXXX-HHMMTT** otomatis (inti berurutan + akhiran tanggal-bulan-tahun pembuatan, contoh `ZDK-0012-140226`), multi-item, deadline, file attachment (internal), catatan internal, riwayat aktivitas
 - Tracking 7 tahap: Mulai / Selesaikan / Buka Kembali — tahap berikutnya otomatis berjalan

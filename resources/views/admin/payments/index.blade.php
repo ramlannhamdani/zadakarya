@@ -25,9 +25,9 @@
             @forelse($payments as $payment)
                 <tr class="hover:bg-cream/40">
                     <td class="px-5 py-3.5">{{ $payment->payment_date->format('d/m/Y') }}</td>
-                    <td class="px-5 py-3.5"><a href="{{ route('admin.orders.show', ['order' => $payment->order, 'tab' => 'payments']) }}" class="font-mono font-bold text-brand-600 hover:underline">{{ $payment->order->order_number }}</a></td>
+                    <td class="px-5 py-3.5"><a href="{{ route('admin.orders.show', ['order' => $payment->order, 'tab' => 'payments']) }}" class="whitespace-nowrap font-mono font-bold text-brand-600 hover:underline">{{ $payment->order->order_number }}</a></td>
                     <td class="px-5 py-3.5">{{ $payment->order->customer->name }}</td>
-                    <td class="px-5 py-3.5 text-right font-bold text-green-600">{{ rupiah($payment->amount) }}</td>
+                    <td class="whitespace-nowrap px-5 py-3.5 text-right font-bold text-green-600">{{ rupiah($payment->amount) }}</td>
                     <td class="px-5 py-3.5 text-neutral-600">{{ $payment->method_label }}</td>
                     <td class="px-5 py-3.5 text-neutral-600">{{ $payment->invoice?->invoice_number ?? '—' }}</td>
                     <td class="px-5 py-3.5 text-neutral-600">{{ $payment->note ?? '—' }}</td>

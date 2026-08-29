@@ -15,11 +15,12 @@
 
 <div class="flex min-h-screen">
     {{-- Sidebar --}}
-    <aside class="fixed inset-y-0 left-0 z-40 w-64 -translate-x-full border-r border-line bg-white transition-transform lg:static lg:translate-x-0"
+    {{-- Sidebar: drawer (<md) → rail ikon+label kecil (md–xl, tablet) → sidebar penuh (xl+) --}}
+    <aside class="fixed inset-y-0 left-0 z-40 flex w-64 -translate-x-full flex-col border-r border-line bg-white transition-transform md:static md:w-22 md:translate-x-0 md:transition-none xl:w-64"
            :class="sidebar && '!translate-x-0'">
-        <div class="flex h-16 items-center gap-2.5 border-b border-line px-5">
+        <div class="flex h-16 shrink-0 items-center gap-2.5 border-b border-line px-5 md:justify-center md:px-0 xl:justify-start xl:px-5">
             <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-600 text-xs font-extrabold text-white">ZK</span>
-            <div class="leading-tight">
+            <div class="leading-tight md:hidden xl:block">
                 <p class="text-sm font-extrabold text-ink">Zada Karya</p>
                 <p class="text-[11px] font-medium uppercase tracking-wider text-neutral-500">Admin Panel</p>
             </div>
@@ -43,32 +44,37 @@
             ];
         @endphp
 
-        <nav class="space-y-0.5 p-3">
+        @php
+            // Item nav: baris ikon+label (drawer & xl), kolom ikon di atas label kecil (rail tablet).
+            $navItem = 'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition md:flex-col md:gap-0.5 md:px-1 md:py-1.5 md:text-center md:text-[10px] md:leading-tight xl:flex-row xl:gap-3 xl:px-3 xl:py-2.5 xl:text-left xl:text-sm';
+            $navIcon = 'h-5 w-5 shrink-0';
+        @endphp
+        <nav class="min-h-0 flex-1 space-y-0.5 overflow-y-auto p-3 md:p-2 xl:p-3">
             @foreach($nav as $item)
-                <a href="{{ route($item['route']) }}"
-                   class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition {{ request()->routeIs($item['match']) ? 'bg-brand-600 text-white' : 'text-neutral-600 hover:bg-cream hover:text-ink' }}">
-                    <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="{{ $item['icon'] }}"/></svg>
-                    {{ $item['label'] }}
+                <a href="{{ route($item['route']) }}" title="{{ $item['label'] }}"
+                   class="{{ $navItem }} {{ request()->routeIs($item['match']) ? 'bg-brand-600 text-white' : 'text-neutral-600 hover:bg-cream hover:text-ink' }}">
+                    <svg class="{{ $navIcon }}" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="{{ $item['icon'] }}"/></svg>
+                    <span>{{ $item['label'] }}</span>
                 </a>
             @endforeach
         </nav>
 
-        <div class="absolute inset-x-0 bottom-0 border-t border-line p-3">
-            <a href="{{ route('home') }}" target="_blank" class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-neutral-600 hover:bg-cream hover:text-ink">
-                <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m-18.432 0A8.959 8.959 0 013 12c0-.778.099-1.533.284-2.253"/></svg>
-                Lihat Website
+        <div class="shrink-0 border-t border-line p-3 md:p-2 xl:p-3">
+            <a href="{{ route('home') }}" target="_blank" title="Lihat Website" class="{{ $navItem }} text-neutral-600 hover:bg-cream hover:text-ink">
+                <svg class="{{ $navIcon }}" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m-18.432 0A8.959 8.959 0 013 12c0-.778.099-1.533.284-2.253"/></svg>
+                <span><span class="md:hidden xl:inline">Lihat </span>Website</span>
             </a>
         </div>
     </aside>
 
     {{-- Overlay for mobile --}}
-    <div x-show="sidebar" x-cloak @click="sidebar = false" class="fixed inset-0 z-30 bg-black/40 lg:hidden"></div>
+    <div x-show="sidebar" x-cloak @click="sidebar = false" class="fixed inset-0 z-30 bg-black/40 md:hidden"></div>
 
     {{-- Main --}}
     <div class="flex min-w-0 flex-1 flex-col">
         <header class="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-line bg-white px-4 sm:px-6">
             <div class="flex min-w-0 flex-1 items-center gap-3">
-                <button @click="sidebar = true" class="rounded-lg p-2 text-neutral-600 hover:bg-cream lg:hidden" aria-label="Menu">
+                <button @click="sidebar = true" class="rounded-lg p-2 text-neutral-600 hover:bg-cream md:hidden" aria-label="Menu">
                     <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M4 7h16M4 12h16M4 17h16"/></svg>
                 </button>
                 <h1 class="min-w-0 truncate text-lg font-extrabold text-ink">@yield('title', 'Dashboard')</h1>
@@ -82,7 +88,7 @@
             </div>
         </header>
 
-        <main class="flex-1 p-4 sm:p-6 lg:p-8">
+        <main class="flex-1 p-4 sm:p-6 xl:p-8">
             @if(session('success'))
                 <div class="mb-5 flex items-center gap-2.5 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm font-medium text-green-800">
                     <svg class="h-5 w-5 shrink-0 text-green-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>

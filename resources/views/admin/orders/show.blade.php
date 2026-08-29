@@ -31,18 +31,18 @@
         </div>
     </div>
 
-    <dl class="mt-5 grid grid-cols-2 gap-4 border-t border-line pt-5 sm:grid-cols-5">
+    <dl class="mt-5 grid grid-cols-2 gap-4 border-t border-line pt-5 sm:grid-cols-3 lg:grid-cols-5">
         <div>
             <dt class="text-xs font-bold uppercase tracking-wider text-neutral-500">Grand Total</dt>
-            <dd class="mt-1 text-lg font-extrabold text-ink">{{ rupiah($order->grand_total) }}</dd>
+            <dd class="mt-1 whitespace-nowrap text-lg font-extrabold text-ink">{{ rupiah($order->grand_total) }}</dd>
         </div>
         <div>
             <dt class="text-xs font-bold uppercase tracking-wider text-neutral-500">Terbayar</dt>
-            <dd class="mt-1 text-lg font-extrabold text-green-600">{{ rupiah($order->amount_paid) }}</dd>
+            <dd class="mt-1 whitespace-nowrap text-lg font-extrabold text-green-600">{{ rupiah($order->amount_paid) }}</dd>
         </div>
         <div>
             <dt class="text-xs font-bold uppercase tracking-wider text-neutral-500">Sisa</dt>
-            <dd class="mt-1 text-lg font-extrabold {{ $order->remaining > 0 ? 'text-brand-600' : 'text-neutral-400' }}">{{ rupiah($order->remaining) }}</dd>
+            <dd class="mt-1 whitespace-nowrap text-lg font-extrabold {{ $order->remaining > 0 ? 'text-brand-600' : 'text-neutral-400' }}">{{ rupiah($order->remaining) }}</dd>
         </div>
         <div>
             <dt class="text-xs font-bold uppercase tracking-wider text-neutral-500">Pembayaran</dt>
@@ -85,7 +85,7 @@
 <div class="mt-5">
     {{-- ============ OVERVIEW ============ --}}
     @if($tab === 'overview')
-        <div class="grid gap-5 lg:grid-cols-2">
+        <div class="grid gap-5 xl:grid-cols-2">
             <div class="admin-card">
                 <h2 class="font-extrabold text-ink">Item Produk</h2>
                 <div class="mt-4 overflow-x-auto">
@@ -121,7 +121,7 @@
                 </div>
             </div>
 
-            <div class="space-y-5">
+            <div class="grid gap-5 md:grid-cols-2 xl:grid-cols-1">
                 <div class="admin-card">
                     <h2 class="font-extrabold text-ink">Customer</h2>
                     <dl class="mt-3 space-y-2.5 text-sm">
@@ -311,10 +311,10 @@
                     <tbody class="divide-y divide-line">
                         @forelse($order->invoices as $invoice)
                             <tr>
-                                <td class="py-3 pr-4"><a href="{{ route('admin.invoices.show', $invoice) }}" class="font-mono font-bold text-brand-600 hover:underline">{{ $invoice->invoice_number }}</a></td>
+                                <td class="py-3 pr-4"><a href="{{ route('admin.invoices.show', $invoice) }}" class="whitespace-nowrap font-mono font-bold text-brand-600 hover:underline">{{ $invoice->invoice_number }}</a></td>
                                 <td class="py-3 pr-4">{{ $invoice->date->format('d/m/Y') }}</td>
                                 <td class="py-3 pr-4">{{ $invoice->due_date?->format('d/m/Y') ?? '—' }}</td>
-                                <td class="py-3 pr-4 text-right font-semibold">{{ rupiah($invoice->grand_total) }}</td>
+                                <td class="whitespace-nowrap py-3 pr-4 text-right font-semibold">{{ rupiah($invoice->grand_total) }}</td>
                                 <td class="py-3 text-right">
                                     <a href="{{ route('admin.invoices.pdf', $invoice) }}" class="text-sm font-semibold text-brand-600 hover:underline">Unduh PDF</a>
                                 </td>
@@ -384,7 +384,7 @@
             <div class="admin-card h-fit lg:col-span-2">
                 <h2 class="font-extrabold text-ink">Riwayat Pembayaran</h2>
                 <div class="mt-4 overflow-x-auto">
-                    <table class="w-full min-w-[560px] text-sm">
+                    <table class="w-full min-w-[500px] text-sm">
                         <thead>
                             <tr class="border-b border-line text-left text-xs font-bold uppercase tracking-wider text-neutral-500">
                                 <th class="pb-2.5 pr-4">Tanggal</th>
@@ -398,7 +398,7 @@
                             @forelse($order->payments as $payment)
                                 <tr>
                                     <td class="py-3 pr-4">{{ $payment->payment_date->format('d/m/Y') }}</td>
-                                    <td class="py-3 pr-4 text-right font-bold text-green-600">{{ rupiah($payment->amount) }}</td>
+                                    <td class="whitespace-nowrap py-3 pr-4 text-right font-bold text-green-600">{{ rupiah($payment->amount) }}</td>
                                     <td class="py-3 pr-4">{{ $payment->method_label }}@if($payment->reference)<span class="block text-xs text-neutral-500">{{ $payment->reference }}</span>@endif</td>
                                     <td class="py-3 pr-4 text-neutral-600">{{ $payment->note ?? '—' }}</td>
                                     <td class="py-3 text-right">

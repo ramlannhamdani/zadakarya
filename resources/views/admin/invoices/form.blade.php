@@ -73,23 +73,23 @@
 
         <template x-for="(item, i) in items" :key="i">
             <div class="mt-4 grid gap-4 rounded-lg border border-line p-4 sm:grid-cols-12">
-                <div class="sm:col-span-6">
+                <div class="sm:col-span-12 md:col-span-5">
                     <label class="form-label">Deskripsi <span class="text-brand-600">*</span></label>
                     <input class="form-input" type="text" :name="`items[${i}][description]`" x-model="item.description" required>
                 </div>
-                <div class="sm:col-span-1">
+                <div class="sm:col-span-3 md:col-span-2">
                     <label class="form-label">Qty</label>
                     <input class="form-input" type="number" min="1" :name="`items[${i}][quantity]`" x-model="item.quantity" required>
                 </div>
-                <div class="sm:col-span-1">
+                <div class="sm:col-span-3 md:col-span-2">
                     <label class="form-label">Satuan</label>
                     <input class="form-input" type="text" :name="`items[${i}][unit]`" x-model="item.unit">
                 </div>
-                <div class="sm:col-span-3">
+                <div class="sm:col-span-4 md:col-span-2">
                     <label class="form-label">Harga Satuan</label>
                     <input class="form-input" type="number" min="0" :name="`items[${i}][unit_price]`" x-model="item.unit_price" required>
                 </div>
-                <div class="flex items-end sm:col-span-1">
+                <div class="flex items-end sm:col-span-2 md:col-span-1">
                     <button type="button" @click="removeItem(i)" class="rounded-lg border border-red-200 p-2.5 text-red-500 hover:bg-red-50" :disabled="items.length === 1" title="Hapus">
                         <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
                     </button>

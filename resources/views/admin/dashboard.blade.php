@@ -4,7 +4,7 @@
 
 @section('content')
 {{-- Summary cards --}}
-<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+<div class="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
     @foreach([
         ['label' => 'Total Pesanan', 'value' => $stats['total_orders'], 'accent' => 'text-ink'],
         ['label' => 'Pesanan Aktif', 'value' => $stats['active_orders'], 'accent' => 'text-brand-600'],
@@ -59,7 +59,7 @@
 </div>
 
 {{-- Action required --}}
-<div class="mt-6 grid gap-5 lg:grid-cols-3">
+<div class="mt-6 grid gap-5 xl:grid-cols-3">
     <div class="admin-card">
         <h2 class="font-extrabold text-ink">Perlu Tindakan</h2>
         <ul class="mt-4 space-y-3 text-sm">
@@ -119,7 +119,7 @@
     </div>
 
     {{-- Recent orders --}}
-    <div class="admin-card lg:col-span-2">
+    <div class="admin-card xl:col-span-2">
         <div class="flex items-center justify-between">
             <h2 class="font-extrabold text-ink">Pesanan Terbaru</h2>
             <a href="{{ route('admin.orders.create') }}" class="btn-primary !px-4 !py-2 text-xs">+ Buat Pesanan</a>
@@ -140,13 +140,13 @@
                     @forelse($recentOrders as $order)
                         <tr class="hover:bg-cream/60">
                             <td class="py-3 pr-4">
-                                <a href="{{ route('admin.orders.show', $order) }}" class="font-mono font-bold text-brand-600 hover:underline">{{ $order->order_number }}</a>
+                                <a href="{{ route('admin.orders.show', $order) }}" class="whitespace-nowrap font-mono font-bold text-brand-600 hover:underline">{{ $order->order_number }}</a>
                             </td>
                             <td class="py-3 pr-4">
                                 <span class="block font-medium text-ink">{{ $order->customer->name }}</span>
                                 <span class="block text-xs text-neutral-500">{{ $order->items->first()?->product_name }}{{ $order->items->count() > 1 ? ' +'.($order->items->count()-1) : '' }}</span>
                             </td>
-                            <td class="py-3 pr-4 font-semibold">{{ rupiah($order->grand_total) }}</td>
+                            <td class="whitespace-nowrap py-3 pr-4 font-semibold">{{ rupiah($order->grand_total) }}</td>
                             <td class="py-3 pr-4"><x-payment-badge :status="$order->payment_status" /></td>
                             <td class="py-3 pr-4 text-neutral-600">{{ $order->current_stage_name }}</td>
                             <td class="py-3 text-neutral-600">{{ $order->deadline?->format('d/m/Y') ?? '—' }}</td>

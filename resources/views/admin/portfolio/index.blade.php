@@ -3,8 +3,8 @@
 @section('title', 'Portfolio')
 
 @section('content')
-<div class="grid gap-5 lg:grid-cols-4">
-    <div class="lg:col-span-3">
+<div class="grid gap-5 lg:grid-cols-[minmax(0,1fr)_15rem] xl:grid-cols-4">
+    <div class="min-w-0 xl:col-span-3">
         <div class="flex flex-wrap items-center justify-between gap-3">
             <form method="GET" class="flex min-w-0 flex-1 gap-2 sm:flex-none">
                 <input type="search" name="q" value="{{ request('q') }}" placeholder="Cari judul..." class="form-input min-w-0 flex-1 sm:!w-56">
@@ -46,7 +46,7 @@
     @endforelse
 </div>
 <div class="admin-card mt-5 hidden overflow-x-auto !p-0 md:block">
-            <table class="w-full min-w-[640px] text-sm">
+            <table class="w-full min-w-[600px] text-sm">
                 <thead>
                     <tr class="border-b border-line bg-cream/60 text-left text-xs font-bold uppercase tracking-wider text-neutral-500">
                         <th class="px-5 py-3">Judul</th>
