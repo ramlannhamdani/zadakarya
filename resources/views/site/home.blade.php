@@ -398,7 +398,8 @@
 {{-- Klien / Dipercaya oleh — ditaruh di blok bukti sosial (setelah Portfolio,
      sebelum Testimoni) supaya tidak berdempetan dengan bar statistik hero. --}}
 @if($clients->isNotEmpty())
-<section class="border-t border-line bg-cream">
+{{-- Putih supaya terpisah jelas dari section Portfolio (atas) dan Testimoni (bawah) yang keduanya krem --}}
+<section class="border-y border-line bg-white">
     <div class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
         <div class="mx-auto max-w-2xl text-center" data-reveal>
             <p class="text-[11px] font-bold uppercase tracking-[0.28em] text-warm-600 sm:text-xs">Klien Kami</p>
