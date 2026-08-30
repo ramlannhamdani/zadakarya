@@ -9,6 +9,21 @@
     $signFile = setting('invoice_signature') ? storage_path('app/public/'.setting('invoice_signature')) : null;
     $signature = ($signFile && file_exists($signFile)) ? $signFile : null;
 
+    // Ukuran tanda tangan mengikuti rasio gambarnya: tinggi dipatok, tapi
+    // dikecilkan otomatis kalau hasilnya lebih lebar dari kolom tanda tangan.
+    $signHeight = 100;
+    $signWidth = $signHeight;
+
+    if ($signature && ($dim = @getimagesize($signature)) && $dim[0] > 0 && $dim[1] > 0) {
+        $ratio = $dim[0] / $dim[1];
+        $signWidth = $signHeight * $ratio;
+
+        if ($signWidth > 215) {
+            $signWidth = 215;
+            $signHeight = (int) round(215 / $ratio);
+        }
+    }
+
     // Stempel LUNAS: hanya dicetak kalau pesanan sudah lunas.
     $stampFile = setting('invoice_stamp') ? storage_path('app/public/'.setting('invoice_stamp')) : null;
     $stamp = ($stampFile && file_exists($stampFile)) ? $stampFile : null;
@@ -85,7 +100,10 @@
         .sign { width: 100%; margin-top: 26px; }
         .sign td { text-align: center; font-size: 14.5px; padding: 0 10px; width: 50%; }
         .sign .space { height: 64px; vertical-align: bottom; }
-        .sign .space img { height: 58px; width: auto; }
+        /* Tanda tangan & stempel: elemen absolut di level halaman (dompdf hanya
+           menghitung position:absolute dengan benar untuk anak langsung <body>),
+           sengaja menimpa garis tanda tangan agar terlihat seperti tanda basah. */
+        .signature { position: absolute; width: auto; }
         .sign .line { border-top: 2px solid #6C1005; height: 0; margin-bottom: 3px; }
         .sign .name { font-size: 13.5px; }
         /* Stempel LUNAS: elemen absolut di level halaman (dompdf hanya menghitung
@@ -109,6 +127,19 @@
     {{-- Blok tanda tangan turun ~29px untuk tiap baris item di atas enam baris. --}}
     @php $stampTop = 562 + max(0, $rows->count() - $minRows) * 29; @endphp
     <img src="{{ $stamp }}" class="stamp" style="left: 778px; top: {{ $stampTop }}px;" alt="">
+@endif
+
+@if($signature)
+    {{-- Dipusatkan di kolom "Hormat kami"; bagian bawahnya sengaja melewati
+         garis tanda tangan ~14px supaya terlihat seperti tanda tangan basah. --}}
+    @php
+        $extraRows = max(0, $rows->count() - $minRows);
+        // 668 = titik acuan hasil pengukuran render dompdf (bukan koordinat garis di CSS).
+        $signatureTop = 688 - $signHeight + $extraRows * 29;
+        $signatureLeft = (int) round(972 - $signWidth / 2);
+    @endphp
+    <img src="{{ $signature }}" class="signature"
+         style="left: {{ $signatureLeft }}px; top: {{ $signatureTop }}px; height: {{ $signHeight }}px;" alt="">
 @endif
 <div class="sheet">
 
@@ -249,7 +280,7 @@
                     </tr>
                     <tr>
                         <td class="space"></td>
-                        <td class="space">@if($signature)<img src="{{ $signature }}">@endif</td>
+                        <td class="space"></td>
                     </tr>
                     <tr>
                         <td><div class="line"></div><span class="name">{{ $customer->name }}</span></td>

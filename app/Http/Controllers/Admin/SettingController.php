@@ -83,12 +83,26 @@ class SettingController extends Controller
         }
 
         foreach (['logo', 'logo_light', 'invoice_signature', 'invoice_stamp'] as $key) {
+            $stored = null;
+
             if ($request->hasFile($key)) {
                 ImageUploader::delete(Setting::get($key));
-                Setting::set($key, $this->storeKeepingAlpha($request->file($key), 'branding', 600, 200));
+                $stored = $this->storeKeepingAlpha($request->file($key), 'branding', 600, 200);
             } elseif ($request->filled($key.'_pick') && ($res = ImageUploader::fromGalleryId($request->input($key.'_pick'), 'branding', 'public', 600, 200))) {
                 ImageUploader::delete(Setting::get($key));
-                Setting::set($key, $res[0]);
+                $stored = $res[0];
+            }
+
+            if ($stored === null) {
+                continue;
+            }
+
+            Setting::set($key, $stored);
+
+            // Tanda tangan & stempel biasanya digambar di kanvas besar dengan
+            // banyak ruang kosong; dipotong agar tampil proporsional di PDF.
+            if (in_array($key, ['invoice_signature', 'invoice_stamp'], true)) {
+                ImageUploader::trimTransparent(Storage::disk('public')->path($stored));
             }
         }
 

@@ -118,6 +118,85 @@ class ImageUploader
         return $transparent;
     }
 
+    /**
+     * Potong bingkai transparan di sekeliling gambar (mis. tanda tangan atau
+     * stempel yang digambar di kanvas besar). Tanpa ini, tinggi tampil di PDF
+     * terpakai oleh ruang kosong sehingga coretannya terlihat kecil.
+     * Mengembalikan true bila file benar-benar dipotong.
+     */
+    public static function trimTransparent(string $absolutePath, int $padding = 4): bool
+    {
+        if (! extension_loaded('gd') || ! is_file($absolutePath)) {
+            return false;
+        }
+
+        $mime = @getimagesize($absolutePath)['mime'] ?? '';
+
+        $image = match ($mime) {
+            'image/png' => function_exists('imagecreatefrompng') ? @imagecreatefrompng($absolutePath) : null,
+            'image/webp' => function_exists('imagecreatefromwebp') ? @imagecreatefromwebp($absolutePath) : null,
+            default => null,
+        };
+
+        if (! $image) {
+            return false;
+        }
+
+        $w = imagesx($image);
+        $h = imagesy($image);
+        $minX = $w;
+        $minY = $h;
+        $maxX = -1;
+        $maxY = -1;
+
+        for ($y = 0; $y < $h; $y++) {
+            for ($x = 0; $x < $w; $x++) {
+                // Alpha GD: 0 = opak, 127 = transparan penuh.
+                if ((((imagecolorat($image, $x, $y) >> 24) & 0x7F)) < 100) {
+                    if ($x < $minX) $minX = $x;
+                    if ($x > $maxX) $maxX = $x;
+                    if ($y < $minY) $minY = $y;
+                    if ($y > $maxY) $maxY = $y;
+                }
+            }
+        }
+
+        // Seluruhnya transparan, atau memang sudah rapat: biarkan apa adanya.
+        if ($maxX < 0) {
+            imagedestroy($image);
+
+            return false;
+        }
+
+        $minX = max(0, $minX - $padding);
+        $minY = max(0, $minY - $padding);
+        $maxX = min($w - 1, $maxX + $padding);
+        $maxY = min($h - 1, $maxY + $padding);
+        $newW = $maxX - $minX + 1;
+        $newH = $maxY - $minY + 1;
+
+        if ($newW >= $w && $newH >= $h) {
+            imagedestroy($image);
+
+            return false;
+        }
+
+        $cropped = imagecreatetruecolor($newW, $newH);
+        imagealphablending($cropped, false);
+        imagesavealpha($cropped, true);
+        imagefill($cropped, 0, 0, imagecolorallocatealpha($cropped, 0, 0, 0, 127));
+        imagecopy($cropped, $image, 0, 0, $minX, $minY, $newW, $newH);
+
+        $saved = $mime === 'image/webp' && function_exists('imagewebp')
+            ? imagewebp($cropped, $absolutePath, 92)
+            : imagepng($cropped, $absolutePath);
+
+        imagedestroy($image);
+        imagedestroy($cropped);
+
+        return (bool) $saved;
+    }
+
     public static function delete(?string $path, string $disk = 'public'): void
     {
         if ($path && Storage::disk($disk)->exists($path)) {

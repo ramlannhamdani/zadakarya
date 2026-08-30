@@ -58,6 +58,35 @@ class ImageUploaderTest extends TestCase
         @rmdir($dir);
     }
 
+    public function test_transparent_padding_is_trimmed_so_signatures_render_large(): void
+    {
+        $dir = sys_get_temp_dir().'/zdk-trim-test';
+        @mkdir($dir, 0777, true);
+        $path = $dir.'/ttd.png';
+
+        // Kanvas 400x400 transparan dengan coretan kecil di tengah (100x60).
+        $canvas = imagecreatetruecolor(400, 400);
+        imagesavealpha($canvas, true);
+        imagealphablending($canvas, false);
+        imagefill($canvas, 0, 0, imagecolorallocatealpha($canvas, 0, 0, 0, 127));
+        imagealphablending($canvas, true);
+        imagefilledrectangle($canvas, 150, 170, 250, 230, imagecolorallocate($canvas, 10, 10, 10));
+        imagepng($canvas, $path);
+        imagedestroy($canvas);
+
+        $this->assertTrue(ImageUploader::trimTransparent($path, 0));
+
+        [$width, $height] = getimagesize($path);
+        $this->assertSame(101, $width);
+        $this->assertSame(61, $height);
+
+        // Gambar yang sudah rapat tidak diubah lagi.
+        $this->assertFalse(ImageUploader::trimTransparent($path, 0));
+
+        @unlink($path);
+        @rmdir($dir);
+    }
+
     public function test_store_works_on_private_disk_for_production_photos(): void
     {
         Storage::fake('local');
