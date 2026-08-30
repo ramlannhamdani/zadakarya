@@ -32,6 +32,56 @@ class ImageRemovalTest extends TestCase
         ], $extra);
     }
 
+    public function test_saving_settings_without_remove_flags_keeps_every_image(): void
+    {
+        Storage::fake('public');
+
+        $images = [
+            'logo' => 'branding/logo.webp',
+            'logo_light' => 'branding/logo-putih.webp',
+            'favicon' => 'branding/favicon.png',
+            'hero_image' => 'hero/model.webp',
+            'invoice_signature' => 'branding/ttd.webp',
+            'invoice_stamp' => 'branding/stempel.webp',
+            'workshop_photo_1' => 'workshop/1.webp',
+            'workshop_photo_2' => 'workshop/2.webp',
+            'workshop_photo_3' => 'workshop/3.webp',
+        ];
+
+        foreach ($images as $key => $path) {
+            Storage::disk('public')->put($path, 'x');
+            Setting::set($key, $path);
+        }
+
+        // Simpan form seperti biasa (mis. hanya mengubah teks) — tanpa flag hapus apa pun.
+        $this->actingAs($this->admin)
+            ->patch(route('admin.settings.update'), $this->settingsPayload(['tagline' => 'Tagline baru']))
+            ->assertRedirect();
+
+        foreach ($images as $key => $path) {
+            $this->assertSame($path, Setting::get($key), "Gambar {$key} seharusnya tidak ikut terhapus.");
+            Storage::disk('public')->assertExists($path);
+        }
+    }
+
+    public function test_remove_input_is_not_submitted_until_the_x_button_is_used(): void
+    {
+        Setting::set('logo', 'branding/logo.webp');
+
+        $html = $this->actingAs($this->admin)->get(route('admin.settings.edit'))->assertOk()->getContent();
+
+        // Input penghapus harus berada di dalam <template> Alpine, bukan di DOM
+        // aktif — elemen tersembunyi biasa tetap ikut terkirim saat submit.
+        $position = strpos($html, 'name="remove_logo"');
+        $this->assertNotFalse($position);
+
+        $before = substr($html, 0, $position);
+        $this->assertStringEndsWith(
+            '<template x-if="removed">',
+            trim(substr($before, strrpos($before, '<template'), strpos($before, '>', strrpos($before, '<template')) - strrpos($before, '<template') + 1))
+        );
+    }
+
     public function test_setting_image_can_be_emptied_with_the_remove_flag(): void
     {
         Storage::fake('public');

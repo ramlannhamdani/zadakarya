@@ -134,11 +134,14 @@
                                         <span class="sr-only">Hapus favicon</span>
                                     </button>
                                 </div>
-                                <div class="mb-2 flex flex-wrap items-center gap-2 rounded-lg bg-red-50 px-3 py-2 text-xs" x-show="removed" x-cloak>
-                                    <input type="hidden" name="remove_favicon" value="1">
-                                    <span class="font-semibold text-red-700">Favicon akan dihapus saat disimpan.</span>
-                                    <button type="button" @click="removed = false" class="font-semibold text-neutral-600 underline hover:text-ink">Batalkan</button>
-                                </div>
+                                {{-- template x-if: input di dalam x-show tetap terkirim walau tersembunyi --}}
+                                <template x-if="removed">
+                                    <div class="mb-2 flex flex-wrap items-center gap-2 rounded-lg bg-red-50 px-3 py-2 text-xs">
+                                        <input type="hidden" name="remove_favicon" value="1">
+                                        <span class="font-semibold text-red-700">Favicon akan dihapus saat disimpan.</span>
+                                        <button type="button" @click="removed = false" class="font-semibold text-neutral-600 underline hover:text-ink">Batalkan</button>
+                                    </div>
+                                </template>
                             </div>
                         @endif
                         <input class="form-input !py-2" type="file" id="favicon" name="favicon" accept=".ico,.png">
