@@ -213,26 +213,64 @@
      tampil sebagai panel "Apa yang ingin kamu buat?" tepat di bawah hero. --}}
 
 {{-- Why Choose Us --}}
+@php
+    // Ilustrasi garis (viewBox 64) — digambar khusus untuk section ini.
+    $whyItems = [
+        [
+            'title' => 'Produksi Custom',
+            'desc' => 'Model, ukuran, bahan, dan desain menyesuaikan kebutuhan Anda — bukan sebaliknya.',
+            'icon' => '<path d="M22 12 11 18l4 10 6-3v27h22V25l6 3 4-10-11-6c-2.5 5-6 6.5-10 6.5S24.5 17 22 12z"/><path d="M44 48 56 36l4 4-12 12-6 2z"/><path d="M54 38l4 4"/>',
+        ],
+        [
+            'title' => 'Konsultasi Kebutuhan',
+            'desc' => 'Tim kami membantu menentukan bahan dan model paling tepat sebelum produksi dimulai.',
+            'icon' => '<path d="M30 13h20a6 6 0 0 1 6 6v11"/><path d="M15 21h26a7 7 0 0 1 7 7v10a7 7 0 0 1-7 7H27l-10 8v-8h-2a7 7 0 0 1-7-7V28a7 7 0 0 1 7-7z"/><circle cx="20" cy="33" r="2.4" fill="currentColor" stroke="none"/><circle cx="28.5" cy="33" r="2.4" fill="currentColor" stroke="none"/><circle cx="37" cy="33" r="2.4" fill="currentColor" stroke="none"/>',
+        ],
+        [
+            'title' => 'Pilihan Bahan Lengkap',
+            'desc' => 'Drill, tropical, lacoste, combed, dryfit, dan bahan lain sesuai budget dan pemakaian.',
+            'icon' => '<path d="M22 18h28a8 8 0 0 1 0 16H22"/><ellipse cx="22" cy="26" rx="6" ry="8"/><path d="M14 36h30a8 8 0 0 1 0 16H14"/><ellipse cx="14" cy="44" rx="6" ry="8"/>',
+        ],
+        [
+            'title' => 'Proses Terstruktur',
+            'desc' => 'Tujuh tahap produksi yang jelas — Anda bisa memantau progress pesanan kapan saja.',
+            'icon' => '<path d="M6 54h52"/><path d="M12 54V38h40v16"/><path d="M46 38V22a5 5 0 0 0-5-5H25a5 5 0 0 0-5 5v9"/><path d="M20 31v7"/><path d="M25 45h14"/><path d="M33 17v-6"/><path d="M29 11h8"/>',
+        ],
+        [
+            'title' => 'Quality Check',
+            'desc' => 'Setiap produk diperiksa sebelum dikemas agar kualitas tetap konsisten.',
+            'icon' => '<path d="M32 7l22 8v15c0 12-9.5 22-22 28C20 52 10 42 10 30V15z"/><path d="M23 31l6.5 6.5L42 25"/>',
+        ],
+        [
+            'title' => 'Beragam Kebutuhan Apparel',
+            'desc' => 'Seragam, polo, kaos, celana, hingga produksi garment custom lainnya.',
+            'icon' => '<path d="M4 14h56"/><path d="M13 24 7 27l2.5 6 3.5-2v19h14V31l3.5 2 2.5-6-6-3c-1.5 2.5-4 3.5-7 3.5S14.5 26.5 13 24z"/><path d="M20 24v-7"/><path d="M16.5 17a3.5 3.5 0 0 1 7 0"/><path d="M37 24l-6 3 2.5 6 3.5-2v19h14V31l3.5 2 2.5-6-6-3c-1.5 2.5-4 3.5-7 3.5S38.5 26.5 37 24z"/><path d="M44 24v-7"/><path d="M40.5 17a3.5 3.5 0 0 1 7 0"/>',
+        ],
+    ];
+@endphp
+
 <section class="border-y border-line bg-cream">
     <div class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
         <div class="max-w-2xl" data-reveal>
-            <p class="text-xs font-bold uppercase tracking-widest text-warm-600">Kenapa Zada Karya</p>
-            <h2 class="mt-2 text-3xl font-extrabold tracking-tight text-ink">Produksi Terukur, Hasil Konsisten</h2>
+            <p class="text-[11px] font-bold uppercase tracking-[0.2em] text-brand-600 sm:text-xs">Kenapa Zada Karya</p>
+            <span class="mt-2 block h-[3px] w-9 rounded-full bg-brand-600"></span>
+            <h2 class="mt-4 text-3xl font-extrabold leading-tight tracking-tight text-ink sm:text-4xl">Produksi Terukur, Hasil Konsisten</h2>
+            <p class="mt-3 text-[15px] leading-relaxed text-neutral-600 sm:text-base">Kami berkomitmen memberikan hasil terbaik melalui proses yang terukur, bahan berkualitas, dan layanan profesional.</p>
         </div>
-        <div class="mt-10 grid gap-x-8 gap-y-10 sm:grid-cols-2 lg:grid-cols-3" data-reveal-stagger>
-            @foreach([
-                ['title' => 'Produksi Custom', 'desc' => 'Model, ukuran, bahan, dan desain menyesuaikan kebutuhan Anda — bukan sebaliknya.'],
-                ['title' => 'Konsultasi Kebutuhan', 'desc' => 'Tim kami membantu menentukan bahan dan model paling tepat sebelum produksi dimulai.'],
-                ['title' => 'Pilihan Bahan Lengkap', 'desc' => 'Drill, tropical, lacoste, combed, dryfit, dan bahan lain sesuai budget dan pemakaian.'],
-                ['title' => 'Proses Terstruktur', 'desc' => 'Tujuh tahap produksi yang jelas — Anda bisa memantau progress pesanan kapan saja.'],
-                ['title' => 'Quality Check', 'desc' => 'Setiap produk diperiksa sebelum dikemas agar kualitas tetap konsisten.'],
-                ['title' => 'Beragam Kebutuhan Apparel', 'desc' => 'Seragam, polo, kaos, celana, hingga produksi garment custom lainnya.'],
-            ] as $i => $item)
-                <div class="flex gap-4">
-                    <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-brand-600 text-sm font-extrabold text-white">{{ sprintf('%02d', $i + 1) }}</span>
-                    <div>
-                        <h3 class="font-bold text-ink">{{ $item['title'] }}</h3>
-                        <p class="mt-1 text-sm leading-relaxed text-neutral-600">{{ $item['desc'] }}</p>
+
+        <div class="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3" data-reveal-stagger>
+            @foreach($whyItems as $i => $item)
+                <div class="rounded-2xl border border-line bg-white/70 p-6 transition hover:border-brand-600/30 hover:bg-white">
+                    <div class="grid grid-cols-[3.25rem_minmax(0,1fr)] items-center gap-x-4">
+                        <span class="flex h-13 w-13 items-center justify-center rounded-xl bg-brand-600 text-[15px] font-extrabold text-white">{{ sprintf('%02d', $i + 1) }}</span>
+                        <h3 class="text-[17px] font-bold leading-snug text-ink">{{ $item['title'] }}</h3>
+                    </div>
+
+                    <span class="ml-[4.25rem] mt-3 block h-[3px] w-8 rounded-full bg-brand-600/70"></span>
+
+                    <div class="mt-4 grid grid-cols-[3.25rem_minmax(0,1fr)] items-start gap-x-4">
+                        <svg class="-ml-2 h-16 w-16 text-brand-600" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">{!! $item['icon'] !!}</svg>
+                        <p class="text-[14px] leading-relaxed text-neutral-600">{{ $item['desc'] }}</p>
                     </div>
                 </div>
             @endforeach
