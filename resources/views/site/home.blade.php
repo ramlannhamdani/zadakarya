@@ -182,7 +182,7 @@
                         @endif
                         <span class="min-w-0">
                             <span class="block text-sm font-bold leading-tight text-ink group-hover:text-brand-600">{{ $service->name }}</span>
-                            <span class="mt-0.5 line-clamp-2 block text-[11px] leading-snug text-neutral-500">{{ \Illuminate\Support\Str::limit($service->short_description, 40) }}</span>
+                            <span class="mt-0.5 line-clamp-2 text-[11px] leading-snug text-neutral-500">{{ \Illuminate\Support\Str::limit($service->short_description, 40) }}</span>
                         </span>
                     </a>
                 </li>
@@ -261,18 +261,57 @@
 
 {{-- Portfolio --}}
 @if($featuredPortfolios->isNotEmpty())
-<section class="border-y border-line bg-cream">
-    <div class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
-        <div class="flex flex-wrap items-end justify-between gap-4" data-reveal>
-            <div>
-                <p class="text-xs font-bold uppercase tracking-widest text-warm-600">Hasil Produksi</p>
-                <h2 class="mt-2 text-3xl font-extrabold tracking-tight text-ink">Portfolio Terbaru</h2>
+<section class="relative overflow-hidden border-y border-line bg-cream">
+    {{-- Dekorasi: dot grid dan bilah maroon di sudut, senada dengan hero halaman --}}
+    <div aria-hidden="true" class="pointer-events-none absolute inset-0">
+        <svg class="absolute right-6 top-8 hidden h-[92px] w-[66px] text-brand-300/60 lg:block" viewBox="0 0 66 92" fill="currentColor">
+            <defs><pattern id="pfDots" width="13" height="13" patternUnits="userSpaceOnUse"><circle cx="1.8" cy="1.8" r="1.8"/></pattern></defs>
+            <rect width="66" height="92" fill="url(#pfDots)"/>
+        </svg>
+        <svg class="absolute bottom-10 left-5 hidden h-[92px] w-[52px] text-brand-300/50 lg:block" viewBox="0 0 52 92" fill="currentColor">
+            <rect width="52" height="92" fill="url(#pfDots)"/>
+        </svg>
+        <svg class="absolute bottom-0 right-0 h-[110px] w-[46%] max-w-[420px] sm:h-[190px]" viewBox="0 0 420 220" preserveAspectRatio="xMaxYMax slice" fill="none">
+            <defs>
+                <linearGradient id="pfBar" x1="1" y1="0" x2="0" y2="1">
+                    <stop offset="0" stop-color="var(--color-brand-400)"/>
+                    <stop offset="1" stop-color="var(--color-brand-700)"/>
+                </linearGradient>
+            </defs>
+            <path d="M420 74 L420 148 L280 220 L186 220 Z" fill="url(#pfBar)"/>
+            <path d="M420 168 L420 196 L360 220 L306 220 Z" fill="var(--color-brand-500)" opacity=".8"/>
+            <path d="M420 208 L420 220 L398 220 L372 220 Z" fill="var(--color-brand-300)" opacity=".9"/>
+        </svg>
+    </div>
+
+    <div class="relative mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
+        <div class="flex flex-wrap items-start justify-between gap-5" data-reveal>
+            <div class="max-w-xl">
+                <p class="text-[11px] font-bold uppercase tracking-[0.2em] text-brand-600 sm:text-xs">Portofolio</p>
+                <span class="mt-2 block h-[3px] w-9 rounded-full bg-brand-600"></span>
+                <h2 class="mt-4 text-3xl font-extrabold leading-tight tracking-tight text-ink sm:text-4xl">Hasil Produksi Kami</h2>
+                <p class="mt-3 max-w-lg text-[15px] leading-relaxed text-neutral-600">Berbagai hasil produksi konveksi yang telah kami kerjakan dengan kualitas terbaik untuk berbagai kebutuhan.</p>
             </div>
-            <a href="{{ route('portfolio.index') }}" class="btn-outline !py-2.5">Lihat Semua Portfolio</a>
+            <a href="{{ route('portfolio.index') }}"
+               class="inline-flex h-12 items-center gap-2 rounded-lg bg-brand-600 px-5 text-[14px] font-bold text-white transition hover:bg-brand-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 focus-visible:ring-offset-2">
+                Lihat Semua Portofolio
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12l-7.5 7.5M21 12H3"/></svg>
+            </a>
         </div>
-        <div class="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3" data-reveal-stagger>
+
+        @if($portfolioCategories->isNotEmpty())
+            <div class="no-scrollbar mt-8 flex gap-2 overflow-x-auto pb-1" data-reveal>
+                <a href="{{ route('portfolio.index') }}" class="shrink-0 rounded-full bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white">Semua</a>
+                @foreach($portfolioCategories as $category)
+                    <a href="{{ route('portfolio.index', ['kategori' => $category->slug]) }}"
+                       class="shrink-0 rounded-full border border-line bg-white px-5 py-2.5 text-sm font-semibold text-neutral-600 transition hover:border-brand-600 hover:text-brand-600">{{ $category->name }}</a>
+                @endforeach
+            </div>
+        @endif
+
+        <div class="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4" data-reveal-stagger>
             @foreach($featuredPortfolios as $portfolio)
-                <x-portfolio-card :portfolio="$portfolio" />
+                <x-portfolio-tile :portfolio="$portfolio" />
             @endforeach
         </div>
     </div>

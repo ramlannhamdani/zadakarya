@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Site;
 use App\Http\Controllers\Controller;
 use App\Models\Client;
 use App\Models\Portfolio;
+use App\Models\PortfolioCategory;
 use App\Models\Review;
 use App\Models\Service;
 use App\Support\HeroDefaults;
@@ -62,7 +63,10 @@ class HomeController extends Controller
                 ->with('category')
                 ->orderByDesc('is_featured')
                 ->latest()
-                ->take(6)
+                ->take(8)
+                ->get(),
+            'portfolioCategories' => PortfolioCategory::whereHas('portfolios', fn ($q) => $q->published())
+                ->orderBy('name')
                 ->get(),
             'clients' => Client::active()->get(),
             'reviews' => $reviews,
