@@ -279,18 +279,57 @@
 </section>
 
 {{-- Proses Produksi --}}
+@php
+    // Enam tahap yang tampil ke customer; ilustrasi garis digambar khusus (viewBox 64).
+    $processSteps = [
+        [
+            'label' => 'Konsultasi',
+            'icon' => '<path d="M20 12h-4a4 4 0 0 0-4 4v34a4 4 0 0 0 4 4h32a4 4 0 0 0 4-4V16a4 4 0 0 0-4-4h-4"/><path d="M24 7h16a2 2 0 0 1 2 2v7H22V9a2 2 0 0 1 2-2z"/><circle cx="32" cy="36" r="10"/><path d="M27.5 36l3.5 3.5 6-7"/>',
+        ],
+        [
+            'label' => 'Penawaran',
+            'icon' => '<path d="M40 6H16a4 4 0 0 0-4 4v44a4 4 0 0 0 4 4h16"/><path d="M40 6l12 12v14"/><path d="M40 6v12h12"/><path d="M20 26h16"/><path d="M20 34h11"/><path d="M37 49l11-11 5 5-11 11-6.5 1.5z"/><path d="M46 40l5 5"/>',
+        ],
+        [
+            'label' => 'Sample / Desain',
+            'icon' => '<path d="M22 12 11 18l4 10 6-3v27h22V25l6 3 4-10-11-6c-2.5 5-6 6.5-10 6.5S24.5 17 22 12z"/>',
+        ],
+        [
+            'label' => 'Produksi',
+            'icon' => '<path d="M6 54h52"/><path d="M12 54V38h40v16"/><path d="M46 38V22a5 5 0 0 0-5-5H25a5 5 0 0 0-5 5v9"/><path d="M20 31v7"/><path d="M25 45h14"/><path d="M33 17v-6"/><path d="M29 11h8"/>',
+        ],
+        [
+            'label' => 'Quality Check',
+            'icon' => '<path d="M32 7l22 8v15c0 12-9.5 22-22 28C20 52 10 42 10 30V15z"/><path d="M23 31l6.5 6.5L42 25"/>',
+        ],
+        [
+            'label' => 'Pengiriman',
+            'icon' => '<path d="M26 8L6 17v18l20 9 20-9V17z"/><path d="M6 17l20 9 20-9"/><path d="M26 26v18"/><path d="M16 12.5l20 9"/><circle cx="48" cy="46" r="10"/><path d="M43.5 46l3 3 5.5-6"/>',
+        ],
+    ];
+@endphp
+
 <section id="cara-order" class="mx-auto max-w-7xl scroll-mt-28 px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
     <div class="max-w-2xl" data-reveal>
-        <p class="text-xs font-bold uppercase tracking-widest text-warm-600">Cara Order</p>
-        <h2 class="mt-2 text-3xl font-extrabold tracking-tight text-ink">Proses Produksi Kami</h2>
+        <p class="text-[11px] font-bold uppercase tracking-[0.2em] text-brand-600 sm:text-xs">Proses</p>
+        <span class="mt-2 block h-[3px] w-9 rounded-full bg-brand-600"></span>
+        <h2 class="mt-4 text-3xl font-extrabold leading-tight tracking-tight text-ink sm:text-4xl">Proses Produksi Kami</h2>
+        <p class="mt-3 text-[15px] leading-relaxed text-neutral-600 sm:text-base">Setiap pesanan melalui tahapan produksi yang terstruktur untuk memastikan hasil terbaik sampai ke tangan Anda.</p>
     </div>
-    <ol class="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-6" data-reveal-stagger>
-        @foreach(['Konsultasi', 'Penawaran', 'Persetujuan', 'Produksi', 'Quality Check', 'Pengiriman'] as $i => $step)
-            <li class="relative rounded-xl border border-line bg-white p-5 lg:p-4">
-                <span class="text-3xl font-extrabold text-brand-100">{{ sprintf('%02d', $i + 1) }}</span>
-                <h3 class="mt-2 text-sm font-bold text-ink">{{ $step }}</h3>
+
+    <ol class="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6 lg:gap-6" data-reveal-stagger>
+        @foreach($processSteps as $i => $step)
+            <li class="relative rounded-2xl border border-line bg-white px-5 py-6">
+                <span class="block text-[38px] font-extrabold leading-none text-brand-300">{{ sprintf('%02d', $i + 1) }}</span>
+                <svg class="mt-4 h-12 w-12 text-brand-400" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">{!! $step['icon'] !!}</svg>
+                <span class="mt-4 block h-px w-full bg-line"></span>
+                <h3 class="mt-3 text-sm font-bold leading-snug text-ink">{{ $step['label'] }}</h3>
+
                 @unless($loop->last)
-                    <svg class="absolute -right-4 top-1/2 hidden h-4 w-4 -translate-y-1/2 text-warm-500 lg:block" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12l-7.5 7.5"/></svg>
+                    {{-- Konektor hanya saat keenam kartu berjajar satu baris --}}
+                    <span class="absolute -right-[15px] top-1/2 z-10 hidden h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full bg-brand-700 text-white lg:flex" aria-hidden="true">
+                        <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                    </span>
                 @endunless
             </li>
         @endforeach
