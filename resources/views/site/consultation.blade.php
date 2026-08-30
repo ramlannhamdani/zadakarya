@@ -4,13 +4,12 @@
 @section('meta_description', 'Konsultasikan kebutuhan konveksi Anda dengan Zada Karya Production. Isi form konsultasi atau hubungi kami langsung via WhatsApp.')
 
 @section('content')
-<section class="border-b border-line bg-cream">
-    <div class="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8" data-reveal>
-        <p class="text-xs font-bold uppercase tracking-widest text-warm-600">Konsultasi</p>
-        <h1 class="mt-2 text-4xl font-extrabold tracking-tight text-ink">Konsultasikan Kebutuhan Anda</h1>
-        <p class="mt-4 max-w-2xl text-neutral-600">Ceritakan kebutuhan produksi Anda — tim kami akan menghubungi Anda untuk membahas bahan, model, jumlah, dan estimasi harga.</p>
-    </div>
-</section>
+<x-page-hero
+    eyebrow="Konsultasi"
+    title="Ceritakan Kebutuhan
+Produksi Anda"
+    text="Diskusikan desain, bahan, jumlah pesanan, dan kebutuhan lainnya bersama tim {{ setting('company_name', 'Zada Karya Production') }}."
+    icon="shirt" />
 
 <section class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
     @if(session('consultation_success'))

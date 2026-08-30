@@ -4,13 +4,12 @@
 @section('meta_description', 'Artikel, tips, dan informasi seputar konveksi, bahan, sablon, dan produksi garment dari Zada Karya Production.')
 
 @section('content')
-<section class="border-b border-line bg-cream">
-    <div class="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8" data-reveal>
-        <p class="text-xs font-bold uppercase tracking-widest text-warm-600">Blog</p>
-        <h1 class="mt-2 text-4xl font-extrabold tracking-tight text-ink">Artikel &amp; Informasi</h1>
-        <p class="mt-4 max-w-2xl text-neutral-600">Tips memilih bahan, teknik sablon, dan informasi seputar dunia konveksi.</p>
-    </div>
-</section>
+<x-page-hero
+    eyebrow="Blog &amp; Informasi"
+    title="Informasi Seputar Konveksi
+dan Pakaian"
+    text="Temukan berbagai informasi, tips, dan insight seputar pakaian, bahan, perawatan, hingga proses produksi konveksi."
+    icon="document" />
 
 <section class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
     <div class="flex flex-wrap items-center justify-between gap-4">

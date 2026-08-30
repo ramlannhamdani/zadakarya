@@ -4,12 +4,12 @@
 @section('meta_description', 'Mengenal Zada Karya Production — perusahaan jasa konveksi yang menyediakan kebutuhan produksi apparel dan garment custom.')
 
 @section('content')
-<section class="border-b border-line bg-cream">
-    <div class="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8" data-reveal>
-        <p class="text-xs font-bold uppercase tracking-widest text-warm-600">Tentang Kami</p>
-        <h1 class="mt-2 max-w-3xl text-4xl font-extrabold tracking-tight text-ink">Partner Produksi Konveksi yang Bisa Anda Andalkan</h1>
-    </div>
-</section>
+<x-page-hero
+    eyebrow="Tentang Kami"
+    title="Mengenal Lebih Dekat
+{{ setting('company_name', 'Zada Karya Production') }}"
+    text="Kami hadir untuk membantu mewujudkan kebutuhan produksi pakaian dengan kualitas, ketelitian, dan pelayanan terbaik."
+    icon="factory" />
 
 <section class="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
     <div class="grid gap-12 lg:grid-cols-2" data-reveal-stagger>

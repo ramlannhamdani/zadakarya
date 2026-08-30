@@ -4,13 +4,12 @@
 @section('meta_description', 'Hasil produksi Zada Karya Production: seragam, polo shirt, kaos sablon, jersey olahraga, celana, dan apparel custom.')
 
 @section('content')
-<section class="border-b border-line bg-cream">
-    <div class="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8" data-reveal>
-        <p class="text-xs font-bold uppercase tracking-widest text-warm-600">Portfolio</p>
-        <h1 class="mt-2 text-4xl font-extrabold tracking-tight text-ink">Hasil Produksi Kami</h1>
-        <p class="mt-4 max-w-2xl text-neutral-600">Beberapa hasil produksi yang telah kami kerjakan untuk berbagai kebutuhan.</p>
-    </div>
-</section>
+<x-page-hero
+    eyebrow="Koleksi"
+    title="Hasil Produksi yang
+Sudah Kami Kerjakan"
+    text="Beragam seragam, jersey, kaos, dan apparel custom yang telah kami produksi untuk perusahaan, sekolah, komunitas, dan brand."
+    icon="photo" />
 
 <section class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
     @if($categories->isNotEmpty())

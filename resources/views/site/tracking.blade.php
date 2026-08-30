@@ -4,20 +4,20 @@
 @section('meta_description', 'Lacak progress produksi pesanan Anda di Zada Karya Production menggunakan nomor pesanan yang dikirim oleh admin kami.')
 
 @section('content')
-<section class="border-b border-line bg-cream">
-    <div class="mx-auto max-w-3xl px-4 py-14 text-center sm:px-6 lg:px-8" data-reveal>
-        <p class="text-xs font-bold uppercase tracking-widest text-warm-600">Tracking</p>
-        <h1 class="mt-2 text-4xl font-extrabold tracking-tight text-ink">Lacak Pesanan Anda</h1>
-        <p class="mt-4 text-neutral-600">Masukkan nomor pesanan Anda secara lengkap (contoh: <span class="font-mono font-semibold text-ink">ZDK-0012-140226</span>) untuk melihat progress produksi.</p>
-
-        <form method="GET" action="{{ route('tracking.index') }}" class="mx-auto mt-8 flex max-w-md gap-2"
-              onsubmit="if(window.gtag){gtag('event','tracking_search');}">
-            <input type="text" name="order" value="{{ $number }}" id="tracking-input" placeholder="ZDK-0012-140226"
-                   class="form-input flex-1 !py-3 text-center font-mono text-base uppercase tracking-widest" required>
-            <button type="submit" class="btn-primary !px-6">Lacak Pesanan</button>
-        </form>
-    </div>
-</section>
+<x-page-hero
+    eyebrow="Tracking Pesanan"
+    title="Pantau Proses Pesanan Anda"
+    text="Masukkan nomor pesanan secara lengkap untuk melihat perkembangan proses produksi."
+    icon="package">
+    <form method="GET" action="{{ route('tracking.index') }}" class="mt-7 flex max-w-md flex-col gap-2 sm:flex-row"
+          onsubmit="if(window.gtag){gtag('event','tracking_search');}">
+        <label for="tracking-input" class="sr-only">Nomor pesanan</label>
+        <input type="text" name="order" value="{{ $number }}" id="tracking-input" placeholder="ZDK-0012-140226"
+               class="form-input min-w-0 flex-1 !py-3 font-mono text-base uppercase tracking-widest" required>
+        <button type="submit" class="btn-primary shrink-0 !px-6">Lacak Pesanan</button>
+    </form>
+    <p class="mt-3 text-[13px] text-neutral-500">Contoh: <span class="font-mono font-semibold text-ink">ZDK-0012-140226</span> — nomor dikirim admin saat pesanan dibuat.</p>
+</x-page-hero>
 
 <section class="mx-auto max-w-3xl px-4 py-12 sm:px-6 lg:px-8">
     @if($notFound)

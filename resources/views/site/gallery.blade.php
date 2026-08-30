@@ -4,20 +4,12 @@
 @section('meta_description', 'Galeri hasil produksi Zada Karya Production: dokumentasi seragam, polo shirt, kaos sablon, jersey, dan garment custom yang pernah kami kerjakan.')
 
 @section('content')
-@php
-    // Background hero: overlay samar dari salah satu foto galeri.
-    $heroBg = 'gallery/20260824091559-5PnXZHiZ-thumb.webp';
-@endphp
-<section class="relative overflow-hidden border-b border-line bg-cream">
-    <div class="absolute inset-0 bg-bottom bg-repeat opacity-10"
-         style="background-image: url('{{ asset('storage/'.$heroBg) }}'); background-size: 380px auto; background-position: bottom center;" aria-hidden="true"></div>
-    <div class="absolute inset-0 bg-gradient-to-r from-cream via-cream/60 to-transparent" aria-hidden="true"></div>
-    <div class="relative mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
-        <p class="text-xs font-bold uppercase tracking-widest text-warm-600">Galeri</p>
-        <h1 class="mt-2 text-4xl font-extrabold tracking-tight text-ink">Dokumentasi Produksi</h1>
-        <p class="mt-4 max-w-2xl text-neutral-600">Kumpulan foto hasil produksi dan aktivitas workshop kami dari waktu ke waktu.</p>
-    </div>
-</section>
+<x-page-hero
+    eyebrow="Galeri"
+    title="Dokumentasi Produksi
+dari Waktu ke Waktu"
+    text="Kumpulan foto hasil produksi dan aktivitas workshop kami — dari proses jahit hingga produk siap kirim."
+    icon="camera" />
 
 <section class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
     @if($items->isEmpty())

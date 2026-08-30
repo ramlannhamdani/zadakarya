@@ -4,12 +4,12 @@
 @section('meta_description', 'Hubungi Zada Karya Production untuk konsultasi kebutuhan konveksi Anda — via WhatsApp, email, atau kunjungi workshop kami.')
 
 @section('content')
-<section class="border-b border-line bg-cream">
-    <div class="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8" data-reveal>
-        <p class="text-xs font-bold uppercase tracking-widest text-warm-600">Kontak</p>
-        <h1 class="mt-2 text-4xl font-extrabold tracking-tight text-ink">Hubungi Kami</h1>
-    </div>
-</section>
+<x-page-hero
+    eyebrow="Hubungi Kami"
+    title="Mari Wujudkan Produk Anda
+Bersama Kami"
+    text="Punya pertanyaan atau ingin berkonsultasi mengenai kebutuhan konveksi? Tim kami siap membantu."
+    icon="headset" />
 
 <section class="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
     <div class="grid gap-5 md:grid-cols-3" data-reveal-stagger>
