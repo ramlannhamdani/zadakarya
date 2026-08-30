@@ -122,14 +122,19 @@ Alpine.data('clientCarousel', () => ({
         const track = this.$refs.track;
         if (! track) return;
 
-        this.pages = Math.max(1, Math.round(track.scrollWidth / track.clientWidth));
-        this.sync();
-
-        // Jumlah logo per layar berubah mengikuti breakpoint.
-        window.addEventListener('resize', () => {
-            this.pages = Math.max(1, Math.round(track.scrollWidth / track.clientWidth));
+        const count = () => {
+            // ceil, bukan round: sisa satu logo pun tetap satu halaman tambahan.
+            // Toleransi 0.02 mencegah halaman kosong akibat pembulatan sub-piksel.
+            this.pages = Math.max(1, Math.ceil(track.scrollWidth / track.clientWidth - 0.02));
             this.sync();
-        });
+        };
+
+        count();
+
+        // Lebar final baru pasti setelah font & gambar selesai dimuat,
+        // dan jumlah logo per layar berubah mengikuti breakpoint.
+        window.addEventListener('load', count);
+        window.addEventListener('resize', count);
     },
 
     sync() {
