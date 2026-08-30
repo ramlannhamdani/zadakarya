@@ -28,16 +28,16 @@ class ClientTest extends TestCase
         $client = Client::firstOrFail();
         Storage::disk('public')->assertExists($client->logo_path);
 
-        $this->get('/')->assertOk()->assertSee('Dipercaya oleh')->assertSee('PT Klien Hebat');
+        $this->get('/')->assertOk()->assertSee('Dipercaya Berbagai Instansi')->assertSee('PT Klien Hebat');
     }
 
     public function test_inactive_clients_are_hidden_and_section_collapses_when_empty(): void
     {
-        $this->get('/')->assertOk()->assertDontSee('Dipercaya oleh');
+        $this->get('/')->assertOk()->assertDontSee('Dipercaya Berbagai Instansi');
 
         Client::create(['name' => 'Klien Nonaktif', 'logo_path' => 'clients/x.webp', 'is_active' => false]);
 
-        $this->get('/')->assertOk()->assertDontSee('Klien Nonaktif')->assertDontSee('Dipercaya oleh');
+        $this->get('/')->assertOk()->assertDontSee('Klien Nonaktif')->assertDontSee('Dipercaya Berbagai Instansi');
     }
 
     public function test_logo_is_required_when_creating_client(): void

@@ -398,10 +398,15 @@
 {{-- Klien / Dipercaya oleh — ditaruh di blok bukti sosial (setelah Portfolio,
      sebelum Testimoni) supaya tidak berdempetan dengan bar statistik hero. --}}
 @if($clients->isNotEmpty())
-<section class="border-t border-line bg-white">
-    <div class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8" data-reveal>
-        <p class="text-center text-xs font-bold uppercase tracking-widest text-neutral-500">Dipercaya oleh</p>
-        <x-client-marquee :clients="$clients" class="mt-7" />
+<section class="border-t border-line bg-cream">
+    <div class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
+        <div class="mx-auto max-w-2xl text-center" data-reveal>
+            <p class="text-[11px] font-bold uppercase tracking-[0.28em] text-warm-600 sm:text-xs">Klien Kami</p>
+            <h2 class="mt-3 text-3xl font-extrabold leading-tight tracking-tight text-ink sm:text-4xl">Dipercaya Berbagai Instansi &amp; Brand</h2>
+            <p class="mx-auto mt-4 max-w-xl text-[15px] leading-relaxed text-neutral-600 sm:text-base">Terima kasih kepada instansi, perusahaan, komunitas, dan brand yang telah mempercayakan kebutuhan produksinya kepada kami.</p>
+        </div>
+
+        <x-client-carousel :clients="$clients" class="mt-12" />
     </div>
 </section>
 @endif

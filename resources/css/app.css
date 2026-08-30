@@ -117,21 +117,6 @@
     }
 }
 
-/* Marquee logo klien (section "Dipercaya oleh") */
-@keyframes marquee {
-    from { transform: translateX(0); }
-    to { transform: translateX(-50%); }
-}
-.marquee-track {
-    animation: marquee 30s linear infinite;
-}
-.marquee:hover .marquee-track {
-    animation-play-state: paused;
-}
-@media (prefers-reduced-motion: reduce) {
-    .marquee-track { animation: none; flex-wrap: wrap; width: auto; }
-    .marquee-track > [aria-hidden="true"] { display: none; }
-}
 /* ===== Hero beranda =====
    Panggung visual = grid satu sel: bidang maroon, foto, kartu melayang, dan
    pill rating menumpuk di sel yang sama pada lg+, lalu turun ke baris sendiri

@@ -112,6 +112,45 @@ Alpine.data('mediaPicker', ({ pickerUrl, uploadUrl, csrf, multiple = false }) =>
     },
 }));
 
+// Carousel logo klien: menggeser track satu layar penuh per klik dan
+// menghitung jumlah halaman dari lebar konten dibanding lebar terlihat.
+Alpine.data('clientCarousel', () => ({
+    page: 0,
+    pages: 1,
+
+    measure() {
+        const track = this.$refs.track;
+        if (! track) return;
+
+        this.pages = Math.max(1, Math.round(track.scrollWidth / track.clientWidth));
+        this.sync();
+
+        // Jumlah logo per layar berubah mengikuti breakpoint.
+        window.addEventListener('resize', () => {
+            this.pages = Math.max(1, Math.round(track.scrollWidth / track.clientWidth));
+            this.sync();
+        });
+    },
+
+    sync() {
+        const track = this.$refs.track;
+        if (! track || ! track.clientWidth) return;
+
+        this.page = Math.min(this.pages - 1, Math.round(track.scrollLeft / track.clientWidth));
+    },
+
+    go(index) {
+        const track = this.$refs.track;
+        if (! track) return;
+
+        track.scrollTo({ left: index * track.clientWidth, behavior: 'smooth' });
+        this.page = index;
+    },
+
+    prev() { this.go(Math.max(0, this.page - 1)); },
+    next() { this.go(Math.min(this.pages - 1, this.page + 1)); },
+}));
+
 // Scroll reveal: elemen [data-reveal] muncul saat masuk viewport; anak
 // [data-reveal-stagger] muncul berurutan (70ms per item, diulang tiap 6).
 const initReveal = () => {
