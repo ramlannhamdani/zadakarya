@@ -77,6 +77,9 @@ class PortfolioController extends Controller
         } elseif ($pick && ($res = ImageUploader::fromGalleryId($pick, 'portfolio'))) {
             ImageUploader::delete($portfolio->cover_image);
             $data['cover_image'] = $res[0];
+        } elseif ($request->boolean('remove_cover_image')) {
+            ImageUploader::delete($portfolio->cover_image);
+            $data['cover_image'] = null;
         }
 
         $portfolio->update($data);

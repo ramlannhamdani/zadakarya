@@ -1,4 +1,8 @@
-@props(['name', 'multiple' => false])
+@props([
+    'name',
+    'multiple' => false,
+    'current' => null,   // path gambar yang sedang terpasang; memunculkan preview + tombol hapus
+])
 @php $pickName = $name.'_pick'.($multiple ? '[]' : ''); @endphp
 <div x-data="mediaPicker({
         pickerUrl: '{{ route('admin.gallery.picker') }}',
@@ -6,6 +10,30 @@
         csrf: '{{ csrf_token() }}',
         multiple: {{ $multiple ? 'true' : 'false' }}
     })">
+
+    @if($current && ! $multiple)
+        {{-- Gambar terpasang: bisa ditimpa (pilih file baru) atau dikosongkan lewat tombol X --}}
+        <div class="mb-2 flex items-start gap-2" x-show="! removed">
+            <div class="min-w-0">
+                @if($slot->isEmpty())
+                    <img src="{{ asset('storage/'.$current) }}" alt="Gambar saat ini" class="h-16 w-auto max-w-full rounded-lg border border-line object-contain">
+                @else
+                    {{ $slot }}
+                @endif
+            </div>
+            <button type="button" @click="removed = true" title="Hapus gambar ini"
+                    class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-line bg-white text-neutral-500 transition hover:border-red-300 hover:bg-red-50 hover:text-red-600">
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                <span class="sr-only">Hapus gambar</span>
+            </button>
+        </div>
+
+        <div class="mb-2 flex flex-wrap items-center gap-2 rounded-lg bg-red-50 px-3 py-2 text-xs" x-show="removed" x-cloak>
+            <input type="hidden" name="remove_{{ $name }}" value="1">
+            <span class="font-semibold text-red-700">Gambar akan dihapus saat disimpan.</span>
+            <button type="button" @click="removed = false" class="font-semibold text-neutral-600 underline hover:text-ink">Batalkan</button>
+        </div>
+    @endif
 
     <div class="flex gap-2">
         <input class="form-input flex-1 !py-2" type="file"

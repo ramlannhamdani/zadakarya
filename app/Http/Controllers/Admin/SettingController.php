@@ -126,7 +126,40 @@ class SettingController extends Controller
             Setting::set('favicon', $path);
         }
 
+        $this->removeMarkedImages($request);
+
         return back()->with('success', 'Pengaturan disimpan.');
+    }
+
+    /**
+     * Kosongkan gambar yang ditandai hapus lewat tombol X di form.
+     * Upload/pilihan baru selalu menang, jadi tanda hapus diabaikan
+     * bila pada field yang sama juga dikirim gambar pengganti.
+     */
+    private function removeMarkedImages(Request $request): void
+    {
+        $keys = [
+            'logo', 'logo_light', 'favicon', 'hero_image',
+            'invoice_signature', 'invoice_stamp',
+            'workshop_photo_1', 'workshop_photo_2', 'workshop_photo_3',
+        ];
+
+        foreach ($keys as $key) {
+            if (! $request->boolean('remove_'.$key)) {
+                continue;
+            }
+
+            if ($request->hasFile($key) || $request->filled($key.'_pick')) {
+                continue;
+            }
+
+            ImageUploader::delete(Setting::get($key));
+            Setting::set($key, null);
+
+            if ($key === 'hero_image') {
+                Setting::set('hero_image_style', 'framed');
+            }
+        }
     }
 
     /**

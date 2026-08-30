@@ -60,6 +60,9 @@ class ServiceController extends Controller
         } elseif ($pick && ($res = ImageUploader::fromGalleryId($pick, 'services'))) {
             ImageUploader::delete($service->featured_image);
             $data['featured_image'] = $res[0];
+        } elseif ($request->boolean('remove_featured_image')) {
+            ImageUploader::delete($service->featured_image);
+            $data['featured_image'] = null;
         }
 
         $service->update($data);

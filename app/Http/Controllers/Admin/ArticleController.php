@@ -75,6 +75,9 @@ class ArticleController extends Controller
         } elseif ($pick && ($res = ImageUploader::fromGalleryId($pick, 'articles'))) {
             ImageUploader::delete($article->featured_image);
             $data['featured_image'] = $res[0];
+        } elseif ($request->boolean('remove_featured_image')) {
+            ImageUploader::delete($article->featured_image);
+            $data['featured_image'] = null;
         }
 
         $article->update($data);

@@ -45,6 +45,7 @@ Alpine.data('mediaPicker', ({ pickerUrl, uploadUrl, csrf, multiple = false }) =>
     selected: [],
     picked: [],
     uploading: false,
+    removed: false, // gambar lama ditandai hapus; baru dieksekusi saat form disimpan
 
     async open() {
         this.openModal = true;

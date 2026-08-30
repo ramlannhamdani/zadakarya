@@ -47,10 +47,9 @@
             </div>
             <div class="sm:col-span-2">
                 <label class="form-label" for="cover_image">Cover Image</label>
-                @if($portfolio->cover_image)
-                    <img src="{{ asset('storage/'.$portfolio->cover_image) }}" alt="" class="mb-2 h-24 rounded-lg object-cover">
-                @endif
-                <x-admin.media-picker name="cover_image" />
+                <x-admin.media-picker name="cover_image" :current="$portfolio->cover_image">
+                    <img src="{{ asset('storage/'.$portfolio->cover_image) }}" alt="" class="h-24 w-auto rounded-lg object-cover">
+                </x-admin.media-picker>
             </div>
             <div class="sm:col-span-2">
                 <label class="form-label" for="gallery">Tambah Foto Galeri (bisa lebih dari satu)</label>

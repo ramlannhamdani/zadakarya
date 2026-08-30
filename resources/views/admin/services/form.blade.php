@@ -50,10 +50,9 @@
             </div>
             <div class="sm:col-span-2">
                 <label class="form-label" for="featured_image">Foto Utama</label>
-                @if($service->featured_image)
-                    <img src="{{ asset('storage/'.$service->featured_image) }}" alt="" class="mb-2 h-24 rounded-lg object-cover">
-                @endif
-                <x-admin.media-picker name="featured_image" />
+                <x-admin.media-picker name="featured_image" :current="$service->featured_image">
+                    <img src="{{ asset('storage/'.$service->featured_image) }}" alt="" class="h-24 w-auto rounded-lg object-cover">
+                </x-admin.media-picker>
             </div>
         </div>
     </div>

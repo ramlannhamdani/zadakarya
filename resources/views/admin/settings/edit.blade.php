@@ -108,26 +108,38 @@
                 <div class="mt-4 grid gap-5 sm:grid-cols-2">
                     <div>
                         <label class="form-label" for="logo">Logo (latar terang)</label>
-                        @if(!empty($settings['logo']))
-                            <img src="{{ asset('storage/'.$settings['logo']) }}" alt="Logo" class="mb-2 h-12 object-contain">
-                        @endif
-                        <x-admin.media-picker name="logo" />
+                        <x-admin.media-picker name="logo" :current="$settings['logo'] ?? null">
+                            <img src="{{ asset('storage/'.($settings['logo'] ?? '')) }}" alt="Logo" class="h-12 w-auto object-contain">
+                        </x-admin.media-picker>
                         <p class="mt-1 text-xs text-neutral-500">Dipakai di navbar. Jika ada, teks nama brand disembunyikan (tetap terbaca SEO).</p>
                     </div>
                     <div>
                         <label class="form-label" for="logo_light">Logo Putih (latar gelap)</label>
-                        @if(!empty($settings['logo_light']))
-                            <span class="mb-2 inline-block rounded-lg bg-brand-800 p-2">
-                                <img src="{{ asset('storage/'.$settings['logo_light']) }}" alt="Logo putih" class="h-10 object-contain">
+                        <x-admin.media-picker name="logo_light" :current="$settings['logo_light'] ?? null">
+                            <span class="inline-block rounded-lg bg-brand-800 p-2">
+                                <img src="{{ asset('storage/'.($settings['logo_light'] ?? '')) }}" alt="Logo putih" class="h-10 w-auto object-contain">
                             </span>
-                        @endif
-                        <x-admin.media-picker name="logo_light" />
+                        </x-admin.media-picker>
                         <p class="mt-1 text-xs text-neutral-500">Dipakai di footer. Wajib PNG/WebP dengan latar transparan.</p>
                     </div>
                     <div>
                         <label class="form-label" for="favicon">Favicon / Emblem</label>
                         @if(!empty($settings['favicon']))
-                            <img src="{{ asset('storage/'.$settings['favicon']) }}" alt="Favicon" class="mb-2 h-8 w-8 object-contain">
+                            <div x-data="{ removed: false }">
+                                <div class="mb-2 flex items-start gap-2" x-show="! removed">
+                                    <img src="{{ asset('storage/'.$settings['favicon']) }}" alt="Favicon" class="h-10 w-10 rounded-lg border border-line object-contain">
+                                    <button type="button" @click="removed = true" title="Hapus favicon"
+                                            class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-line bg-white text-neutral-500 transition hover:border-red-300 hover:bg-red-50 hover:text-red-600">
+                                        <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                                        <span class="sr-only">Hapus favicon</span>
+                                    </button>
+                                </div>
+                                <div class="mb-2 flex flex-wrap items-center gap-2 rounded-lg bg-red-50 px-3 py-2 text-xs" x-show="removed" x-cloak>
+                                    <input type="hidden" name="remove_favicon" value="1">
+                                    <span class="font-semibold text-red-700">Favicon akan dihapus saat disimpan.</span>
+                                    <button type="button" @click="removed = false" class="font-semibold text-neutral-600 underline hover:text-ink">Batalkan</button>
+                                </div>
+                            </div>
                         @endif
                         <input class="form-input !py-2" type="file" id="favicon" name="favicon" accept=".ico,.png">
                         <p class="mt-1 text-xs text-neutral-500">Ikon tab browser <strong>sekaligus emblem di header PDF invoice</strong>. Gunakan PNG persegi minimal 256&times;256 px (ICO tidak bisa dipakai di PDF), maks 512 KB.</p>
@@ -142,10 +154,9 @@
                     @foreach([1 => 'Cutting', 2 => 'Sewing', 3 => 'QC'] as $i => $label)
                         <div>
                             <label class="form-label" for="workshop_photo_{{ $i }}">Foto {{ $i }} <span class="text-neutral-400">({{ $label }})</span></label>
-                            @if(!empty($settings['workshop_photo_'.$i]))
-                                <img src="{{ asset('storage/'.$settings['workshop_photo_'.$i]) }}" alt="Foto workshop {{ $i }}" class="mb-2 aspect-square w-full rounded-lg object-cover">
-                            @endif
-                            <x-admin.media-picker :name="'workshop_photo_'.$i" />
+                            <x-admin.media-picker :name="'workshop_photo_'.$i" :current="$settings['workshop_photo_'.$i] ?? null">
+                                <img src="{{ asset('storage/'.($settings['workshop_photo_'.$i] ?? '')) }}" alt="Foto workshop {{ $i }}" class="h-24 w-24 rounded-lg object-cover">
+                            </x-admin.media-picker>
                         </div>
                     @endforeach
                 </div>
@@ -160,12 +171,11 @@
                 <div class="mt-4 grid gap-5">
                     <div>
                         <label class="form-label" for="hero_image">Foto Hero</label>
-                        @if(!empty($settings['hero_image']))
-                            <span class="mb-2 inline-block rounded-lg bg-brand-600 p-3">
-                                <img src="{{ asset('storage/'.$settings['hero_image']) }}" alt="Foto hero" class="h-32 w-auto object-contain">
+                        <x-admin.media-picker name="hero_image" :current="$settings['hero_image'] ?? null">
+                            <span class="inline-block rounded-lg bg-brand-600 p-3">
+                                <img src="{{ asset('storage/'.($settings['hero_image'] ?? '')) }}" alt="Foto hero" class="h-32 w-auto object-contain">
                             </span>
-                        @endif
-                        <x-admin.media-picker name="hero_image" />
+                        </x-admin.media-picker>
                         <p class="mt-1 text-xs text-neutral-500">Ambil dari <strong>Galeri</strong> atau upload baru, maks 4 MB. Kosong = memakai cover portfolio terbaru, lalu ilustrasi bawaan.</p>
                     </div>
                     <div>
@@ -306,22 +316,20 @@
                     <div class="grid gap-5 sm:grid-cols-2">
                         <div>
                             <label class="form-label">Gambar Tanda Tangan (opsional)</label>
-                            @if(!empty($settings['invoice_signature']))
-                                <span class="mb-2 inline-flex h-20 items-center rounded-lg bg-cream px-4">
-                                    <img src="{{ asset('storage/'.$settings['invoice_signature']) }}" alt="Tanda tangan" class="max-h-16 w-auto object-contain">
+                            <x-admin.media-picker name="invoice_signature" :current="$settings['invoice_signature'] ?? null">
+                                <span class="inline-flex h-20 items-center rounded-lg bg-cream px-4">
+                                    <img src="{{ asset('storage/'.($settings['invoice_signature'] ?? '')) }}" alt="Tanda tangan" class="max-h-16 w-auto object-contain">
                                 </span>
-                            @endif
-                            <x-admin.media-picker name="invoice_signature" />
+                            </x-admin.media-picker>
                             <p class="mt-1 text-xs text-neutral-500">PNG/WebP latar transparan. Dipasang di kolom "Hormat kami" pada <strong>setiap</strong> PDF invoice.</p>
                         </div>
                         <div>
                             <label class="form-label">Stempel LUNAS (opsional)</label>
-                            @if(!empty($settings['invoice_stamp']))
-                                <span class="mb-2 inline-flex h-20 items-center rounded-lg bg-cream px-4">
-                                    <img src="{{ asset('storage/'.$settings['invoice_stamp']) }}" alt="Stempel lunas" class="max-h-16 w-auto object-contain">
+                            <x-admin.media-picker name="invoice_stamp" :current="$settings['invoice_stamp'] ?? null">
+                                <span class="inline-flex h-20 items-center rounded-lg bg-cream px-4">
+                                    <img src="{{ asset('storage/'.($settings['invoice_stamp'] ?? '')) }}" alt="Stempel lunas" class="max-h-16 w-auto object-contain">
                                 </span>
-                            @endif
-                            <x-admin.media-picker name="invoice_stamp" />
+                            </x-admin.media-picker>
                             <p class="mt-1 text-xs text-neutral-500">PNG/WebP latar transparan, sebaiknya persegi. Dicetak otomatis di antara kolom tanda tangan <strong>hanya saat pesanan berstatus Lunas</strong>, menggantikan watermark "LUNAS".</p>
                         </div>
                     </div>

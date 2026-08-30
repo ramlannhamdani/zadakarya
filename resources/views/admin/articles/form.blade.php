@@ -45,10 +45,9 @@
             </div>
             <div>
                 <label class="form-label" for="featured_image">Featured Image</label>
-                @if($article->featured_image)
-                    <img src="{{ asset('storage/'.$article->featured_image) }}" alt="" class="mb-2 h-20 rounded-lg object-cover">
-                @endif
-                <x-admin.media-picker name="featured_image" />
+                <x-admin.media-picker name="featured_image" :current="$article->featured_image">
+                    <img src="{{ asset('storage/'.$article->featured_image) }}" alt="" class="h-20 w-auto rounded-lg object-cover">
+                </x-admin.media-picker>
             </div>
         </div>
     </div>
