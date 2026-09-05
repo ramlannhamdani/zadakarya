@@ -10,7 +10,7 @@ class ArticleCategorySeeder extends Seeder
 {
     public function run(): void
     {
-        foreach (['Tips & Panduan', 'Informasi Produksi', 'Berita'] as $name) {
+        foreach (['Tips & Panduan', 'Informasi Produksi', 'Panduan Bahan & Kain', 'Inspirasi & Bisnis', 'Berita'] as $name) {
             ArticleCategory::firstOrCreate(['slug' => Str::slug($name)], ['name' => $name]);
         }
     }

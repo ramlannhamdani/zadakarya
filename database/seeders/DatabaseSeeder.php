@@ -14,6 +14,7 @@ class DatabaseSeeder extends Seeder
             ServiceSeeder::class,
             PortfolioCategorySeeder::class,
             ArticleCategorySeeder::class,
+            ArticleSeeder::class,
         ]);
 
         if (app()->environment('local')) {

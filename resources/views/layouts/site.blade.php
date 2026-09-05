@@ -42,6 +42,9 @@
             gtag('config', '{{ setting('analytics_id') }}');
         </script>
     @endif
+
+    @yield('schema')
+    @stack('head')
 </head>
 <body class="flex min-h-screen flex-col bg-white">
 

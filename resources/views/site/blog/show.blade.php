@@ -6,16 +6,98 @@
     @section('og_image', asset('storage/'.($article->og_image ?: $article->featured_image)))
 @endif
 
+@section('schema')
+@php
+    $breadcrumbItems = [
+        [
+            '@type' => 'ListItem',
+            'position' => 1,
+            'name' => 'Home',
+            'item' => route('home'),
+        ],
+        [
+            '@type' => 'ListItem',
+            'position' => 2,
+            'name' => 'Blog',
+            'item' => route('blog.index'),
+        ],
+    ];
+
+    if ($article->category) {
+        $breadcrumbItems[] = [
+            '@type' => 'ListItem',
+            'position' => 3,
+            'name' => $article->category->name,
+            'item' => route('blog.index', ['kategori' => $article->category->slug]),
+        ];
+    }
+
+    $breadcrumbItems[] = [
+        '@type' => 'ListItem',
+        'position' => count($breadcrumbItems) + 1,
+        'name' => $article->title,
+        'item' => route('blog.show', $article),
+    ];
+
+    $articleSchema = [
+        '@context' => 'https://schema.org',
+        '@type' => 'BlogPosting',
+        'mainEntityOfPage' => [
+            '@type' => 'WebPage',
+            '@id' => route('blog.show', $article),
+        ],
+        'headline' => $article->title,
+        'description' => $article->seo_description ?: $article->excerpt,
+        'datePublished' => $article->published_at?->toIso8601String(),
+        'dateModified' => $article->updated_at?->toIso8601String(),
+        'author' => [
+            '@type' => 'Person',
+            'name' => $article->author?->name ?: setting('company_name', 'Zada Karya Production'),
+        ],
+        'publisher' => [
+            '@type' => 'Organization',
+            'name' => setting('company_name', 'Zada Karya Production'),
+            'logo' => setting('logo') ? [
+                '@type' => 'ImageObject',
+                'url' => asset('storage/'.setting('logo')),
+            ] : null,
+        ],
+    ];
+
+    if ($article->og_image || $article->featured_image) {
+        $articleSchema['image'] = asset('storage/'.($article->og_image ?: $article->featured_image));
+    }
+
+    $breadcrumbSchema = [
+        '@context' => 'https://schema.org',
+        '@type' => 'BreadcrumbList',
+        'itemListElement' => $breadcrumbItems,
+    ];
+@endphp
+<script type="application/ld+json">
+{!! json_encode($breadcrumbSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}
+</script>
+<script type="application/ld+json">
+{!! json_encode($articleSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}
+</script>
+@endsection
+
 @section('content')
 <div class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
     <div class="grid gap-10 lg:grid-cols-3">
 
         {{-- Konten artikel --}}
         <article class="min-w-0 lg:col-span-2" data-reveal>
-            <nav class="text-sm text-neutral-500">
+            <nav class="flex flex-wrap items-center text-sm text-neutral-500 gap-1.5" aria-label="Breadcrumb">
                 <a href="{{ route('home') }}" class="hover:text-brand-600">Home</a>
-                <span class="mx-1.5">/</span>
+                <span class="text-neutral-400">/</span>
                 <a href="{{ route('blog.index') }}" class="hover:text-brand-600">Blog</a>
+                @if($article->category)
+                    <span class="text-neutral-400">/</span>
+                    <a href="{{ route('blog.index', ['kategori' => $article->category->slug]) }}" class="hover:text-brand-600">{{ $article->category->name }}</a>
+                @endif
+                <span class="text-neutral-400">/</span>
+                <span class="text-neutral-700 font-medium truncate max-w-xs sm:max-w-md">{{ $article->title }}</span>
             </nav>
 
             <div class="mt-6 flex flex-wrap items-center gap-3 text-sm text-neutral-500">
