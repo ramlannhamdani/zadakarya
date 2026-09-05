@@ -88,6 +88,19 @@
 
         {{-- Konten artikel --}}
         <article class="min-w-0 lg:col-span-2" data-reveal>
+            @if(auth()->check() && ($article->published_at === null || $article->published_at->isFuture()))
+                <div class="mb-6 rounded-xl border border-amber-300 bg-amber-50 p-4 text-amber-900 flex flex-wrap items-center justify-between gap-3">
+                    <div class="flex items-center gap-2 text-sm">
+                        <svg class="h-5 w-5 shrink-0 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <span>
+                            <strong>Pratinjau Admin:</strong> Artikel ini berstatus <strong>{{ $article->status_label }}</strong> 
+                            @if($article->published_at) (jadwal terbit: {{ $article->published_at->translatedFormat('d F Y, H:i') }} WIB) @else (Draft) @endif.
+                        </span>
+                    </div>
+                    <a href="{{ route('admin.articles.edit', $article) }}" class="shrink-0 rounded-lg bg-amber-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-amber-700">Edit Artikel</a>
+                </div>
+            @endif
+
             <nav class="flex flex-wrap items-center text-sm text-neutral-500 gap-1.5" aria-label="Breadcrumb">
                 <a href="{{ route('home') }}" class="hover:text-brand-600">Home</a>
                 <span class="text-neutral-400">/</span>
@@ -178,11 +191,7 @@
                         @foreach($latestArticles as $latest)
                             <li>
                                 <a href="{{ route('blog.show', $latest) }}" class="group flex gap-3 py-3">
-                                    @if($latest->featured_image)
-                                        <img src="{{ asset('storage/'.$latest->featured_image) }}" alt="" loading="lazy" class="h-14 w-14 shrink-0 rounded-lg object-cover">
-                                    @else
-                                        <x-placeholder-image class="h-14 w-14 shrink-0 rounded-lg" />
-                                    @endif
+                                    <x-article-thumbnail :article="$latest" class="h-14 w-14 shrink-0 rounded-lg !p-1.5" :showScallop="false" />
                                     <div class="min-w-0">
                                         <p class="line-clamp-2 text-sm font-semibold leading-snug text-ink group-hover:text-brand-600">{{ $latest->title }}</p>
                                         <p class="mt-1 text-xs text-neutral-500">{{ $latest->published_at?->translatedFormat('d M Y') }}</p>

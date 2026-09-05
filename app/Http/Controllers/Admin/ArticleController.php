@@ -15,15 +15,31 @@ class ArticleController extends Controller
 {
     public function index(Request $request)
     {
+        $status = $request->query('status');
+
         $articles = Article::with(['category', 'author'])
             ->when($request->filled('q'), fn ($q) => $q->where('title', 'like', '%'.$request->q.'%'))
-            ->latest()
+            ->when($request->filled('kategori'), fn ($q) => $q->whereHas('category', fn ($c) => $c->where('slug', $request->kategori)))
+            ->when($status === 'published', fn ($q) => $q->published())
+            ->when($status === 'scheduled', fn ($q) => $q->scheduled())
+            ->when($status === 'draft', fn ($q) => $q->draft())
+            ->latest('published_at')
+            ->latest('id')
             ->paginate(20)
             ->withQueryString();
+
+        $statusCounts = [
+            'all' => Article::count(),
+            'published' => Article::published()->count(),
+            'scheduled' => Article::scheduled()->count(),
+            'draft' => Article::draft()->count(),
+        ];
 
         return view('admin.articles.index', [
             'articles' => $articles,
             'categories' => ArticleCategory::withCount('articles')->get(),
+            'statusCounts' => $statusCounts,
+            'currentStatus' => $status,
         ]);
     }
 
@@ -106,6 +122,8 @@ class ArticleController extends Controller
             'tags_text' => ['nullable', 'string', 'max:500'],
             'is_featured' => ['nullable', 'boolean'],
             'publish' => ['nullable', 'boolean'],
+            'published_at' => ['nullable', 'date'],
+            'status_action' => ['nullable', 'string', 'in:publish_now,schedule,draft'],
             'seo_title' => ['nullable', 'string', 'max:200'],
             'seo_description' => ['nullable', 'string', 'max:500'],
         ]);
@@ -119,13 +137,19 @@ class ArticleController extends Controller
             ->values()
             ->all();
 
-        if ($request->boolean('publish')) {
-            $data['published_at'] = $article?->published_at ?? now();
-        } else {
+        if ($request->status_action === 'draft') {
             $data['published_at'] = null;
+        } elseif ($request->status_action === 'schedule' && $request->filled('published_at')) {
+            $data['published_at'] = $request->date('published_at');
+        } elseif ($request->status_action === 'publish_now') {
+            $data['published_at'] = now();
+        } elseif ($request->filled('published_at')) {
+            $data['published_at'] = $request->date('published_at');
+        } elseif ($request->has('publish')) {
+            $data['published_at'] = $request->boolean('publish') ? ($article?->published_at ?? now()) : null;
         }
 
-        unset($data['tags_text'], $data['publish']);
+        unset($data['tags_text'], $data['publish'], $data['status_action']);
 
         return $data;
     }

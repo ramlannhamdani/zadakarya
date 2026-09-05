@@ -64,17 +64,44 @@
                 <textarea class="form-input" id="seo_description" name="seo_description" rows="2">{{ old('seo_description', $article->seo_description) }}</textarea>
             </div>
         </div>
-        <div class="mt-5 flex flex-wrap gap-6">
-            <label class="flex items-center gap-2 text-sm font-medium">
-                <input type="hidden" name="publish" value="0">
-                <input type="checkbox" name="publish" value="1" @checked(old('publish', (bool) $article->published_at)) class="rounded border-line text-brand-600 focus:ring-brand-600">
-                Publikasikan (hapus centang untuk simpan sebagai draft)
-            </label>
-            <label class="flex items-center gap-2 text-sm font-medium">
-                <input type="hidden" name="is_featured" value="0">
-                <input type="checkbox" name="is_featured" value="1" @checked(old('is_featured', $article->is_featured)) class="rounded border-line text-brand-600 focus:ring-brand-600">
-                Artikel Unggulan
-            </label>
+        <div class="mt-5 border-t border-line pt-5" x-data="{
+            pubStatus: '{{ old('status_action', $article->published_at ? ($article->published_at->isFuture() ? 'schedule' : 'publish_now') : 'draft') }}'
+        }">
+            <label class="form-label font-bold text-ink">Status Publikasi</label>
+            <div class="mt-2 grid gap-3 sm:grid-cols-3">
+                <label class="flex cursor-pointer items-center gap-2.5 rounded-lg border p-3 text-sm transition"
+                       :class="pubStatus === 'publish_now' ? 'border-green-600 bg-green-50/50 font-bold text-green-900' : 'border-line hover:bg-cream'">
+                    <input type="radio" name="status_action" value="publish_now" x-model="pubStatus" class="text-green-600 focus:ring-green-600">
+                    <span>Terbitkan Sekarang</span>
+                </label>
+
+                <label class="flex cursor-pointer items-center gap-2.5 rounded-lg border p-3 text-sm transition"
+                       :class="pubStatus === 'schedule' ? 'border-amber-600 bg-amber-50/50 font-bold text-amber-900' : 'border-line hover:bg-cream'">
+                    <input type="radio" name="status_action" value="schedule" x-model="pubStatus" class="text-amber-600 focus:ring-amber-600">
+                    <span>Jadwalkan Terbit</span>
+                </label>
+
+                <label class="flex cursor-pointer items-center gap-2.5 rounded-lg border p-3 text-sm transition"
+                       :class="pubStatus === 'draft' ? 'border-neutral-600 bg-neutral-100 font-bold text-neutral-900' : 'border-line hover:bg-cream'">
+                    <input type="radio" name="status_action" value="draft" x-model="pubStatus" class="text-neutral-600 focus:ring-neutral-600">
+                    <span>Simpan Draft</span>
+                </label>
+            </div>
+
+            <div class="mt-4" x-show="pubStatus === 'schedule'" x-cloak>
+                <label class="form-label" for="published_at">Waktu Terbit Terjadwal (WIB)</label>
+                <input class="form-input !w-auto" type="datetime-local" id="published_at" name="published_at"
+                       value="{{ old('published_at', $article->published_at?->format('Y-m-d\TH:i')) }}">
+                <p class="mt-1 text-xs text-neutral-500">Artikel akan otomatis terbit dan dapat diakses publik pada tanggal dan jam ini.</p>
+            </div>
+
+            <div class="mt-5">
+                <label class="flex items-center gap-2 text-sm font-medium">
+                    <input type="hidden" name="is_featured" value="0">
+                    <input type="checkbox" name="is_featured" value="1" @checked(old('is_featured', $article->is_featured)) class="rounded border-line text-brand-600 focus:ring-brand-600">
+                    Artikel Unggulan (Tampil prioritas)
+                </label>
+            </div>
         </div>
     </div>
 

@@ -38,6 +38,43 @@ class Article extends Model
         return $query->whereNotNull('published_at')->where('published_at', '<=', now());
     }
 
+    public function scopeScheduled(Builder $query): Builder
+    {
+        return $query->whereNotNull('published_at')->where('published_at', '>', now());
+    }
+
+    public function scopeDraft(Builder $query): Builder
+    {
+        return $query->whereNull('published_at');
+    }
+
+    public function getStatusAttribute(): string
+    {
+        if ($this->published_at === null) {
+            return 'draft';
+        }
+
+        return $this->published_at->isFuture() ? 'scheduled' : 'published';
+    }
+
+    public function getStatusLabelAttribute(): string
+    {
+        return match ($this->status) {
+            'published' => 'Terbit',
+            'scheduled' => 'Dijadwalkan',
+            'draft' => 'Draft',
+        };
+    }
+
+    public function getStatusBadgeClassAttribute(): string
+    {
+        return match ($this->status) {
+            'published' => 'bg-green-100 text-green-700 border border-green-200',
+            'scheduled' => 'bg-amber-100 text-amber-800 border border-amber-200',
+            'draft' => 'bg-neutral-100 text-neutral-600 border border-neutral-200',
+        };
+    }
+
     public function getRouteKeyName(): string
     {
         return 'slug';

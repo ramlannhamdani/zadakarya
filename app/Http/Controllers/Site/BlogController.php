@@ -31,7 +31,9 @@ class BlogController extends Controller
 
     public function show(Article $article)
     {
-        abort_if($article->published_at === null || $article->published_at->isFuture(), 404);
+        if (!auth()->check()) {
+            abort_if($article->published_at === null || $article->published_at->isFuture(), 404);
+        }
 
         $article->load(['category', 'author']);
 
