@@ -39,11 +39,7 @@
     @forelse($articles as $article)
         <div class="admin-card !p-4">
             <div class="flex gap-3">
-                @if($article->featured_image)
-                    <img src="{{ asset('storage/'.$article->featured_image) }}" alt="" class="h-16 w-16 shrink-0 rounded-lg object-cover">
-                @else
-                    <span class="flex h-16 w-16 shrink-0 items-center justify-center rounded-lg bg-emerald-950 text-sm font-bold text-white/70">{{ mb_substr($article->title, 0, 2) }}</span>
-                @endif
+                <x-article-thumbnail :article="$article" class="h-16 w-16 shrink-0 rounded-lg" :mini="true" />
                 <div class="min-w-0 flex-1">
                     <p class="font-semibold leading-snug text-ink">{{ $article->title }}</p>
                     <p class="mt-1 text-xs text-neutral-500">{{ $article->category?->name ?? 'Tanpa kategori' }} &bull; {{ $article->published_at?->format('d/m/Y H:i') ?? 'belum terbit' }}</p>
