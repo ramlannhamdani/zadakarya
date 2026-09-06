@@ -90,12 +90,38 @@
         <div class="flex justify-between border-t-2 border-line pt-2 text-base"><span class="font-bold">Grand Total</span><span class="font-extrabold text-brand-600">{{ rupiah($invoice->grand_total) }}</span></div>
     </div>
 
-    <div class="mt-6 rounded-lg bg-cream p-4">
-        <p class="text-xs font-bold uppercase tracking-wider text-neutral-500">Ringkasan Pembayaran Pesanan</p>
-        <div class="mt-2 grid grid-cols-3 gap-4 text-sm">
-            <div><p class="text-neutral-500">Terbayar</p><p class="font-bold text-green-600">{{ rupiah($invoice->order->amount_paid) }}</p></div>
-            <div><p class="text-neutral-500">Sisa</p><p class="font-bold text-brand-600">{{ rupiah($invoice->order->remaining) }}</p></div>
-            <div><p class="text-neutral-500">Status</p><x-payment-badge :status="$invoice->order->payment_status" class="mt-0.5" /></div>
+    @php
+        // Pesanan dengan beberapa invoice: pembayaran dihitung dari yang
+        // ditautkan ke invoice ini, supaya tidak tercampur antar invoice.
+        $multiInvoice = $invoice->order->invoices->count() > 1;
+        $invoicePaid = $multiInvoice
+            ? (int) $invoice->order->payments->where('invoice_id', $invoice->id)->sum('amount')
+            : $invoice->order->amount_paid;
+        $invoiceOutstanding = max(0, $invoice->grand_total - $invoicePaid);
+    @endphp
+
+    <div class="mt-6 grid gap-4 {{ $multiInvoice ? 'sm:grid-cols-2' : '' }}">
+        @if($multiInvoice)
+            <div class="rounded-lg border border-brand-600/25 bg-brand-50 p-4">
+                <p class="text-xs font-bold uppercase tracking-wider text-brand-600">Invoice Ini</p>
+                <div class="mt-2 grid grid-cols-3 gap-4 text-sm">
+                    <div><p class="text-neutral-500">Tagihan</p><p class="font-bold text-ink">{{ rupiah($invoice->grand_total) }}</p></div>
+                    <div><p class="text-neutral-500">Terbayar</p><p class="font-bold text-green-600">{{ rupiah($invoicePaid) }}</p></div>
+                    <div><p class="text-neutral-500">Sisa</p><p class="font-bold text-brand-600">{{ rupiah($invoiceOutstanding) }}</p></div>
+                </div>
+                @if($invoicePaid === 0)
+                    <p class="mt-2 text-xs text-neutral-500">Belum ada pembayaran yang ditautkan ke invoice ini. Saat mencatat pembayaran, pilih invoice pada kolom <strong>Terkait Invoice</strong>.</p>
+                @endif
+            </div>
+        @endif
+
+        <div class="rounded-lg bg-cream p-4">
+            <p class="text-xs font-bold uppercase tracking-wider text-neutral-500">{{ $multiInvoice ? 'Seluruh Pesanan' : 'Ringkasan Pembayaran Pesanan' }}</p>
+            <div class="mt-2 grid grid-cols-3 gap-4 text-sm">
+                <div><p class="text-neutral-500">Terbayar</p><p class="font-bold text-green-600">{{ rupiah($invoice->order->amount_paid) }}</p></div>
+                <div><p class="text-neutral-500">Sisa</p><p class="font-bold text-brand-600">{{ rupiah($invoice->order->remaining) }}</p></div>
+                <div><p class="text-neutral-500">Status</p><x-payment-badge :status="$invoice->order->payment_status" class="mt-0.5" /></div>
+            </div>
         </div>
     </div>
 

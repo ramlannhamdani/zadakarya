@@ -72,7 +72,7 @@ class InvoiceController extends Controller
 
     public function show(Invoice $invoice)
     {
-        $invoice->load(['order.customer', 'order.payments', 'items']);
+        $invoice->load(['order.customer', 'order.payments', 'order.invoices', 'items']);
 
         return view('admin.invoices.show', compact('invoice'));
     }
@@ -116,7 +116,7 @@ class InvoiceController extends Controller
 
     public function pdf(Invoice $invoice)
     {
-        $invoice->load(['order.customer', 'order.payments', 'items']);
+        $invoice->load(['order.customer', 'order.payments', 'order.invoices', 'items']);
 
         $pdf = Pdf::loadView('admin.invoices.pdf', compact('invoice'))
             ->setPaper('a4', 'landscape');

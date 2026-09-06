@@ -98,6 +98,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('payments', [Admin\PaymentController::class, 'index'])->name('payments.index');
         Route::post('orders/{order}/payments', [Admin\PaymentController::class, 'store'])->name('orders.payments.store');
         Route::get('payments/{payment}/proof', [Admin\PaymentController::class, 'proof'])->name('payments.proof');
+        Route::patch('payments/{payment}/invoice', [Admin\PaymentController::class, 'linkInvoice'])->name('payments.link');
         Route::delete('payments/{payment}', [Admin\PaymentController::class, 'destroy'])->name('payments.destroy');
 
         // CMS

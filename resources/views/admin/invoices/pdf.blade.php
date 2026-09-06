@@ -32,10 +32,26 @@
     $instagram = setting('instagram');
     $igHandle = $instagram ? '@'.trim(basename(rtrim($instagram, '/')), '@') : null;
 
+    // Angka pembayaran dihitung PER INVOICE. Pada pesanan dengan satu invoice,
+    // seluruh pembayaran pesanan memang milik invoice itu. Pada pesanan dengan
+    // beberapa invoice, hanya pembayaran yang ditautkan ke invoice ini yang
+    // dihitung — kalau tidak, tiap invoice akan menampilkan total gabungan.
+    $multiInvoice = $order->invoices->count() > 1;
+    $invoicePayments = $multiInvoice
+        ? $order->payments->where('invoice_id', $invoice->id)
+        : $order->payments;
+
+    $paid = (int) $invoicePayments->sum('amount');
+    $outstanding = max(0, $invoice->grand_total - $paid);
+
     // DP = nominal DP yang disepakati (atau pembayaran pertama); Pelunasan = sisa setelah DP.
-    $dp = $order->dp_amount ?: ($order->payments->first()?->amount ?? 0);
+    $dp = $multiInvoice
+        ? (int) ($invoicePayments->sortBy('payment_date')->first()->amount ?? 0)
+        : ($order->dp_amount ?: (int) ($order->payments->first()->amount ?? 0));
     $settlement = max(0, $invoice->grand_total - $dp);
-    $isPaid = $order->payment_status === 'paid';
+
+    // Lunas dinilai dari invoice ini, bukan dari status pesanan.
+    $isPaid = $invoice->grand_total > 0 && $paid >= $invoice->grand_total;
 
     $terms = collect(preg_split('/\r?\n/', (string) setting('invoice_terms', "Barang yang sudah dipesan tidak bisa dibatalkan\nPelunasan wajib dilakukan sebelum pengambilan barang\nTerima kasih telah mempercayakan konveksi kepada kami")))
         ->map(fn ($t) => trim($t))->filter()->values();
@@ -207,8 +223,8 @@
                 <table class="kv">
                     <tr><td class="k">Uang Muka (DP)</td><td class="c">:</td><td>{{ $dp > 0 ? rupiah($dp) : '-' }}</td></tr>
                     <tr><td class="k">Pelunasan</td><td class="c">:</td><td>{{ rupiah($settlement) }}</td></tr>
-                    <tr><td class="k">Terbayar</td><td class="c">:</td><td>{{ rupiah($order->amount_paid) }}</td></tr>
-                    <tr><td class="k">Sisa Tagihan</td><td class="c">:</td><td>{{ rupiah($order->remaining) }}</td></tr>
+                    <tr><td class="k">Terbayar</td><td class="c">:</td><td>{{ rupiah($paid) }}</td></tr>
+                    <tr><td class="k">Sisa Tagihan</td><td class="c">:</td><td>{{ rupiah($outstanding) }}</td></tr>
                 </table>
             </td>
         </tr>

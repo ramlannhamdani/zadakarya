@@ -361,14 +361,18 @@
                     </select>
                 </div>
                 @if($order->invoices->isNotEmpty())
+                    @php $multiInvoice = $order->invoices->count() > 1; @endphp
                     <div class="mt-4">
-                        <label class="form-label">Terkait Invoice</label>
-                        <select class="form-input" name="invoice_id">
+                        <label class="form-label">Terkait Invoice @if($multiInvoice)<span class="text-brand-600">*</span>@endif</label>
+                        <select class="form-input" name="invoice_id" @required($multiInvoice)>
                             <option value="">—</option>
                             @foreach($order->invoices as $invoice)
-                                <option value="{{ $invoice->id }}">{{ $invoice->invoice_number }}</option>
+                                <option value="{{ $invoice->id }}">{{ $invoice->invoice_number }} — {{ rupiah($invoice->grand_total) }}</option>
                             @endforeach
                         </select>
+                        @if($multiInvoice)
+                            <p class="mt-1 text-xs text-neutral-500">Pesanan ini punya {{ $order->invoices->count() }} invoice — pilih invoice yang dibayar agar angka Terbayar tiap invoice tidak tercampur.</p>
+                        @endif
                     </div>
                 @endif
                 <div class="mt-4">
@@ -395,6 +399,7 @@
                                 <th class="pb-2.5 pr-4">Tanggal</th>
                                 <th class="pb-2.5 pr-4 text-right">Nominal</th>
                                 <th class="pb-2.5 pr-4">Metode</th>
+                                @if($order->invoices->count() > 1)<th class="pb-2.5 pr-4">Untuk Invoice</th>@endif
                                 <th class="pb-2.5 pr-4">Catatan</th>
                                 <th class="pb-2.5"></th>
                             </tr>
@@ -405,6 +410,20 @@
                                     <td class="py-3 pr-4">{{ $payment->payment_date->format('d/m/Y') }}</td>
                                     <td class="whitespace-nowrap py-3 pr-4 text-right font-bold text-green-600">{{ rupiah($payment->amount) }}</td>
                                     <td class="py-3 pr-4">{{ $payment->method_label }}@if($payment->reference)<span class="block text-xs text-neutral-500">{{ $payment->reference }}</span>@endif</td>
+                                    @if($order->invoices->count() > 1)
+                                        {{-- Bisa ditautkan ulang tanpa menghapus pembayaran --}}
+                                        <td class="py-3 pr-4">
+                                            <form method="POST" action="{{ route('admin.payments.link', $payment) }}">
+                                                @csrf @method('PATCH')
+                                                <select name="invoice_id" class="form-input !w-auto !py-1.5 text-xs {{ $payment->invoice_id ? '' : '!border-amber-300 !bg-amber-50' }}" onchange="this.form.submit()">
+                                                    <option value="">— belum ditautkan —</option>
+                                                    @foreach($order->invoices as $inv)
+                                                        <option value="{{ $inv->id }}" @selected($payment->invoice_id === $inv->id)>{{ $inv->invoice_number }}</option>
+                                                    @endforeach
+                                                </select>
+                                            </form>
+                                        </td>
+                                    @endif
                                     <td class="py-3 pr-4 text-neutral-600">{{ $payment->note ?? '—' }}</td>
                                     <td class="py-3 text-right">
                                         <div class="flex items-center justify-end gap-3">
@@ -419,7 +438,7 @@
                                     </td>
                                 </tr>
                             @empty
-                                <tr><td colspan="5" class="py-8 text-center text-neutral-500">Belum ada pembayaran tercatat.</td></tr>
+                                <tr><td colspan="{{ $order->invoices->count() > 1 ? 6 : 5 }}" class="py-8 text-center text-neutral-500">Belum ada pembayaran tercatat.</td></tr>
                             @endforelse
                         </tbody>
                     </table>

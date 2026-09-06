@@ -60,6 +60,28 @@ class PaymentController extends Controller
         return back()->with('success', 'Pembayaran dicatat. Status: '.$order->payment_status_label.'.');
     }
 
+    /**
+     * Tautkan (atau lepas) pembayaran ke salah satu invoice pesanan yang sama.
+     * Dipakai pada pesanan dengan beberapa invoice supaya angka "Terbayar" di
+     * tiap invoice tidak tercampur.
+     */
+    public function linkInvoice(Request $request, Payment $payment)
+    {
+        $data = $request->validate([
+            'invoice_id' => ['nullable', Rule::exists('invoices', 'id')->where('order_id', $payment->order_id)],
+        ]);
+
+        $payment->update(['invoice_id' => $data['invoice_id'] ?: null]);
+
+        $label = $payment->invoice_id
+            ? 'Pembayaran '.rupiah($payment->amount).' ditautkan ke invoice '.$payment->invoice->invoice_number.'.'
+            : 'Tautan invoice pada pembayaran '.rupiah($payment->amount).' dilepas.';
+
+        $payment->order->logActivity($label);
+
+        return back()->with('success', $label);
+    }
+
     public function proof(Payment $payment)
     {
         abort_unless($payment->proof_path && Storage::disk('local')->exists($payment->proof_path), 404);

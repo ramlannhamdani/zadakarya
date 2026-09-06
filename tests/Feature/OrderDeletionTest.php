@@ -103,6 +103,98 @@ class OrderDeletionTest extends TestCase
             ->assertSee('Rp 5.000.000')->assertDontSee('Rp 8.000.000');
     }
 
+    public function test_each_invoice_shows_only_its_own_payments(): void
+    {
+        $order = $this->createOrder(10500000);
+        $first = $order->invoices()->firstOrFail();
+
+        // Dua invoice tambahan pada pesanan yang sama, seperti penagihan bertahap.
+        foreach ([10500000, 4500000] as $amount) {
+            $this->actingAs($this->admin)->post(route('admin.invoices.store'), [
+                'order_id' => $order->id,
+                'date' => now()->toDateString(),
+                'items' => [['description' => 'Kaos Polo', 'quantity' => 1, 'unit' => 'pcs', 'unit_price' => $amount]],
+            ]);
+        }
+
+        $invoices = $order->invoices()->orderBy('id')->get();
+        $this->assertCount(3, $invoices);
+
+        // Tiap invoice dibayar penuh, masing-masing ditautkan ke invoicenya.
+        foreach ($invoices as $invoice) {
+            $this->actingAs($this->admin)->post(route('admin.orders.payments.store', $order), [
+                'amount' => $invoice->grand_total,
+                'payment_date' => now()->toDateString(),
+                'method' => 'transfer',
+                'invoice_id' => $invoice->id,
+            ]);
+        }
+
+        $this->assertSame(25500000, (int) $order->fresh()->amount_paid);
+
+        // Meski total pesanan 25,5 juta, tiap invoice hanya menampilkan bagiannya.
+        foreach ($invoices as $invoice) {
+            $invoice->load(['order.customer', 'order.payments', 'order.invoices', 'items']);
+            $html = view('admin.invoices.pdf', compact('invoice'))->render();
+
+            $this->assertStringContainsString('Terbayar</td><td class="c">:</td><td>'.rupiah($invoice->grand_total), $html);
+            $this->assertStringNotContainsString('Terbayar</td><td class="c">:</td><td>Rp 25.500.000', $html);
+        }
+    }
+
+    public function test_existing_payment_can_be_linked_to_an_invoice_afterwards(): void
+    {
+        $order = $this->createOrder(5000000);
+        $invoice = $order->invoices()->firstOrFail();
+
+        // Pembayaran lama yang dicatat tanpa memilih invoice.
+        $this->actingAs($this->admin)->post(route('admin.orders.payments.store', $order), [
+            'amount' => 5000000, 'payment_date' => now()->toDateString(), 'method' => 'transfer',
+        ]);
+
+        $payment = $order->payments()->firstOrFail();
+        $this->assertNull($payment->invoice_id);
+
+        $this->actingAs($this->admin)
+            ->patch(route('admin.payments.link', $payment), ['invoice_id' => $invoice->id])
+            ->assertRedirect();
+
+        $this->assertSame($invoice->id, $payment->fresh()->invoice_id);
+
+        // Invoice pesanan lain tidak boleh dipilih.
+        $otherInvoice = $this->createOrder(1000000)->invoices()->firstOrFail();
+        $this->actingAs($this->admin)
+            ->patch(route('admin.payments.link', $payment), ['invoice_id' => $otherInvoice->id])
+            ->assertSessionHasErrors('invoice_id');
+    }
+
+    public function test_unpaid_invoice_in_a_multi_invoice_order_is_not_marked_paid(): void
+    {
+        $order = $this->createOrder(5000000);
+        $paidInvoice = $order->invoices()->firstOrFail();
+
+        $this->actingAs($this->admin)->post(route('admin.invoices.store'), [
+            'order_id' => $order->id,
+            'date' => now()->toDateString(),
+            'items' => [['description' => 'Batch kedua', 'quantity' => 1, 'unit' => 'pcs', 'unit_price' => 2000000]],
+        ]);
+
+        $unpaidInvoice = $order->invoices()->orderByDesc('id')->firstOrFail();
+
+        $this->actingAs($this->admin)->post(route('admin.orders.payments.store', $order), [
+            'amount' => 5000000,
+            'payment_date' => now()->toDateString(),
+            'method' => 'cash',
+            'invoice_id' => $paidInvoice->id,
+        ]);
+
+        foreach ([[$paidInvoice, 'LUNAS'], [$unpaidInvoice, 'BELUM LUNAS']] as [$invoice, $expected]) {
+            $invoice->load(['order.customer', 'order.payments', 'order.invoices', 'items']);
+            $html = view('admin.invoices.pdf', compact('invoice'))->render();
+            $this->assertStringContainsString('>'.$expected.'<', $html);
+        }
+    }
+
     public function test_payments_are_never_shared_between_orders_of_the_same_customer(): void
     {
         $first = $this->createOrder(9750000);
