@@ -330,8 +330,12 @@
                                 <td class="py-3 pr-4">{{ $invoice->date->format('d/m/Y') }}</td>
                                 <td class="py-3 pr-4">{{ $invoice->due_date?->format('d/m/Y') ?? '—' }}</td>
                                 <td class="whitespace-nowrap py-3 pr-4 text-right font-semibold">{{ rupiah($invoice->grand_total) }}</td>
-                                <td class="py-3 text-right">
-                                    <a href="{{ route('admin.invoices.pdf', $invoice) }}" class="text-sm font-semibold text-brand-600 hover:underline">Unduh PDF</a>
+                                <td class="py-3">
+                                    <div class="flex items-center justify-end gap-3">
+                                        {{-- setRelation: pesanannya sudah di tangan, jadi tidak perlu query ulang per baris. --}}
+                                        <x-admin.invoice-share :invoice="$invoice->setRelation('order', $order)" label="WA" small />
+                                        <a href="{{ route('admin.invoices.pdf', $invoice) }}" class="text-sm font-semibold text-brand-600 hover:underline">Unduh PDF</a>
+                                    </div>
                                 </td>
                             </tr>
                         @empty

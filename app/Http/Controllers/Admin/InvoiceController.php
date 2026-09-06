@@ -5,8 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Invoice;
 use App\Models\Order;
+use App\Support\InvoicePdf;
 use App\Support\Sequence;
-use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -14,7 +14,9 @@ class InvoiceController extends Controller
 {
     public function index(Request $request)
     {
-        $invoices = Invoice::with(['order.customer'])
+        // order.invoices & order.payments dipakai tombol "Kirim ke WA" untuk
+        // menghitung sisa tagihan per invoice tanpa query tambahan tiap baris.
+        $invoices = Invoice::with(['order.customer', 'order.invoices', 'order.payments'])
             ->when($request->filled('q'), function ($q) use ($request) {
                 $term = '%'.$request->q.'%';
                 $q->where(fn ($w) => $w->where('invoice_number', 'like', $term)
@@ -120,12 +122,8 @@ class InvoiceController extends Controller
      */
     public function pdf(Request $request, Invoice $invoice)
     {
-        $invoice->load(['order.customer', 'order.payments', 'order.invoices', 'items']);
-
-        $pdf = Pdf::loadView('admin.invoices.pdf', compact('invoice'))
-            ->setPaper('a4', 'landscape');
-
-        $filename = $invoice->invoice_number.'.pdf';
+        $pdf = InvoicePdf::make($invoice);
+        $filename = InvoicePdf::filename($invoice);
 
         return $request->boolean('inline')
             ? $pdf->stream($filename)

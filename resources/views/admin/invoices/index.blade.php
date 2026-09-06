@@ -33,8 +33,11 @@
                     <td class="px-5 py-3.5 text-neutral-600">{{ $invoice->date->format('d/m/Y') }}</td>
                     <td class="whitespace-nowrap px-5 py-3.5 text-right font-semibold">{{ rupiah($invoice->grand_total) }}</td>
                     <td class="px-5 py-3.5"><x-payment-badge :status="$invoice->order->payment_status" /></td>
-                    <td class="px-5 py-3.5 text-right">
-                        <a href="{{ route('admin.invoices.pdf', $invoice) }}" class="text-sm font-semibold text-brand-600 hover:underline">PDF</a>
+                    <td class="px-5 py-3.5">
+                        <div class="flex items-center justify-end gap-3">
+                            <x-admin.invoice-share :invoice="$invoice" label="WA" small />
+                            <a href="{{ route('admin.invoices.pdf', $invoice) }}" class="text-sm font-semibold text-brand-600 hover:underline">PDF</a>
+                        </div>
                     </td>
                 </tr>
             @empty

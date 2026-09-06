@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\URL;
 
 class Invoice extends Model
 {
@@ -34,6 +35,16 @@ class Invoice extends Model
     public function payments(): HasMany
     {
         return $this->hasMany(Payment::class);
+    }
+
+    /**
+     * Tautan invoice untuk dibagikan ke customer. Ditandatangani dan tidak
+     * kedaluwarsa: tanpa tanda tangannya URL ini ditolak, jadi menebak id
+     * invoice tidak cukup untuk melihat isinya.
+     */
+    public function publicUrl(): string
+    {
+        return URL::signedRoute('invoice.public', $this);
     }
 
     /**

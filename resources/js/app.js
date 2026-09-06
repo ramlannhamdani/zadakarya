@@ -191,4 +191,70 @@ if (document.readyState === 'loading') {
     initReveal();
 }
 
+// Kirim invoice ke WhatsApp tanpa mengunduh dulu. Di perangkat yang mendukung
+// Web Share dengan berkas (Android, iPadOS) PDF-nya dibagikan langsung sebagai
+// dokumen lewat share sheet; kalau tidak, WhatsApp dibuka dengan pesan berisi
+// tautan invoice.
+Alpine.data('invoiceShare', ({ pdfUrl, waUrl, filename, title, text }) => ({
+    busy: false,
+    canShareFile: false,
+
+    init() {
+        try {
+            this.canShareFile =
+                typeof navigator.canShare === 'function' &&
+                navigator.canShare({ files: [new File([new Blob()], filename, { type: 'application/pdf' })] });
+        } catch (e) {
+            this.canShareFile = false;
+        }
+    },
+
+    openWhatsApp() {
+        window.open(waUrl, '_blank', 'noopener');
+    },
+
+    async share() {
+        if (this.busy) return;
+        if (!this.canShareFile) return this.openWhatsApp();
+
+        this.busy = true;
+        try {
+            const res = await fetch(pdfUrl, { credentials: 'same-origin' });
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+
+            const file = new File([await res.blob()], filename, { type: 'application/pdf' });
+            await navigator.share({ files: [file], title, text });
+        } catch (e) {
+            // Dibatalkan pengguna bukan kegagalan; selain itu jatuh ke tautan.
+            if (!e || e.name !== 'AbortError') this.openWhatsApp();
+        } finally {
+            this.busy = false;
+        }
+    },
+}));
+
+// Salin teks ke clipboard dengan konfirmasi singkat pada tombolnya.
+Alpine.data('copyText', (value) => ({
+    copied: false,
+
+    async copy() {
+        try {
+            await navigator.clipboard.writeText(value);
+        } catch (e) {
+            const field = document.createElement('textarea');
+            field.value = value;
+            field.setAttribute('readonly', '');
+            field.style.position = 'fixed';
+            field.style.opacity = '0';
+            document.body.appendChild(field);
+            field.select();
+            document.execCommand('copy');
+            field.remove();
+        }
+
+        this.copied = true;
+        setTimeout(() => (this.copied = false), 1800);
+    },
+}));
+
 Alpine.start();

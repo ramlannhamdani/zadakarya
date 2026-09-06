@@ -36,6 +36,12 @@ Route::get('/tracking', [Site\TrackingController::class, 'index'])
     ->name('tracking.index');
 Route::get('/tracking/foto/{photo}', [Site\TrackingController::class, 'photo'])->name('tracking.photo');
 
+// Invoice yang dibagikan ke customer. Tautannya ditandatangani (signed) dan
+// tidak kedaluwarsa, supaya tetap bisa dibuka kapan pun setelah dikirim.
+Route::get('/invoice/{invoice}', [Site\InvoiceController::class, 'show'])
+    ->middleware(['signed', 'throttle:60,1'])
+    ->name('invoice.public');
+
 Route::get('/sitemap.xml', Site\SitemapController::class)->name('sitemap');
 
 /*
