@@ -5,7 +5,7 @@
 
 @section('content')
 <x-page-hero
-    eyebrow="Tracking Pesanan"
+    eyebrow="Lacak Pesanan"
     title="Pantau Proses Pesanan Anda"
     text="Masukkan nomor pesanan secara lengkap untuk melihat perkembangan proses produksi."
     icon="package" :center="true">

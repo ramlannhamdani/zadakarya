@@ -64,7 +64,7 @@ class HomeHeroTest extends TestCase
 
         $response->assertOk();
         // Semua tujuan ada di satu daftar menu (dipakai desktop maupun panel mobile).
-        foreach (['Beranda', 'Koleksi', 'Layanan', 'Galeri', 'Blog', 'Tracking', 'Tentang Kami', 'Kontak'] as $label) {
+        foreach (['Beranda', 'Koleksi', 'Layanan', 'Galeri', 'Blog', 'Lacak Pesanan', 'Tentang Kami', 'Kontak'] as $label) {
             $response->assertSee($label);
         }
 

@@ -8,8 +8,14 @@
 
     @php
         $siteName = setting('company_name', 'Zada Karya Production');
-        $metaTitle = trim($__env->yieldContent('title')) ?: setting('seo_title', $siteName);
-        $metaDescription = trim($__env->yieldContent('meta_description')) ?: setting('seo_description', '');
+
+        // @section('title', $isi) sudah meng-escape isinya, lalu {{ }} di bawah
+        // meng-escape sekali lagi — tanpa decode ini "&" muncul sebagai "&amp;"
+        // di tab browser dan di hasil pencarian Google.
+        $fromSection = fn (string $name) => html_entity_decode(trim($__env->yieldContent($name)), ENT_QUOTES);
+
+        $metaTitle = $fromSection('title') ?: setting('seo_title', $siteName);
+        $metaDescription = $fromSection('meta_description') ?: setting('seo_description', '');
     @endphp
 
     <title>{{ $metaTitle }}</title>
@@ -57,7 +63,7 @@
         ['label' => 'Layanan', 'href' => route('services.index'), 'match' => 'services.*'],
         ['label' => 'Galeri', 'href' => route('gallery.index'), 'match' => 'gallery.*'],
         ['label' => 'Blog', 'href' => route('blog.index'), 'match' => 'blog.*'],
-        ['label' => 'Tracking', 'href' => route('tracking.index'), 'match' => 'tracking.*'],
+        ['label' => 'Lacak Pesanan', 'href' => route('tracking.index'), 'match' => 'tracking.*'],
         ['label' => 'Tentang Kami', 'href' => route('about'), 'match' => 'about'],
         ['label' => 'Kontak', 'href' => route('contact'), 'match' => 'contact'],
     ];
@@ -162,7 +168,7 @@
                     <li><a href="{{ route('blog.index') }}" class="text-white/80 hover:text-white">Blog</a></li>
                     <li><a href="{{ route('about') }}" class="text-white/80 hover:text-white">Tentang Kami</a></li>
                     <li><a href="{{ route('consultation.create') }}" class="text-white/80 hover:text-white">Konsultasi</a></li>
-                    <li><a href="{{ route('tracking.index') }}" class="text-white/80 hover:text-white">Tracking</a></li>
+                    <li><a href="{{ route('tracking.index') }}" class="text-white/80 hover:text-white">Lacak Pesanan</a></li>
                 </ul>
             </div>
             <div>

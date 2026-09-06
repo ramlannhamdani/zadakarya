@@ -5,7 +5,8 @@
 
 @section('content')
 <x-page-hero
-    eyebrow="Blog &amp; Informasi"
+    {{-- Tulis "&" apa adanya: nilainya di-escape saat dicetak komponen. --}}
+    eyebrow="Blog & Informasi"
     title="Informasi Seputar Konveksi
 dan Pakaian"
     text="Temukan berbagai informasi, tips, dan insight seputar pakaian, bahan, perawatan, hingga proses produksi konveksi."

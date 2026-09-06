@@ -103,7 +103,7 @@ Produksi Anda"
                         <li class="flex gap-3"><span class="font-extrabold text-brand-600">1.</span> Tim kami menghubungi Anda via WhatsApp.</li>
                         <li class="flex gap-3"><span class="font-extrabold text-brand-600">2.</span> Diskusi kebutuhan, bahan, dan estimasi harga.</li>
                         <li class="flex gap-3"><span class="font-extrabold text-brand-600">3.</span> Deal — pesanan dibuat dan Anda menerima nomor pesanan.</li>
-                        <li class="flex gap-3"><span class="font-extrabold text-brand-600">4.</span> Pantau progress produksi di halaman <a href="{{ route('tracking.index') }}" class="font-semibold text-brand-600 underline">Tracking</a>.</li>
+                        <li class="flex gap-3"><span class="font-extrabold text-brand-600">4.</span> Pantau progress produksi di halaman <a href="{{ route('tracking.index') }}" class="font-semibold text-brand-600 underline">Lacak Pesanan</a>.</li>
                     </ol>
                 </div>
             </aside>

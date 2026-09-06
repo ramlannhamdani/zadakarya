@@ -15,6 +15,21 @@ class PublicSiteTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_page_titles_escape_ampersands_exactly_once(): void
+    {
+        \App\Models\Setting::set('seo_title', 'Zada Karya — Konveksi & Garment Custom');
+
+        // Beranda mengambil judulnya lewat @section('title', ...), yang sudah
+        // meng-escape; layout tidak boleh meng-escape ulang.
+        $html = $this->get(route('home'))->assertOk()->getContent();
+
+        $this->assertStringContainsString('<title>Zada Karya — Konveksi &amp; Garment Custom</title>', $html);
+        $this->assertStringNotContainsString('&amp;amp;', $html);
+
+        // Halaman dengan judul statis mengandung "&" juga tidak boleh ganda.
+        $this->assertStringNotContainsString('&amp;amp;', $this->get('/blog')->assertOk()->getContent());
+    }
+
     private function makeOrder(): Order
     {
         $customer = Customer::create(['name' => 'Budi']);
