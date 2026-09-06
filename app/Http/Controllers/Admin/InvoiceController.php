@@ -114,14 +114,22 @@ class InvoiceController extends Controller
             ->with('success', 'Invoice diperbarui.');
     }
 
-    public function pdf(Invoice $invoice)
+    /**
+     * PDF invoice. Dengan ?inline=1 dokumen ditampilkan di browser (dipakai
+     * sebagai pratinjau di halaman detail), selain itu diunduh sebagai file.
+     */
+    public function pdf(Request $request, Invoice $invoice)
     {
         $invoice->load(['order.customer', 'order.payments', 'order.invoices', 'items']);
 
         $pdf = Pdf::loadView('admin.invoices.pdf', compact('invoice'))
             ->setPaper('a4', 'landscape');
 
-        return $pdf->download($invoice->invoice_number.'.pdf');
+        $filename = $invoice->invoice_number.'.pdf';
+
+        return $request->boolean('inline')
+            ? $pdf->stream($filename)
+            : $pdf->download($filename);
     }
 
     public function destroy(Invoice $invoice)

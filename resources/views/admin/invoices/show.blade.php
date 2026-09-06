@@ -8,6 +8,7 @@
         <a href="{{ route('admin.invoices.index') }}" class="text-sm font-medium text-neutral-500 hover:text-brand-600">&larr; Semua Invoice</a>
     </div>
     <div class="flex gap-2">
+        <a href="{{ route('admin.orders.show', ['order' => $invoice->order, 'tab' => 'invoice']) }}" class="btn-outline !px-4 !py-2 text-xs">Buka Pesanan</a>
         <a href="{{ route('admin.invoices.edit', $invoice) }}" class="btn-outline !px-4 !py-2 text-xs">Edit</a>
         <a href="{{ route('admin.invoices.pdf', $invoice) }}" class="btn-primary !px-4 !py-2 text-xs">Unduh PDF</a>
         <form method="POST" action="{{ route('admin.invoices.destroy', $invoice) }}" onsubmit="return confirm('Hapus invoice {{ $invoice->invoice_number }}?')">
@@ -17,128 +18,54 @@
     </div>
 </div>
 
-{{-- Invoice preview --}}
-<div class="admin-card mx-auto max-w-3xl !p-8 sm:!p-10">
-    <div class="flex items-start justify-between border-b-4 border-brand-600 pb-6">
-        <div>
-            <div class="flex items-center gap-2.5">
-                <span class="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-600 text-sm font-extrabold text-white">ZK</span>
-                <div>
-                    <p class="font-extrabold text-ink">{{ setting('invoice_company_name', 'Zada Karya Production') }}</p>
-                    <p class="text-xs text-neutral-500">{{ setting('invoice_address') }}</p>
-                </div>
-            </div>
-            <p class="mt-2 text-xs text-neutral-500">WhatsApp: {{ setting('whatsapp') }} &bull; Email: {{ setting('email') }}</p>
-        </div>
-        <div class="text-right">
-            <p class="text-2xl font-extrabold uppercase tracking-wide text-brand-600">Invoice</p>
-            <p class="mt-1 font-mono text-lg font-bold">{{ $invoice->invoice_number }}</p>
-        </div>
+{{-- Pratinjau memuat berkas PDF yang sama persis dengan yang diunduh dan
+     dikirim ke customer, jadi tampilannya tidak mungkin berbeda. --}}
+<div class="admin-card !p-0">
+    <div class="flex flex-wrap items-center justify-between gap-2 border-b border-line px-5 py-3">
+        <p class="text-sm font-semibold text-ink">Pratinjau PDF</p>
+        <a href="{{ route('admin.invoices.pdf', [$invoice, 'inline' => 1]) }}" target="_blank" rel="noopener"
+           class="text-xs font-semibold text-brand-600 hover:underline">Buka di tab baru &rarr;</a>
     </div>
+    <iframe src="{{ route('admin.invoices.pdf', [$invoice, 'inline' => 1]) }}"
+            title="Pratinjau invoice {{ $invoice->invoice_number }}"
+            class="block w-full rounded-b-xl bg-neutral-100"
+            style="aspect-ratio: 297 / 210; min-height: 460px;"></iframe>
+</div>
 
-    <div class="mt-6 grid gap-6 sm:grid-cols-3">
-        <div>
-            <p class="text-xs font-bold uppercase tracking-wider text-neutral-500">Ditagihkan Kepada</p>
-            <p class="mt-1 font-bold text-ink">{{ $invoice->order->customer->name }}</p>
-            @if($invoice->order->customer->company)<p class="text-sm">{{ $invoice->order->customer->company }}</p>@endif
-            @if($invoice->order->customer->address)<p class="text-sm text-neutral-500">{{ $invoice->order->customer->address }}</p>@endif
-        </div>
-        <div>
-            <p class="text-xs font-bold uppercase tracking-wider text-neutral-500">Nomor Pesanan</p>
-            <p class="mt-1 font-mono font-bold">{{ $invoice->order->order_number }}</p>
-            <p class="text-sm text-neutral-500">{{ $invoice->order->name }}</p>
-        </div>
-        <div>
-            <p class="text-xs font-bold uppercase tracking-wider text-neutral-500">Tanggal</p>
-            <p class="mt-1 font-semibold">{{ $invoice->date->translatedFormat('d F Y') }}</p>
-            @if($invoice->due_date)
-                <p class="text-xs font-bold uppercase tracking-wider text-neutral-500 mt-2">Jatuh Tempo</p>
-                <p class="font-semibold">{{ $invoice->due_date->translatedFormat('d F Y') }}</p>
-            @endif
-        </div>
-    </div>
+@php
+    // Pesanan dengan beberapa invoice: pembayaran dihitung dari yang
+    // ditautkan ke invoice ini, supaya tidak tercampur antar invoice.
+    $multiInvoice = $invoice->order->invoices->count() > 1;
+    $invoicePaid = $multiInvoice
+        ? (int) $invoice->order->payments->where('invoice_id', $invoice->id)->sum('amount')
+        : $invoice->order->amount_paid;
+    $invoiceOutstanding = max(0, $invoice->grand_total - $invoicePaid);
+@endphp
 
-    <table class="mt-8 w-full text-sm">
-        <thead>
-            <tr class="bg-cream text-left text-xs font-bold uppercase tracking-wider text-neutral-600">
-                <th class="rounded-l-lg px-4 py-3">Deskripsi</th>
-                <th class="px-4 py-3 text-right">Qty</th>
-                <th class="px-4 py-3 text-right">Harga Satuan</th>
-                <th class="rounded-r-lg px-4 py-3 text-right">Total</th>
-            </tr>
-        </thead>
-        <tbody class="divide-y divide-line">
-            @foreach($invoice->items as $item)
-                <tr>
-                    <td class="px-4 py-3 font-medium">{{ $item->description }}</td>
-                    <td class="px-4 py-3 text-right">{{ number_format($item->quantity, 0, ',', '.') }} {{ $item->unit }}</td>
-                    <td class="px-4 py-3 text-right">{{ rupiah($item->unit_price) }}</td>
-                    <td class="px-4 py-3 text-right font-semibold">{{ rupiah($item->total) }}</td>
-                </tr>
-            @endforeach
-        </tbody>
-    </table>
-
-    <div class="mt-4 ml-auto max-w-xs space-y-1.5 text-sm">
-        <div class="flex justify-between"><span class="text-neutral-500">Subtotal</span><span class="font-semibold">{{ rupiah($invoice->subtotal) }}</span></div>
-        @if($invoice->discount > 0)
-            <div class="flex justify-between"><span class="text-neutral-500">Diskon</span><span class="font-semibold text-red-500">- {{ rupiah($invoice->discount) }}</span></div>
+<div class="mt-5 grid gap-4 {{ $multiInvoice ? 'lg:grid-cols-2' : '' }}">
+    <div class="admin-card">
+        <p class="text-xs font-bold uppercase tracking-wider text-brand-600">Invoice Ini</p>
+        <div class="mt-3 grid grid-cols-3 gap-4 text-sm">
+            <div><p class="text-neutral-500">Tagihan</p><p class="mt-0.5 font-bold text-ink">{{ rupiah($invoice->grand_total) }}</p></div>
+            <div><p class="text-neutral-500">Terbayar</p><p class="mt-0.5 font-bold text-green-600">{{ rupiah($invoicePaid) }}</p></div>
+            <div><p class="text-neutral-500">Sisa</p><p class="mt-0.5 font-bold text-brand-600">{{ rupiah($invoiceOutstanding) }}</p></div>
+        </div>
+        @if($multiInvoice && $invoicePaid === 0)
+            <p class="mt-3 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800">
+                Belum ada pembayaran yang ditautkan ke invoice ini. Tautkan lewat kolom <strong>Untuk Invoice</strong> di
+                <a href="{{ route('admin.orders.show', ['order' => $invoice->order, 'tab' => 'payments']) }}" class="font-semibold underline">tab Pembayaran pesanan</a>.
+            </p>
         @endif
-        @if($invoice->additional_cost > 0)
-            <div class="flex justify-between"><span class="text-neutral-500">{{ $invoice->additional_cost_label ?: 'Biaya Tambahan' }}</span><span class="font-semibold">+ {{ rupiah($invoice->additional_cost) }}</span></div>
-        @endif
-        <div class="flex justify-between border-t-2 border-line pt-2 text-base"><span class="font-bold">Grand Total</span><span class="font-extrabold text-brand-600">{{ rupiah($invoice->grand_total) }}</span></div>
     </div>
 
-    @php
-        // Pesanan dengan beberapa invoice: pembayaran dihitung dari yang
-        // ditautkan ke invoice ini, supaya tidak tercampur antar invoice.
-        $multiInvoice = $invoice->order->invoices->count() > 1;
-        $invoicePaid = $multiInvoice
-            ? (int) $invoice->order->payments->where('invoice_id', $invoice->id)->sum('amount')
-            : $invoice->order->amount_paid;
-        $invoiceOutstanding = max(0, $invoice->grand_total - $invoicePaid);
-    @endphp
-
-    <div class="mt-6 grid gap-4 {{ $multiInvoice ? 'sm:grid-cols-2' : '' }}">
-        @if($multiInvoice)
-            <div class="rounded-lg border border-brand-600/25 bg-brand-50 p-4">
-                <p class="text-xs font-bold uppercase tracking-wider text-brand-600">Invoice Ini</p>
-                <div class="mt-2 grid grid-cols-3 gap-4 text-sm">
-                    <div><p class="text-neutral-500">Tagihan</p><p class="font-bold text-ink">{{ rupiah($invoice->grand_total) }}</p></div>
-                    <div><p class="text-neutral-500">Terbayar</p><p class="font-bold text-green-600">{{ rupiah($invoicePaid) }}</p></div>
-                    <div><p class="text-neutral-500">Sisa</p><p class="font-bold text-brand-600">{{ rupiah($invoiceOutstanding) }}</p></div>
-                </div>
-                @if($invoicePaid === 0)
-                    <p class="mt-2 text-xs text-neutral-500">Belum ada pembayaran yang ditautkan ke invoice ini. Saat mencatat pembayaran, pilih invoice pada kolom <strong>Terkait Invoice</strong>.</p>
-                @endif
+    @if($multiInvoice)
+        <div class="admin-card">
+            <p class="text-xs font-bold uppercase tracking-wider text-neutral-500">Seluruh Pesanan ({{ $invoice->order->invoices->count() }} invoice)</p>
+            <div class="mt-3 grid grid-cols-3 gap-4 text-sm">
+                <div><p class="text-neutral-500">Terbayar</p><p class="mt-0.5 font-bold text-green-600">{{ rupiah($invoice->order->amount_paid) }}</p></div>
+                <div><p class="text-neutral-500">Sisa</p><p class="mt-0.5 font-bold text-brand-600">{{ rupiah($invoice->order->remaining) }}</p></div>
+                <div><p class="text-neutral-500">Status</p><div class="mt-1"><x-payment-badge :status="$invoice->order->payment_status" /></div></div>
             </div>
-        @endif
-
-        <div class="rounded-lg bg-cream p-4">
-            <p class="text-xs font-bold uppercase tracking-wider text-neutral-500">{{ $multiInvoice ? 'Seluruh Pesanan' : 'Ringkasan Pembayaran Pesanan' }}</p>
-            <div class="mt-2 grid grid-cols-3 gap-4 text-sm">
-                <div><p class="text-neutral-500">Terbayar</p><p class="font-bold text-green-600">{{ rupiah($invoice->order->amount_paid) }}</p></div>
-                <div><p class="text-neutral-500">Sisa</p><p class="font-bold text-brand-600">{{ rupiah($invoice->order->remaining) }}</p></div>
-                <div><p class="text-neutral-500">Status</p><x-payment-badge :status="$invoice->order->payment_status" class="mt-0.5" /></div>
-            </div>
-        </div>
-    </div>
-
-    @if($invoice->notes || setting('invoice_bank_info'))
-        <div class="mt-6 grid gap-4 text-sm sm:grid-cols-2">
-            @if(setting('invoice_bank_info'))
-                <div>
-                    <p class="text-xs font-bold uppercase tracking-wider text-neutral-500">Pembayaran</p>
-                    <p class="mt-1 whitespace-pre-line text-neutral-600">{{ setting('invoice_bank_info') }}</p>
-                </div>
-            @endif
-            @if($invoice->notes)
-                <div>
-                    <p class="text-xs font-bold uppercase tracking-wider text-neutral-500">Catatan</p>
-                    <p class="mt-1 whitespace-pre-line text-neutral-600">{{ $invoice->notes }}</p>
-                </div>
-            @endif
         </div>
     @endif
 </div>

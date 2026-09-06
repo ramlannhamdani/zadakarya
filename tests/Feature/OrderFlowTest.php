@@ -239,5 +239,24 @@ class OrderFlowTest extends TestCase
         $response = $this->actingAs($this->admin)->get(route('admin.invoices.pdf', $invoice));
         $response->assertOk();
         $this->assertSame('application/pdf', $response->headers->get('content-type'));
+        $this->assertStringContainsString('attachment', (string) $response->headers->get('content-disposition'));
+
+        // ?inline=1 dipakai pratinjau di halaman detail: PDF yang sama, tapi
+        // ditampilkan di browser, bukan diunduh.
+        $inline = $this->actingAs($this->admin)->get(route('admin.invoices.pdf', [$invoice, 'inline' => 1]));
+        $inline->assertOk();
+        $this->assertSame('application/pdf', $inline->headers->get('content-type'));
+        $this->assertStringContainsString('inline', (string) $inline->headers->get('content-disposition'));
+    }
+
+    public function test_invoice_page_previews_the_actual_pdf(): void
+    {
+        $order = $this->createOrder();
+        $invoice = $order->invoices()->firstOrFail();
+
+        $this->actingAs($this->admin)->get(route('admin.invoices.show', $invoice))
+            ->assertOk()
+            ->assertSee('Pratinjau PDF')
+            ->assertSee(route('admin.invoices.pdf', [$invoice, 'inline' => 1]), false);
     }
 }
