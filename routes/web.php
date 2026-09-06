@@ -31,10 +31,12 @@ Route::post('/konsultasi', [Site\ConsultationController::class, 'store'])
     ->middleware('throttle:10,10')
     ->name('consultation.store');
 
-Route::get('/tracking', [Site\TrackingController::class, 'index'])
+// Slug diambil dari situs lama karena sudah terindeks Google, dan sekaligus
+// menyamakan gaya URL dengan halaman lain yang berbahasa Indonesia.
+Route::get('/lacak-pesanan', [Site\TrackingController::class, 'index'])
     ->middleware('throttle:30,1')
     ->name('tracking.index');
-Route::get('/tracking/foto/{photo}', [Site\TrackingController::class, 'photo'])->name('tracking.photo');
+Route::get('/lacak-pesanan/foto/{photo}', [Site\TrackingController::class, 'photo'])->name('tracking.photo');
 
 // Invoice yang dibagikan ke customer. Tautannya ditandatangani (signed) dan
 // tidak kedaluwarsa, supaya tetap bisa dibuka kapan pun setelah dikirim.
@@ -43,6 +45,36 @@ Route::get('/invoice/{invoice}', [Site\InvoiceController::class, 'show'])
     ->name('invoice.public');
 
 Route::get('/sitemap.xml', Site\SitemapController::class)->name('sitemap');
+
+/*
+|--------------------------------------------------------------------------
+| Alamat Lama
+|--------------------------------------------------------------------------
+| Sebagian URL situs sebelumnya masih terindeks Google dan tetap muncul di
+| hasil pencarian. 301 memindahkan peringkatnya ke halaman yang sekarang,
+| bukan membiarkannya jadi 404. Daftar lengkap alamat mati bisa dilihat di
+| Search Console -> Pages -> Not found (404).
+*/
+
+// Tautan tracking yang terlanjur dikirim ke customer membawa ?order=...,
+// jadi query string-nya ikut diteruskan — beda dengan redirect biasa.
+Route::get('/tracking', [Site\TrackingController::class, 'legacyRedirect']);
+Route::permanentRedirect('/tracking/foto/{photo}', '/lacak-pesanan/foto/{photo}');
+
+// Ejaan lain yang wajar ditebak orang maupun mesin pencari.
+foreach ([
+    '/lacak' => '/lacak-pesanan',
+    '/cek-pesanan' => '/lacak-pesanan',
+    '/portofolio' => '/portfolio',
+    '/gallery' => '/galeri',
+    '/artikel' => '/blog',
+    '/produk' => '/layanan',
+    '/jasa' => '/layanan',
+    '/tentang' => '/tentang-kami',
+    '/hubungi-kami' => '/kontak',
+] as $lama => $sekarang) {
+    Route::permanentRedirect($lama, $sekarang);
+}
 
 /*
 |--------------------------------------------------------------------------

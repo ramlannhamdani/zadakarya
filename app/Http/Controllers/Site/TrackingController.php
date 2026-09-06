@@ -39,6 +39,16 @@ class TrackingController extends Controller
         ]);
     }
 
+    /**
+     * Alamat lama /tracking. Ditangani controller (bukan Route::permanentRedirect)
+     * karena tautan yang sudah dikirim ke customer membawa ?order=..., dan
+     * redirect bawaan membuang query string.
+     */
+    public function legacyRedirect(Request $request)
+    {
+        return redirect()->route('tracking.index', $request->query(), 301);
+    }
+
     /** Serve a production photo file — public photos only, never internal ones. */
     public function photo(Request $request, ProductionPhoto $photo)
     {

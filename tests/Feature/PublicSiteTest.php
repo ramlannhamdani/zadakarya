@@ -34,7 +34,7 @@ class PublicSiteTest extends TestCase
 
     public function test_public_pages_render(): void
     {
-        foreach (['/', '/layanan', '/portfolio', '/blog', '/tentang-kami', '/kontak', '/konsultasi', '/tracking'] as $url) {
+        foreach (['/', '/layanan', '/portfolio', '/blog', '/tentang-kami', '/kontak', '/konsultasi', route('tracking.index')] as $url) {
             $this->get($url)->assertOk();
         }
     }
@@ -43,7 +43,7 @@ class PublicSiteTest extends TestCase
     {
         $order = $this->makeOrder();
 
-        $response = $this->get('/tracking?order='.$order->order_number);
+        $response = $this->get(route('tracking.index').'?order='.$order->order_number);
 
         $response->assertOk()
             ->assertSee($order->order_number)
@@ -58,7 +58,7 @@ class PublicSiteTest extends TestCase
 
     public function test_tracking_shows_not_found_for_unknown_number(): void
     {
-        $this->get('/tracking?order=ZDK-9999')->assertOk()->assertSee('tidak ditemukan');
+        $this->get(route('tracking.index').'?order=ZDK-9999')->assertOk()->assertSee('tidak ditemukan');
     }
 
     public function test_tracking_never_exposes_internal_notes(): void
@@ -66,7 +66,7 @@ class PublicSiteTest extends TestCase
         $order = $this->makeOrder();
         $order->update(['notes' => 'RAHASIA-MARGIN-40PERSEN']);
 
-        $this->get('/tracking?order='.$order->order_number)
+        $this->get(route('tracking.index').'?order='.$order->order_number)
             ->assertOk()
             ->assertDontSee('RAHASIA-MARGIN-40PERSEN');
     }
@@ -88,7 +88,7 @@ class PublicSiteTest extends TestCase
         $this->makeOrder();
         $second = $this->makeOrder();
 
-        $response = $this->get('/tracking');
+        $response = $this->get(route('tracking.index'));
 
         $response->assertOk()
             ->assertSee('Sedang Kami Kerjakan')
@@ -107,12 +107,12 @@ class PublicSiteTest extends TestCase
         $order = $this->makeOrder();
         $order->update(['status' => 'completed']);
 
-        $this->get('/tracking')->assertOk()->assertDontSee('Sedang Kami Kerjakan');
+        $this->get(route('tracking.index'))->assertOk()->assertDontSee('Sedang Kami Kerjakan');
 
         $order->update(['status' => 'active']);
         \App\Models\Setting::set('show_ongoing', '0');
 
-        $this->get('/tracking')->assertOk()->assertDontSee('Sedang Kami Kerjakan');
+        $this->get(route('tracking.index'))->assertOk()->assertDontSee('Sedang Kami Kerjakan');
     }
 
     public function test_consultation_form_stores_inquiry(): void
