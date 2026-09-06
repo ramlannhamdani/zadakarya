@@ -195,6 +195,27 @@ class OrderDeletionTest extends TestCase
         }
     }
 
+    public function test_order_page_warns_when_invoice_total_differs_from_order_total(): void
+    {
+        $order = $this->createOrder(9750000);
+
+        // Selama invoice sama dengan item pesanan, tidak ada peringatan.
+        $this->actingAs($this->admin)->get(route('admin.orders.show', $order))
+            ->assertOk()->assertDontSee('tidak sama dengan Grand Total');
+
+        // Invoice tambahan membuat total tagihan melampaui nilai item pesanan.
+        $this->actingAs($this->admin)->post(route('admin.invoices.store'), [
+            'order_id' => $order->id,
+            'date' => now()->toDateString(),
+            'items' => [['description' => 'Batch kedua', 'quantity' => 1, 'unit' => 'pcs', 'unit_price' => 4500000]],
+        ]);
+
+        $this->actingAs($this->admin)->get(route('admin.orders.show', $order))
+            ->assertOk()
+            ->assertSee('tidak sama dengan Grand Total')
+            ->assertSee('Rp 14.250.000');
+    }
+
     public function test_payments_are_never_shared_between_orders_of_the_same_customer(): void
     {
         $first = $this->createOrder(9750000);

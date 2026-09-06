@@ -58,6 +58,16 @@
             <dd class="mt-1 text-sm font-bold text-ink">{{ $order->current_stage }}/7 — {{ $order->current_stage_name }}</dd>
         </div>
     </dl>
+
+    @php $invoicedTotal = (int) $order->invoices->sum('grand_total'); @endphp
+    @if($order->invoices->isNotEmpty() && $invoicedTotal !== $order->grand_total)
+        {{-- Grand Total berasal dari Item Produk, sedangkan invoice punya itemnya
+             sendiri — kalau berbeda, angka Sisa & status pembayaran jadi menyesatkan. --}}
+        <div class="mt-5 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+            <p class="font-semibold">Total invoice ({{ rupiah($invoicedTotal) }}) tidak sama dengan Grand Total pesanan ({{ rupiah($order->grand_total) }}).</p>
+            <p class="mt-1 text-amber-800">Grand Total dihitung dari <strong>Item Produk</strong> di tab Overview, bukan dari invoice. Selama keduanya berbeda, kolom <strong>Sisa</strong> dan status pembayaran di atas ikut tidak akurat. Samakan itemnya lewat <a href="{{ route('admin.orders.edit', $order) }}" class="font-semibold underline">Edit Pesanan</a>, atau pisahkan pekerjaan yang berbeda menjadi pesanan tersendiri.</p>
+        </div>
+    @endif
 </div>
 
 {{-- Tabs --}}
