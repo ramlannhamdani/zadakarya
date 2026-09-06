@@ -28,6 +28,11 @@
                     @endforeach
                 </select>
             </form>
+            <form method="POST" action="{{ route('admin.orders.destroy', $order) }}"
+                  onsubmit="return confirm('Hapus pesanan {{ $order->order_number }}?\n\nInvoice, pembayaran ({{ rupiah($order->amount_paid) }}), foto produksi, dan file pesanan ini ikut terhapus permanen — total pendapatan di dashboard akan berkurang.\n\nUntuk pesanan yang batal tapi datanya ingin disimpan, ubah status jadi Dibatalkan.')">
+                @csrf @method('DELETE')
+                <button type="submit" class="rounded-lg border border-red-200 px-4 py-2 text-xs font-semibold text-red-600 transition hover:border-red-400 hover:bg-red-50">Hapus Pesanan</button>
+            </form>
         </div>
     </div>
 

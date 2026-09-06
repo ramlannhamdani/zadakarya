@@ -7,6 +7,7 @@ use App\Models\Customer;
 use App\Models\Invoice;
 use App\Models\Order;
 use App\Models\Payment;
+use App\Support\ImageUploader;
 use App\Support\Sequence;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -196,15 +197,37 @@ class OrderController extends Controller
         return back()->with('success', 'Catatan internal disimpan.');
     }
 
+    /**
+     * Hapus pesanan beserta seluruh turunannya. Baris invoice, pembayaran,
+     * tahap, foto, dan lampiran ikut terhapus lewat cascade di database;
+     * file fisiknya dihapus manual di sini agar tidak menumpuk di storage.
+     *
+     * Pembayaran yang ikut terhapus otomatis mengurangi total pendapatan
+     * dan grafik di dashboard, karena keduanya dihitung dari tabel payments.
+     */
     public function destroy(Order $order)
     {
-        if ($order->payments()->exists() || $order->invoices()->exists()) {
-            return back()->with('error', 'Pesanan dengan invoice atau pembayaran tidak dapat dihapus. Gunakan status Dibatalkan.');
-        }
+        $number = $order->order_number;
 
-        $order->delete();
+        DB::transaction(function () use ($order) {
+            foreach ($order->productionPhotos as $photo) {
+                ImageUploader::delete($photo->image_path, 'local');
+                ImageUploader::delete($photo->thumb_path, 'local');
+            }
 
-        return redirect()->route('admin.orders.index')->with('success', 'Pesanan dihapus.');
+            foreach ($order->payments as $payment) {
+                ImageUploader::delete($payment->proof_path, 'local');
+            }
+
+            foreach ($order->attachments as $attachment) {
+                ImageUploader::delete($attachment->file_path, 'local');
+            }
+
+            $order->delete();
+        });
+
+        return redirect()->route('admin.orders.index')
+            ->with('success', "Pesanan {$number} dihapus beserta invoice, pembayaran, dan filenya.");
     }
 
     private function validated(Request $request): array
