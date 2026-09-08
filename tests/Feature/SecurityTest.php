@@ -116,4 +116,19 @@ class SecurityTest extends TestCase
         $this->assertStringNotContainsString('<script', $article->content);
         $this->assertStringContainsString('<p>Aman</p>', $article->content);
     }
+
+    public function test_external_links_in_article_remain_dofollow_on_save(): void
+    {
+        $admin = User::factory()->create();
+
+        $this->actingAs($admin)->post(route('admin.articles.store'), [
+            'title' => 'Uji Dofollow Link',
+            'content' => '<p>Baca di <a href="https://botmoni.com/blog/catat-keuangan" target="_blank" rel="noopener">Botmoni</a></p>',
+        ])->assertRedirect();
+
+        $article = \App\Models\Article::where('slug', 'uji-dofollow-link')->firstOrFail();
+        $this->assertStringNotContainsString('nofollow', $article->content);
+        $this->assertStringContainsString('href="https://botmoni.com/blog/catat-keuangan"', $article->content);
+    }
 }
+

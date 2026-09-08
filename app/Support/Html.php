@@ -26,7 +26,8 @@ class Html
             'table', 'thead', 'tbody', 'tr', 'th', 'td',
         ]));
         $config->set('Attr.AllowedFrameTargets', ['_blank']);
-        $config->set('HTML.Nofollow', true);
+        $config->set('HTML.Nofollow', false);
+        $config->set('HTML.TargetNoreferrer', false);
         $config->set('URI.AllowedSchemes', ['http' => true, 'https' => true, 'mailto' => true]);
         $config->set('AutoFormat.RemoveEmpty', true);
 
