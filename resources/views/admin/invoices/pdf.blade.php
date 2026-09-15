@@ -161,13 +161,14 @@
 @endif
 
 @if($signature)
-    {{-- Dipusatkan di kolom "Hormat kami"; bagian bawahnya sengaja melewati
-         garis tanda tangan ~14px supaya terlihat seperti tanda tangan basah.
-         Turun ~29px per baris item tambahan, dan ~20px per baris rincian totals (diskon/biaya). --}}
+    {{-- Dipusatkan di kolom "Hormat kami"; bagian atasnya diposisikan di bawah teks
+         "Hormat kami," dan bagian bawahnya sengaja keluar ke bawah melewati garis
+         tanda tangan agar terlihat natural seperti tanda tangan basah dan tidak
+         menabrak tulisan "Hormat kami," maupun baris TOTAL. --}}
     @php
         $extraRows = max(0, $rows->count() - $minRows);
-        // 668 = titik acuan hasil pengukuran render dompdf (bukan koordinat garis di CSS).
-        $signatureTop = 688 - $signHeight + ($extraRows * 29) + $totalShift;
+        // 724 = titik acuan agar tanda tangan keluar ke bawah melewati garis dan tidak menabrak teks di atasnya.
+        $signatureTop = 724 - $signHeight + ($extraRows * 29) + $totalShift;
         $signatureLeft = (int) round(972 - $signWidth / 2);
     @endphp
     <img src="{{ $signature }}" class="signature"
