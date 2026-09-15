@@ -3,7 +3,7 @@
 @section('title', 'Buat Pesanan')
 
 @section('content')
-<form method="POST" action="{{ route('admin.orders.store') }}" class="max-w-5xl">
+<form method="POST" action="{{ route('admin.orders.store') }}" class="w-full">
     @csrf
     @include('admin.orders._form', ['order' => null])
 

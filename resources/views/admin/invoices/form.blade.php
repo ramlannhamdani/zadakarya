@@ -26,7 +26,7 @@
 
 <form method="POST"
       action="{{ $invoice->exists ? route('admin.invoices.update', $invoice) : route('admin.invoices.store') }}"
-      class="max-w-4xl"
+      class="w-full"
       x-data="{
           items: {{ \Illuminate\Support\Js::from($prefillItems) }},
           discount: {{ (int) old('discount', $invoice->discount ?? ($order?->discount ?? 0)) }},

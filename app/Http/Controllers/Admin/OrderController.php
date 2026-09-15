@@ -233,8 +233,30 @@ class OrderController extends Controller
             ->with('success', "Pesanan {$number} dihapus beserta invoice, pembayaran, dan filenya.");
     }
 
+    private function cleanNumeric(mixed $value): ?int
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        $cleaned = preg_replace('/[^\d]/', '', (string) $value);
+
+        return $cleaned === '' ? null : (int) $cleaned;
+    }
+
     private function validated(Request $request): array
     {
+        $merge = [];
+        if ($request->has('discount')) {
+            $merge['discount'] = $this->cleanNumeric($request->discount);
+        }
+        if ($request->has('dp_amount')) {
+            $merge['dp_amount'] = $this->cleanNumeric($request->dp_amount);
+        }
+        if (! empty($merge)) {
+            $request->merge($merge);
+        }
+
         $data = $request->validate([
             'customer_id' => ['required', 'exists:customers,id'],
             'name' => ['required', 'string', 'max:200'],
@@ -255,6 +277,8 @@ class OrderController extends Controller
             'items.*.unit_price' => ['required', 'integer', 'min:0'],
         ], [
             'items.required' => 'Minimal satu item produk harus diisi.',
+            'discount.integer' => 'Nominal diskon harus berupa angka bulat.',
+            'dp_amount.integer' => 'Nominal DP harus berupa angka bulat.',
         ]);
 
         // Default: invoice dibuat otomatis kecuali admin mematikan centangnya.

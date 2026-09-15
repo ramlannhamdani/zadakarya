@@ -156,8 +156,30 @@ class InvoiceController extends Controller
         $invoice->refreshTotals();
     }
 
+    private function cleanNumeric(mixed $value): ?int
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        $cleaned = preg_replace('/[^\d]/', '', (string) $value);
+
+        return $cleaned === '' ? null : (int) $cleaned;
+    }
+
     private function validated(Request $request): array
     {
+        $merge = [];
+        if ($request->has('discount')) {
+            $merge['discount'] = $this->cleanNumeric($request->discount);
+        }
+        if ($request->has('additional_cost')) {
+            $merge['additional_cost'] = $this->cleanNumeric($request->additional_cost);
+        }
+        if (! empty($merge)) {
+            $request->merge($merge);
+        }
+
         return $request->validate([
             'order_id' => ['required', 'exists:orders,id'],
             'date' => ['required', 'date'],
@@ -173,6 +195,8 @@ class InvoiceController extends Controller
             'items.*.unit_price' => ['required', 'integer', 'min:0'],
         ], [
             'items.required' => 'Minimal satu item invoice harus diisi.',
+            'discount.integer' => 'Nominal diskon harus berupa angka bulat.',
+            'additional_cost.integer' => 'Nominal biaya tambahan harus berupa angka bulat.',
         ]);
     }
 }
