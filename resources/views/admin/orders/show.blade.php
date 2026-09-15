@@ -78,6 +78,7 @@
         'photos' => 'Foto Produksi',
         'invoice' => 'Invoice',
         'payments' => 'Pembayaran',
+        'hpp' => 'Biaya & HPP',
         'files' => 'File',
         'history' => 'Riwayat',
         'notes' => 'Catatan Internal',
@@ -92,6 +93,7 @@
             @if($key === 'photos' && $order->productionPhotos->count())<span class="ml-1 rounded-full bg-neutral-100 px-1.5 text-xs">{{ $order->productionPhotos->count() }}</span>@endif
             @if($key === 'invoice' && $order->invoices->count())<span class="ml-1 rounded-full bg-neutral-100 px-1.5 text-xs">{{ $order->invoices->count() }}</span>@endif
             @if($key === 'payments' && $order->payments->count())<span class="ml-1 rounded-full bg-neutral-100 px-1.5 text-xs">{{ $order->payments->count() }}</span>@endif
+            @if($key === 'hpp' && $order->costs->count())<span class="ml-1 rounded-full bg-neutral-100 px-1.5 text-xs">{{ $order->costs->count() }}</span>@endif
             @if($key === 'files' && $order->attachments->count())<span class="ml-1 rounded-full bg-neutral-100 px-1.5 text-xs">{{ $order->attachments->count() }}</span>@endif
         </a>
     @endforeach
@@ -172,6 +174,38 @@
                         <div class="flex justify-between gap-4"><dt class="text-neutral-500">Estimasi selesai (publik)</dt><dd class="font-medium">{{ $order->estimated_completion?->translatedFormat('d F Y') ?? '—' }}</dd></div>
                         <div class="flex justify-between gap-4"><dt class="text-neutral-500">DP diminta</dt><dd class="font-medium">{{ $order->dp_amount ? rupiah($order->dp_amount) : '—' }}</dd></div>
                     </dl>
+                </div>
+
+                <div class="admin-card">
+                    <div class="flex items-center justify-between">
+                        <h2 class="font-extrabold text-ink">HPP & Profitabilitas</h2>
+                        <a href="{{ route('admin.orders.show', ['order' => $order, 'tab' => 'hpp']) }}" class="text-xs font-semibold text-brand-600 hover:underline">Kelola &rarr;</a>
+                    </div>
+                    @if($order->costs->isNotEmpty())
+                        <dl class="mt-3 space-y-2.5 text-sm">
+                            <div class="flex justify-between gap-4">
+                                <dt class="text-neutral-500">Total HPP</dt>
+                                <dd class="font-bold text-ink">{{ rupiah($order->total_cost) }}</dd>
+                            </div>
+                            <div class="flex justify-between gap-4">
+                                <dt class="text-neutral-500">HPP / Pcs</dt>
+                                <dd class="font-medium text-neutral-600">{{ $order->total_quantity > 0 ? rupiah($order->cost_per_unit).'/pcs' : '—' }}</dd>
+                            </div>
+                            <div class="flex justify-between gap-4">
+                                <dt class="text-neutral-500">Laba Kotor</dt>
+                                <dd class="font-bold {{ $order->gross_profit >= 0 ? 'text-emerald-600' : 'text-rose-600' }}">{{ rupiah($order->gross_profit) }}</dd>
+                            </div>
+                            <div class="flex justify-between gap-4">
+                                <dt class="text-neutral-500">Margin</dt>
+                                <dd class="font-bold {{ $order->profit_margin >= 20 ? 'text-emerald-600' : ($order->profit_margin >= 0 ? 'text-amber-600' : 'text-rose-600') }}">{{ $order->profit_margin }}%</dd>
+                            </div>
+                        </dl>
+                    @else
+                        <div class="mt-3 rounded-lg border border-dashed border-line p-3 text-center">
+                            <p class="text-xs text-neutral-500">Belum ada biaya riil yang dicatat.</p>
+                            <a href="{{ route('admin.orders.show', ['order' => $order, 'tab' => 'hpp']) }}" class="mt-1.5 inline-block text-xs font-semibold text-brand-600 hover:underline">+ Catat Biaya Produksi</a>
+                        </div>
+                    @endif
                 </div>
             </div>
         </div>
@@ -470,6 +504,276 @@
                                 <tr><td colspan="{{ $order->invoices->count() > 1 ? 6 : 5 }}" class="py-8 text-center text-neutral-500">Belum ada pembayaran tercatat.</td></tr>
                             @endforelse
                         </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    {{-- ============ BIAYA & HPP ============ --}}
+    @if($tab === 'hpp')
+        @php
+            $costsByCategory = $order->costs->groupBy('category');
+            $totalCost = $order->total_cost;
+            $grandTotal = $order->grand_total;
+            $grossProfit = $order->gross_profit;
+            $margin = $order->profit_margin;
+            $totalQty = $order->total_quantity;
+            $costPerUnit = $order->cost_per_unit;
+            $pricePerUnit = $totalQty > 0 ? (int) round($grandTotal / $totalQty) : 0;
+            $profitPerUnit = $totalQty > 0 ? (int) round($grossProfit / $totalQty) : 0;
+            $statusMeta = $order->profit_status_meta;
+        @endphp
+
+        {{-- KPI Cards --}}
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div class="admin-card">
+                <span class="text-xs font-bold uppercase tracking-wider text-neutral-500">Nilai Pesanan (Omset)</span>
+                <p class="mt-2 text-2xl font-extrabold text-ink">{{ rupiah($grandTotal) }}</p>
+                <p class="mt-1 text-xs text-neutral-500">
+                    @if($totalQty > 0)
+                        {{ $totalQty }} pcs ({{ rupiah($pricePerUnit) }}/pcs)
+                    @else
+                        Total item produk belum diset
+                    @endif
+                </p>
+            </div>
+
+            <div class="admin-card">
+                <span class="text-xs font-bold uppercase tracking-wider text-neutral-500">Total Biaya Produksi (HPP)</span>
+                <p class="mt-2 text-2xl font-extrabold text-brand-600">{{ rupiah($totalCost) }}</p>
+                <p class="mt-1 text-xs text-neutral-500">
+                    @if($totalQty > 0 && $totalCost > 0)
+                        HPP per pcs: <strong class="text-ink">{{ rupiah($costPerUnit) }}</strong>
+                    @else
+                        {{ $order->costs->count() }} pengeluaran tercatat
+                    @endif
+                </p>
+            </div>
+
+            <div class="admin-card">
+                <span class="text-xs font-bold uppercase tracking-wider text-neutral-500">Laba Kotor (Gross Profit)</span>
+                <p class="mt-2 text-2xl font-extrabold {{ $grossProfit >= 0 ? 'text-emerald-600' : 'text-rose-600' }}">
+                    {{ rupiah($grossProfit) }}
+                </p>
+                <p class="mt-1 text-xs text-neutral-500">
+                    @if($totalQty > 0 && $order->costs->isNotEmpty())
+                        Laba per pcs: <strong class="{{ $profitPerUnit >= 0 ? 'text-emerald-600' : 'text-rose-600' }}">{{ rupiah($profitPerUnit) }}</strong>
+                    @else
+                        Omset dikurangi seluruh biaya riil
+                    @endif
+                </p>
+            </div>
+
+            <div class="admin-card">
+                <span class="text-xs font-bold uppercase tracking-wider text-neutral-500">Margin Keuntungan</span>
+                <div class="mt-2 flex items-center gap-2">
+                    <span class="text-2xl font-extrabold {{ $margin >= 20 ? 'text-emerald-600' : ($margin >= 10 ? 'text-blue-600' : ($margin >= 0 ? 'text-amber-600' : 'text-rose-600')) }}">
+                        {{ $margin }}%
+                    </span>
+                    <span class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold {{ $statusMeta['badge'] }}">
+                        {{ $statusMeta['label'] }}
+                    </span>
+                </div>
+                <p class="mt-1 text-xs text-neutral-500">
+                    Standar konveksi sehat: margin &ge; 25%
+                </p>
+            </div>
+        </div>
+
+        {{-- Breakdown per Komponen Biaya --}}
+        @if($totalCost > 0)
+            <div class="admin-card mt-5">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                        <h2 class="font-extrabold text-ink">Distribusi Biaya per Komponen</h2>
+                        <p class="text-xs text-neutral-500">Alokasi pengeluaran riil konveksi berdasarkan total HPP {{ rupiah($totalCost) }}</p>
+                    </div>
+                    <span class="text-xs font-semibold text-neutral-400">5 Kategori Biaya</span>
+                </div>
+
+                {{-- Stacked Progress Bar --}}
+                <div class="mt-4 flex h-3.5 w-full overflow-hidden rounded-full bg-neutral-100">
+                    @foreach(\App\Models\OrderCost::CATEGORIES as $catKey => $catLabel)
+                        @php
+                            $catSum = (int) ($costsByCategory->get($catKey)?->sum('amount') ?? 0);
+                            $catPct = $totalCost > 0 ? round(($catSum / $totalCost) * 100, 1) : 0;
+                            $barColors = [
+                                'kain' => 'bg-blue-500',
+                                'aksesoris' => 'bg-purple-500',
+                                'makloon' => 'bg-amber-500',
+                                'cmt_jahit' => 'bg-emerald-500',
+                                'packing_operasional' => 'bg-slate-500',
+                            ];
+                        @endphp
+                        @if($catSum > 0)
+                            <div class="{{ $barColors[$catKey] ?? 'bg-neutral-400' }}"
+                                 style="width: {{ $catPct }}%"
+                                 title="{{ $catLabel }}: {{ rupiah($catSum) }} ({{ $catPct }}%)"></div>
+                        @endif
+                    @endforeach
+                </div>
+
+                {{-- Category stats grid --}}
+                <div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+                    @foreach(\App\Models\OrderCost::CATEGORIES as $catKey => $catLabel)
+                        @php
+                            $catSum = (int) ($costsByCategory->get($catKey)?->sum('amount') ?? 0);
+                            $catPct = $totalCost > 0 ? round(($catSum / $totalCost) * 100, 1) : 0;
+                            $dotColors = [
+                                'kain' => 'bg-blue-500',
+                                'aksesoris' => 'bg-purple-500',
+                                'makloon' => 'bg-amber-500',
+                                'cmt_jahit' => 'bg-emerald-500',
+                                'packing_operasional' => 'bg-slate-500',
+                            ];
+                        @endphp
+                        <div class="rounded-lg border border-line p-3">
+                            <div class="flex items-center gap-1.5 text-xs text-neutral-600">
+                                <span class="h-2 w-2 rounded-full {{ $dotColors[$catKey] ?? 'bg-neutral-400' }}"></span>
+                                <span class="truncate font-medium">{{ $catLabel }}</span>
+                            </div>
+                            <p class="mt-1.5 font-extrabold text-ink">{{ rupiah($catSum) }}</p>
+                            <span class="text-xs text-neutral-400">{{ $catPct }}% dari HPP</span>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        @endif
+
+        {{-- Form & Cost Table --}}
+        <div class="mt-5 grid gap-5 lg:grid-cols-3">
+            {{-- Form Tambah Pengeluaran --}}
+            <form method="POST" action="{{ route('admin.orders.costs.store', $order) }}" enctype="multipart/form-data" class="admin-card h-fit">
+                @csrf
+                <h2 class="font-extrabold text-ink">Catat Biaya Produksi</h2>
+                <p class="mt-1 text-xs text-neutral-500">Catat setiap pengeluaran bahan, makloon bordir/sablon, upah CMT, atau operasional order ini.</p>
+
+                <div class="mt-4">
+                    <label class="form-label">Kategori Biaya <span class="text-brand-600">*</span></label>
+                    <select class="form-input" name="category" required>
+                        @foreach(\App\Models\OrderCost::CATEGORIES as $key => $label)
+                            <option value="{{ $key }}" @selected(old('category') === $key)>{{ $label }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="mt-4">
+                    <label class="form-label">Keterangan / Rincian <span class="text-brand-600">*</span></label>
+                    <input class="form-input" type="text" name="description" value="{{ old('description') }}" placeholder="Mis: Kain Combed 24s Reaktif Hitam, Sablon Plastisol" required>
+                </div>
+
+                <div class="mt-4 grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="form-label">Kuantitas</label>
+                        <input class="form-input" type="text" name="quantity" value="{{ old('quantity') }}" placeholder="Mis: 25 / 100">
+                    </div>
+                    <div>
+                        <label class="form-label">Satuan</label>
+                        <input class="form-input" type="text" name="unit" value="{{ old('unit') }}" placeholder="kg, pcs, roll, yard">
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <label class="form-label">Total Biaya (Rp) <span class="text-brand-600">*</span></label>
+                    <input class="form-input font-mono font-bold" type="text" name="amount" value="{{ old('amount') }}" placeholder="Mis: 1.500.000" required>
+                    <p class="mt-1 text-xs text-neutral-500">Bisa ketik angka langsung atau dengan titik ribuan.</p>
+                </div>
+
+                <div class="mt-4">
+                    <label class="form-label">Tanggal Pengeluaran <span class="text-brand-600">*</span></label>
+                    <input class="form-input" type="date" name="spent_at" value="{{ old('spent_at', now()->toDateString()) }}" required>
+                </div>
+
+                <div class="mt-4">
+                    <label class="form-label">Foto Nota / Bukti Struk</label>
+                    <input class="form-input !py-2" type="file" name="receipt" accept=".jpg,.jpeg,.png,.webp,.pdf">
+                    <p class="mt-1 text-xs text-neutral-500">Format JPG, PNG, WEBP, atau PDF (maks. 5MB).</p>
+                </div>
+
+                <button type="submit" class="btn-primary mt-5 w-full">Simpan Biaya</button>
+            </form>
+
+            {{-- Daftar Pengeluaran --}}
+            <div class="admin-card h-fit lg:col-span-2">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                        <h2 class="font-extrabold text-ink">Rincian Pengeluaran Terdata</h2>
+                        <p class="text-xs text-neutral-500">Semua pengeluaran yang membentuk HPP pesanan ini</p>
+                    </div>
+                    <span class="rounded-full bg-neutral-100 px-2.5 py-1 text-xs font-semibold text-neutral-600">{{ $order->costs->count() }} pengeluaran</span>
+                </div>
+
+                <div class="mt-4 overflow-x-auto">
+                    <table class="w-full min-w-[550px] text-sm">
+                        <thead>
+                            <tr class="border-b border-line text-left text-xs font-bold uppercase tracking-wider text-neutral-500">
+                                <th class="pb-2.5 pr-3">Tanggal</th>
+                                <th class="pb-2.5 pr-3">Kategori</th>
+                                <th class="pb-2.5 pr-3">Keterangan</th>
+                                <th class="pb-2.5 pr-3 text-right">Nominal</th>
+                                <th class="pb-2.5 pr-3 text-center">Nota</th>
+                                <th class="pb-2.5"></th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-line">
+                            @forelse($order->costs as $cost)
+                                <tr>
+                                    <td class="whitespace-nowrap py-3 pr-3 text-xs text-neutral-600">
+                                        {{ $cost->spent_at->format('d/m/Y') }}
+                                    </td>
+                                    <td class="whitespace-nowrap py-3 pr-3">
+                                        <span class="inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium {{ $cost->category_badge_class }}">
+                                            {{ $cost->category_label }}
+                                        </span>
+                                    </td>
+                                    <td class="py-3 pr-3">
+                                        <p class="font-semibold text-ink">{{ $cost->description }}</p>
+                                        @if($cost->quantity)
+                                            <p class="text-xs text-neutral-500">{{ rtrim(rtrim(number_format($cost->quantity, 2, ',', '.'), '0'), ',') }} {{ $cost->unit }}</p>
+                                        @endif
+                                        @if($cost->recorder)
+                                            <p class="text-[11px] text-neutral-400">Dicatat oleh {{ $cost->recorder->name }}</p>
+                                        @endif
+                                    </td>
+                                    <td class="whitespace-nowrap py-3 pr-3 text-right font-mono font-bold text-ink">
+                                        {{ rupiah($cost->amount) }}
+                                    </td>
+                                    <td class="whitespace-nowrap py-3 pr-3 text-center">
+                                        @if($cost->receipt_path)
+                                            <a href="{{ route('admin.orders.costs.receipt', $cost) }}" target="_blank" class="inline-flex items-center gap-1 rounded bg-neutral-100 px-2 py-1 text-xs font-semibold text-brand-600 hover:bg-neutral-200">
+                                                <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                                Lihat
+                                            </a>
+                                        @else
+                                            <span class="text-xs text-neutral-400">—</span>
+                                        @endif
+                                    </td>
+                                    <td class="py-3 text-right">
+                                        <form method="POST" action="{{ route('admin.orders.costs.destroy', [$order, $cost]) }}" onsubmit="return confirm('Hapus catatan pengeluaran {{ rupiah($cost->amount) }} ({{ $cost->description }})?')">
+                                            @csrf @method('DELETE')
+                                            <button type="submit" class="text-xs font-semibold text-red-500 hover:underline">Hapus</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="6" class="py-8 text-center text-neutral-500">
+                                        <p class="font-medium">Belum ada biaya produksi yang dicatat.</p>
+                                        <p class="mt-1 text-xs text-neutral-400">Catat pengeluaran bahan baku, makloon, atau upah CMT melalui formulir di samping untuk menganalisis HPP dan laba kotor pesanan ini.</p>
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                        @if($order->costs->isNotEmpty())
+                            <tfoot>
+                                <tr class="border-t-2 border-line font-bold text-ink">
+                                    <td colspan="3" class="pt-3 text-right uppercase text-xs tracking-wider text-neutral-500">Total HPP:</td>
+                                    <td class="pt-3 text-right font-mono text-base text-brand-600">{{ rupiah($totalCost) }}</td>
+                                    <td colspan="2"></td>
+                                </tr>
+                            </tfoot>
+                        @endif
                     </table>
                 </div>
             </div>

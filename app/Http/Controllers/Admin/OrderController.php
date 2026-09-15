@@ -124,6 +124,7 @@ class OrderController extends Controller
         $order->load([
             'customer', 'items', 'stages.updater', 'activities.user',
             'attachments', 'productionPhotos', 'invoices', 'payments.invoice',
+            'costs.recorder',
         ]);
 
         return view('admin.orders.show', [
@@ -224,6 +225,10 @@ class OrderController extends Controller
 
             foreach ($order->attachments as $attachment) {
                 ImageUploader::delete($attachment->file_path, 'local');
+            }
+
+            foreach ($order->costs as $cost) {
+                ImageUploader::delete($cost->receipt_path, 'local');
             }
 
             $order->delete();

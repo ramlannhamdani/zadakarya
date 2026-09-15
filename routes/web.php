@@ -128,6 +128,11 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('attachments/{attachment}/download', [Admin\OrderAttachmentController::class, 'download'])->name('attachments.download');
         Route::delete('attachments/{attachment}', [Admin\OrderAttachmentController::class, 'destroy'])->name('attachments.destroy');
 
+        // Order Costs & HPP
+        Route::post('orders/{order}/costs', [Admin\OrderCostController::class, 'store'])->name('orders.costs.store');
+        Route::delete('orders/{order}/costs/{cost}', [Admin\OrderCostController::class, 'destroy'])->name('orders.costs.destroy');
+        Route::get('orders/costs/{cost}/receipt', [Admin\OrderCostController::class, 'receipt'])->name('orders.costs.receipt');
+
         // Invoices
         Route::resource('invoices', Admin\InvoiceController::class);
         Route::get('invoices/{invoice}/pdf', [Admin\InvoiceController::class, 'pdf'])->name('invoices.pdf');
