@@ -104,6 +104,40 @@ class OrderCostTest extends TestCase
         $this->assertSame('healthy', $this->order->profit_status);
     }
 
+    public function test_can_calculate_amount_from_quantity_and_unit_price(): void
+    {
+        // 1. User passes qty = 100, unit = 'pcs', unit_price = '2.000', amount left empty -> auto calculates 200.000
+        $response = $this->actingAs($this->admin)->post(route('admin.orders.costs.store', $this->order), [
+            'category' => 'cmt_jahit',
+            'description' => 'Upah Jahit Kaos Per Pcs',
+            'quantity' => 100,
+            'unit' => 'pcs',
+            'unit_price' => '2.000',
+            'spent_at' => '2026-09-15',
+        ]);
+
+        $response->assertRedirect();
+        $cost = OrderCost::latest('id')->firstOrFail();
+        $this->assertEquals(100, $cost->quantity);
+        $this->assertSame(2000, $cost->unit_price);
+        $this->assertSame(200000, $cost->amount);
+
+        // 2. User passes qty = 50, amount = 150000, unit_price empty -> auto calculates unit_price = 3000
+        $this->actingAs($this->admin)->post(route('admin.orders.costs.store', $this->order), [
+            'category' => 'makloon',
+            'description' => 'Sablon Per Pcs',
+            'quantity' => 50,
+            'unit' => 'pcs',
+            'amount' => '150.000',
+            'spent_at' => '2026-09-15',
+        ]);
+
+        $cost2 = OrderCost::latest('id')->firstOrFail();
+        $this->assertEquals(50, $cost2->quantity);
+        $this->assertSame(3000, $cost2->unit_price);
+        $this->assertSame(150000, $cost2->amount);
+    }
+
     public function test_profit_status_accurately_reflects_margins(): void
     {
         // 1. Fair margin (15% - 24%)

@@ -644,10 +644,26 @@
         {{-- Form & Cost Table --}}
         <div class="mt-5 grid gap-5 lg:grid-cols-3">
             {{-- Form Tambah Pengeluaran --}}
-            <form method="POST" action="{{ route('admin.orders.costs.store', $order) }}" enctype="multipart/form-data" class="admin-card h-fit">
+            <form method="POST" action="{{ route('admin.orders.costs.store', $order) }}" enctype="multipart/form-data" class="admin-card h-fit"
+                  x-data="{
+                      qty: '{{ old('quantity', '') }}',
+                      unitPrice: '{{ old('unit_price', '') }}',
+                      amount: '{{ old('amount', '') }}',
+                      recalcTotal() {
+                          let q = parseFloat(String(this.qty).replace(',', '.')) || 0;
+                          let p = parseInt(String(this.unitPrice).replace(/\D/g, '')) || 0;
+                          if (q > 0 && p > 0) {
+                              this.amount = this.formatNumber(Math.round(q * p));
+                          }
+                      },
+                      formatNumber(val) {
+                          if (!val && val !== 0) return '';
+                          return String(val).replace(/\D/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+                      }
+                  }">
                 @csrf
                 <h2 class="font-extrabold text-ink">Catat Biaya Produksi</h2>
-                <p class="mt-1 text-xs text-neutral-500">Catat setiap pengeluaran bahan, makloon bordir/sablon, upah CMT, atau operasional order ini.</p>
+                <p class="mt-1 text-xs text-neutral-500">Catat pengeluaran bahan, makloon bordir/sablon, upah CMT, atau operasional order ini.</p>
 
                 <div class="mt-4">
                     <label class="form-label">Kategori Biaya <span class="text-brand-600">*</span></label>
@@ -660,24 +676,31 @@
 
                 <div class="mt-4">
                     <label class="form-label">Keterangan / Rincian <span class="text-brand-600">*</span></label>
-                    <input class="form-input" type="text" name="description" value="{{ old('description') }}" placeholder="Mis: Kain Combed 24s Reaktif Hitam, Sablon Plastisol" required>
+                    <input class="form-input" type="text" name="description" value="{{ old('description') }}" placeholder="Mis: Upah Jahit Kaos, Kain Combed 24s Hitam" required>
                 </div>
 
                 <div class="mt-4 grid grid-cols-2 gap-3">
                     <div>
                         <label class="form-label">Kuantitas</label>
-                        <input class="form-input" type="text" name="quantity" value="{{ old('quantity') }}" placeholder="Mis: 25 / 100">
+                        <input class="form-input" type="text" name="quantity" x-model="qty" @input="recalcTotal()" placeholder="Mis: 100 / 25">
                     </div>
                     <div>
                         <label class="form-label">Satuan</label>
-                        <input class="form-input" type="text" name="unit" value="{{ old('unit') }}" placeholder="kg, pcs, roll, yard">
+                        <input class="form-input" type="text" name="unit" value="{{ old('unit') }}" placeholder="pcs, kg, roll, yard">
                     </div>
                 </div>
 
-                <div class="mt-4">
-                    <label class="form-label">Total Biaya (Rp) <span class="text-brand-600">*</span></label>
-                    <input class="form-input font-mono font-bold" type="text" name="amount" value="{{ old('amount') }}" placeholder="Mis: 1.500.000" required>
-                    <p class="mt-1 text-xs text-neutral-500">Bisa ketik angka langsung atau dengan titik ribuan.</p>
+                <div class="mt-4 grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="form-label">Harga Satuan (Rp)</label>
+                        <input class="form-input font-mono" type="text" name="unit_price" x-model="unitPrice" @input="unitPrice = formatNumber(unitPrice); recalcTotal()" placeholder="Mis: 2.000">
+                        <p class="mt-1 text-[11px] text-neutral-500">Contoh: Rp 2.000/pcs</p>
+                    </div>
+                    <div>
+                        <label class="form-label">Total Biaya (Rp) <span class="text-brand-600">*</span></label>
+                        <input class="form-input font-mono font-bold" type="text" name="amount" x-model="amount" @input="amount = formatNumber(amount)" placeholder="Mis: 200.000" required>
+                        <p class="mt-1 text-[11px] text-neutral-500">Otomatis Qty &times; Harga Satuan</p>
+                    </div>
                 </div>
 
                 <div class="mt-4">
@@ -729,7 +752,11 @@
                                     </td>
                                     <td class="py-3 pr-3">
                                         <p class="font-semibold text-ink">{{ $cost->description }}</p>
-                                        @if($cost->quantity)
+                                        @if($cost->quantity && $cost->unit_price)
+                                            <p class="text-xs text-neutral-500 font-medium">
+                                                {{ rtrim(rtrim(number_format($cost->quantity, 2, ',', '.'), '0'), ',') }} {{ $cost->unit ?: 'unit' }} &times; {{ rupiah($cost->unit_price) }}
+                                            </p>
+                                        @elseif($cost->quantity)
                                             <p class="text-xs text-neutral-500">{{ rtrim(rtrim(number_format($cost->quantity, 2, ',', '.'), '0'), ',') }} {{ $cost->unit }}</p>
                                         @endif
                                         @if($cost->recorder)

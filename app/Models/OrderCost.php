@@ -29,6 +29,7 @@ class OrderCost extends Model
         'description',
         'quantity',
         'unit',
+        'unit_price',
         'amount',
         'receipt_path',
         'spent_at',
@@ -40,6 +41,7 @@ class OrderCost extends Model
         return [
             'spent_at' => 'date',
             'amount' => 'integer',
+            'unit_price' => 'integer',
             'quantity' => 'float',
         ];
     }

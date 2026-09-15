@@ -14,17 +14,30 @@ class OrderCostController extends Controller
 {
     public function store(Request $request, Order $order)
     {
-        // Sanitize numeric inputs (strip thousand separators)
+        // Sanitize numeric inputs (strip thousand separators, commas to dots)
         $merge = [];
-        if ($request->has('amount')) {
-            $cleanedAmount = preg_replace('/[^\d]/', '', (string) $request->amount);
-            $merge['amount'] = $cleanedAmount === '' ? null : (int) $cleanedAmount;
+        if ($request->has('unit_price') && $request->filled('unit_price')) {
+            $cleanedUnitPrice = preg_replace('/[^\d]/', '', (string) $request->unit_price);
+            $merge['unit_price'] = $cleanedUnitPrice === '' ? null : (int) $cleanedUnitPrice;
         }
 
         if ($request->has('quantity') && $request->filled('quantity')) {
             // Replace Indonesian decimal comma with dot (e.g., "12,5" -> "12.5")
             $cleanedQty = str_replace(',', '.', trim((string) $request->quantity));
             $merge['quantity'] = is_numeric($cleanedQty) ? (float) $cleanedQty : $request->quantity;
+        }
+
+        if ($request->has('amount') && $request->filled('amount')) {
+            $cleanedAmount = preg_replace('/[^\d]/', '', (string) $request->amount);
+            $merge['amount'] = $cleanedAmount === '' ? null : (int) $cleanedAmount;
+        } elseif (! empty($merge['quantity']) && ! empty($merge['unit_price'])) {
+            // Otomatis hitung total biaya jika kuantitas dan harga satuan terisi
+            $merge['amount'] = (int) round($merge['quantity'] * $merge['unit_price']);
+        }
+
+        // Jika harga satuan kosong tapi qty dan amount terisi, hitung harga satuannya
+        if (empty($merge['unit_price']) && ! empty($merge['quantity']) && ! empty($merge['amount']) && $merge['quantity'] > 0) {
+            $merge['unit_price'] = (int) round($merge['amount'] / $merge['quantity']);
         }
 
         if (! empty($merge)) {
@@ -38,11 +51,13 @@ class OrderCostController extends Controller
             'spent_at' => ['required', 'date'],
             'quantity' => ['nullable', 'numeric', 'min:0.01'],
             'unit' => ['nullable', 'string', 'max:20'],
+            'unit_price' => ['nullable', 'integer', 'min:0'],
             'receipt' => ['nullable', 'file', 'max:5120', 'mimes:jpg,jpeg,png,webp,pdf'],
         ], [
-            'amount.required' => 'Nominal biaya wajib diisi.',
+            'amount.required' => 'Nominal total biaya wajib diisi.',
             'amount.integer' => 'Nominal biaya harus berupa angka bulat.',
             'amount.min' => 'Nominal biaya minimal Rp 1.',
+            'unit_price.integer' => 'Harga satuan harus berupa angka bulat.',
             'category.required' => 'Kategori biaya wajib dipilih.',
             'description.required' => 'Keterangan pengeluaran wajib diisi.',
             'spent_at.required' => 'Tanggal pengeluaran wajib diisi.',
@@ -59,6 +74,7 @@ class OrderCostController extends Controller
             'description' => $data['description'],
             'quantity' => $data['quantity'] ?? null,
             'unit' => $data['unit'] ?? null,
+            'unit_price' => $data['unit_price'] ?? null,
             'amount' => $data['amount'],
             'receipt_path' => $receiptPath,
             'spent_at' => $data['spent_at'],
