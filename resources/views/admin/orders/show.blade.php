@@ -127,10 +127,25 @@
                             @endforeach
                         </tbody>
                         <tfoot>
-                            <tr class="border-t-2 border-line">
-                                <td colspan="3" class="pt-3 text-right text-xs font-bold uppercase tracking-wider text-neutral-500">Grand Total</td>
-                                <td class="whitespace-nowrap pt-3 text-right text-lg font-extrabold text-brand-600">{{ rupiah($order->grand_total) }}</td>
-                            </tr>
+                            @if($order->discount > 0)
+                                <tr class="border-t-2 border-line text-neutral-600">
+                                    <td colspan="3" class="pt-3 text-right text-xs font-bold uppercase tracking-wider text-neutral-500">Subtotal</td>
+                                    <td class="whitespace-nowrap pt-3 text-right font-semibold text-ink">{{ rupiah($order->subtotal ?: $order->items->sum('total')) }}</td>
+                                </tr>
+                                <tr>
+                                    <td colspan="3" class="py-1 text-right text-xs font-bold uppercase tracking-wider text-neutral-500">Diskon</td>
+                                    <td class="whitespace-nowrap py-1 text-right font-semibold text-red-500">- {{ rupiah($order->discount) }}</td>
+                                </tr>
+                                <tr class="border-t border-line">
+                                    <td colspan="3" class="pt-2 text-right text-xs font-bold uppercase tracking-wider text-neutral-500">Grand Total</td>
+                                    <td class="whitespace-nowrap pt-2 text-right text-lg font-extrabold text-brand-600">{{ rupiah($order->grand_total) }}</td>
+                                </tr>
+                            @else
+                                <tr class="border-t-2 border-line">
+                                    <td colspan="3" class="pt-3 text-right text-xs font-bold uppercase tracking-wider text-neutral-500">Grand Total</td>
+                                    <td class="whitespace-nowrap pt-3 text-right text-lg font-extrabold text-brand-600">{{ rupiah($order->grand_total) }}</td>
+                                </tr>
+                            @endif
                         </tfoot>
                     </table>
                 </div>

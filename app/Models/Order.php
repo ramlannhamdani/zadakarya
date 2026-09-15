@@ -23,7 +23,7 @@ class Order extends Model
 
     protected $fillable = [
         'order_number', 'customer_id', 'name', 'status', 'current_stage',
-        'grand_total', 'dp_amount', 'amount_paid', 'payment_status',
+        'subtotal', 'discount', 'grand_total', 'dp_amount', 'amount_paid', 'payment_status',
         'deadline', 'estimated_completion', 'notes',
     ];
 
@@ -99,10 +99,11 @@ class Order extends Model
         $this->update(['current_stage' => 1]);
     }
 
-    /** Recalculate grand total from items (items total minus nothing; discount lives on invoices). */
+    /** Recalculate subtotal and grand total (subtotal minus discount). */
     public function refreshTotals(): void
     {
-        $this->grand_total = (int) $this->items()->sum('total');
+        $this->subtotal = (int) $this->items()->sum('total');
+        $this->grand_total = max(0, $this->subtotal - (int) $this->discount);
         $this->save();
         $this->refreshPaymentStatus();
     }

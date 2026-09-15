@@ -10,9 +10,11 @@
 
 <div x-data="{
         items: {{ \Illuminate\Support\Js::from($oldItems) }},
+        discount: {{ (int) old('discount', $order?->discount ?? 0) }},
         addItem() { this.items.push({ product_name: '', description: '', quantity: 1, unit: 'pcs', unit_price: 0 }); },
         removeItem(i) { if (this.items.length > 1) this.items.splice(i, 1); },
-        get total() { return this.items.reduce((sum, it) => sum + (parseInt(it.quantity) || 0) * (parseInt(it.unit_price) || 0), 0); },
+        get subtotal() { return this.items.reduce((sum, it) => sum + (parseInt(it.quantity) || 0) * (parseInt(it.unit_price) || 0), 0); },
+        get total() { return Math.max(0, this.subtotal - (parseInt(this.discount) || 0)); },
         format(v) { return 'Rp ' + (v || 0).toLocaleString('id-ID'); }
     }">
 
@@ -124,9 +126,20 @@
             </div>
         </template>
 
-        <div class="mt-4 flex items-center justify-end gap-3 border-t border-line pt-4">
-            <span class="text-sm font-bold uppercase tracking-wider text-neutral-500">Grand Total</span>
-            <span class="text-2xl font-extrabold text-brand-600" x-text="format(total)"></span>
+        <div class="mt-5 grid gap-5 border-t border-line pt-5 sm:grid-cols-2 lg:grid-cols-3">
+            <div>
+                <label class="form-label" for="discount">Diskon (Rp)</label>
+                <input class="form-input" type="number" min="0" id="discount" name="discount" x-model="discount" placeholder="0">
+                <p class="mt-1 text-xs text-neutral-500">Diskon memotong Subtotal dan langsung menentukan Grand Total akhir.</p>
+            </div>
+            <div class="space-y-1.5 pt-1 text-right text-sm sm:col-span-1 lg:col-span-2">
+                <p class="text-neutral-600">Subtotal: <span class="inline-block w-36 font-semibold text-ink" x-text="format(subtotal)"></span></p>
+                <p class="text-neutral-600">Diskon: <span class="inline-block w-36 font-semibold text-red-500" x-text="'- ' + format(parseInt(discount) || 0)"></span></p>
+                <div class="mt-2 flex items-center justify-end gap-3 border-t border-line pt-2">
+                    <span class="text-sm font-bold uppercase tracking-wider text-neutral-500">Grand Total</span>
+                    <span class="text-2xl font-extrabold text-brand-600" x-text="format(total)"></span>
+                </div>
+            </div>
         </div>
     </div>
 </div>

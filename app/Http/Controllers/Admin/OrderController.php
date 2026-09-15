@@ -51,6 +51,7 @@ class OrderController extends Controller
                 'order_number' => Sequence::orderNumber(),
                 'customer_id' => $data['customer_id'],
                 'name' => $data['name'],
+                'discount' => (int) ($data['discount'] ?? 0),
                 'dp_amount' => $data['dp_amount'] ?? null,
                 'deadline' => $data['deadline'] ?? null,
                 'estimated_completion' => $data['estimated_completion'] ?? null,
@@ -80,6 +81,7 @@ class OrderController extends Controller
                     'invoice_number' => Invoice::nextNumberFor($order),
                     'date' => now()->toDateString(),
                     'due_date' => $data['deadline'] ?? null,
+                    'discount' => (int) ($data['discount'] ?? 0),
                 ]);
                 foreach ($order->items as $i => $item) {
                     $invoice->items()->create([
@@ -148,6 +150,7 @@ class OrderController extends Controller
             $order->update([
                 'customer_id' => $data['customer_id'],
                 'name' => $data['name'],
+                'discount' => (int) ($data['discount'] ?? 0),
                 'dp_amount' => $data['dp_amount'] ?? null,
                 'deadline' => $data['deadline'] ?? null,
                 'estimated_completion' => $data['estimated_completion'] ?? null,
@@ -235,6 +238,7 @@ class OrderController extends Controller
         $data = $request->validate([
             'customer_id' => ['required', 'exists:customers,id'],
             'name' => ['required', 'string', 'max:200'],
+            'discount' => ['nullable', 'integer', 'min:0'],
             'dp_amount' => ['nullable', 'integer', 'min:0'],
             'create_invoice' => ['nullable', 'boolean'],
             'record_dp' => ['nullable', 'boolean'],

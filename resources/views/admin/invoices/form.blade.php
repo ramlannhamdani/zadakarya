@@ -29,7 +29,7 @@
       class="max-w-4xl"
       x-data="{
           items: {{ \Illuminate\Support\Js::from($prefillItems) }},
-          discount: {{ (int) old('discount', $invoice->discount ?? 0) }},
+          discount: {{ (int) old('discount', $invoice->discount ?? ($order?->discount ?? 0)) }},
           additional: {{ (int) old('additional_cost', $invoice->additional_cost ?? 0) }},
           addItem() { this.items.push({ description: '', quantity: 1, unit: 'pcs', unit_price: 0 }); },
           removeItem(i) { if (this.items.length > 1) this.items.splice(i, 1); },
