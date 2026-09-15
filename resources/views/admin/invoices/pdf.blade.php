@@ -139,19 +139,35 @@
     <div class="watermark {{ $isPaid ? 'paid' : 'unpaid' }}">{{ $isPaid ? 'LUNAS' : 'BELUM LUNAS' }}</div>
 @endunless
 
+@php
+    $extraTotalRows = 0;
+    if ($invoice->discount > 0 || $invoice->additional_cost > 0) {
+        $extraTotalRows++; // Baris Subtotal
+        if ($invoice->discount > 0) {
+            $extraTotalRows++; // Baris Diskon
+        }
+        if ($invoice->additional_cost > 0) {
+            $extraTotalRows++; // Baris Biaya Tambahan
+        }
+    }
+    $totalShift = (int) round($extraTotalRows * 20.374);
+@endphp
+
 @if($isPaid && $stamp)
-    {{-- Blok tanda tangan turun ~29px untuk tiap baris item di atas enam baris. --}}
-    @php $stampTop = 562 + max(0, $rows->count() - $minRows) * 29; @endphp
+    {{-- Blok tanda tangan turun ~29px untuk tiap baris item di atas enam baris,
+         serta ~20px per baris tambahan di tabel totals (subtotal, diskon, biaya tambahan). --}}
+    @php $stampTop = 562 + max(0, $rows->count() - $minRows) * 29 + $totalShift; @endphp
     <img src="{{ $stamp }}" class="stamp" style="left: 778px; top: {{ $stampTop }}px;" alt="">
 @endif
 
 @if($signature)
     {{-- Dipusatkan di kolom "Hormat kami"; bagian bawahnya sengaja melewati
-         garis tanda tangan ~14px supaya terlihat seperti tanda tangan basah. --}}
+         garis tanda tangan ~14px supaya terlihat seperti tanda tangan basah.
+         Turun ~29px per baris item tambahan, dan ~20px per baris rincian totals (diskon/biaya). --}}
     @php
         $extraRows = max(0, $rows->count() - $minRows);
         // 668 = titik acuan hasil pengukuran render dompdf (bukan koordinat garis di CSS).
-        $signatureTop = 688 - $signHeight + $extraRows * 29;
+        $signatureTop = 688 - $signHeight + ($extraRows * 29) + $totalShift;
         $signatureLeft = (int) round(972 - $signWidth / 2);
     @endphp
     <img src="{{ $signature }}" class="signature"
