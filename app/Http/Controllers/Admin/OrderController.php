@@ -114,6 +114,8 @@ class OrderController extends Controller
             return $order;
         });
 
+        app(\App\Services\GoogleSheetService::class)->syncOrder($order);
+
         return redirect()
             ->route('admin.orders.show', $order)
             ->with('success', 'Pesanan '.$order->order_number.' berhasil dibuat.');
@@ -175,6 +177,8 @@ class OrderController extends Controller
             $order->logActivity('Data pesanan diperbarui');
         });
 
+        app(\App\Services\GoogleSheetService::class)->syncOrder($order);
+
         return redirect()
             ->route('admin.orders.show', $order)
             ->with('success', 'Pesanan diperbarui.');
@@ -188,6 +192,8 @@ class OrderController extends Controller
 
         $order->update(['status' => $data['status']]);
         $order->logActivity('Status pesanan diubah menjadi '.$order->status_label);
+
+        app(\App\Services\GoogleSheetService::class)->syncOrder($order);
 
         return back()->with('success', 'Status pesanan diperbarui.');
     }

@@ -28,6 +28,8 @@ class OrderStageController extends Controller
         $order->update(['current_stage' => $stage->stage_number]);
         $order->logActivity('Tahap "'.$stage->name.'" dimulai');
 
+        app(\App\Services\GoogleSheetService::class)->syncOrder($order);
+
         return back()->with('success', 'Tahap "'.$stage->name.'" dimulai.');
     }
 
@@ -65,6 +67,8 @@ class OrderStageController extends Controller
             $order->logActivity('Semua tahap produksi selesai — pesanan ditandai Selesai');
         }
 
+        app(\App\Services\GoogleSheetService::class)->syncOrder($order);
+
         return back()->with('success', 'Tahap "'.$stage->name.'" diselesaikan.');
     }
 
@@ -98,6 +102,8 @@ class OrderStageController extends Controller
             'status' => $order->status === 'completed' ? 'active' : $order->status,
         ]);
         $order->logActivity('Tahap "'.$stage->name.'" dibuka kembali');
+
+        app(\App\Services\GoogleSheetService::class)->syncOrder($order);
 
         return back()->with('success', 'Tahap "'.$stage->name.'" dibuka kembali.');
     }

@@ -43,7 +43,7 @@ class PaymentController extends Controller
             $proofPath = $request->file('proof')->store('payments/'.$order->id, 'local');
         }
 
-        $order->payments()->create([
+        $payment = $order->payments()->create([
             'invoice_id' => $data['invoice_id'] ?? null,
             'amount' => $data['amount'],
             'payment_date' => $data['payment_date'],
@@ -56,6 +56,8 @@ class PaymentController extends Controller
 
         $order->refreshPaymentStatus();
         $order->logActivity('Pembayaran '.rupiah($data['amount']).' dicatat — status: '.$order->payment_status_label);
+
+        app(\App\Services\GoogleSheetService::class)->syncPayment($payment, 'add');
 
         return back()->with('success', 'Pembayaran dicatat. Status: '.$order->payment_status_label.'.');
     }
@@ -98,6 +100,9 @@ class PaymentController extends Controller
         }
 
         $amount = $payment->amount;
+
+        app(\App\Services\GoogleSheetService::class)->syncPayment($payment, 'delete');
+
         $payment->delete();
         $order->refreshPaymentStatus();
         $order->logActivity('Pembayaran '.rupiah($amount).' dihapus — status: '.$order->payment_status_label);

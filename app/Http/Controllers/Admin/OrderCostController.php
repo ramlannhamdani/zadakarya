@@ -85,6 +85,8 @@ class OrderCostController extends Controller
             'Biaya '.$cost->category_label.' sebesar '.rupiah($cost->amount).' ("'.$cost->description.'") dicatat'
         );
 
+        app(\App\Services\GoogleSheetService::class)->syncCost($cost, 'add');
+
         return redirect()->route('admin.orders.show', [$order, 'tab' => 'hpp'])
             ->with('success', 'Biaya produksi '.rupiah($cost->amount).' berhasil dicatat.');
     }
@@ -100,6 +102,8 @@ class OrderCostController extends Controller
         $amount = $cost->amount;
         $categoryLabel = $cost->category_label;
         $description = $cost->description;
+
+        app(\App\Services\GoogleSheetService::class)->syncCost($cost, 'delete');
 
         $cost->delete();
 

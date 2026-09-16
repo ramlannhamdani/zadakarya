@@ -144,6 +144,13 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::patch('payments/{payment}/invoice', [Admin\PaymentController::class, 'linkInvoice'])->name('payments.link');
         Route::delete('payments/{payment}', [Admin\PaymentController::class, 'destroy'])->name('payments.destroy');
 
+        // Spreadsheet Integration
+        Route::get('spreadsheet', [Admin\SpreadsheetController::class, 'index'])->name('spreadsheet.index');
+        Route::patch('spreadsheet', [Admin\SpreadsheetController::class, 'update'])->name('spreadsheet.update');
+        Route::post('spreadsheet/test', [Admin\SpreadsheetController::class, 'test'])->name('spreadsheet.test');
+        Route::post('spreadsheet/setup', [Admin\SpreadsheetController::class, 'setup'])->name('spreadsheet.setup');
+        Route::post('spreadsheet/sync-all', [Admin\SpreadsheetController::class, 'syncAll'])->name('spreadsheet.sync');
+
         // CMS
         Route::resource('services', Admin\ServiceController::class)->except(['show']);
         Route::resource('portfolio', Admin\PortfolioController::class)->except(['show'])->parameters(['portfolio' => 'portfolio']);
