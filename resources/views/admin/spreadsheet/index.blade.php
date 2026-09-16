@@ -3,7 +3,7 @@
 @section('title', 'Integrasi Google Spreadsheet')
 
 @section('content')
-<div class="max-w-5xl space-y-6" x-data="spreadsheetManager()">
+<div class="w-full space-y-6" x-data="spreadsheetManager()">
 
     {{-- Top Status Banner --}}
     <div class="admin-card">
@@ -55,7 +55,7 @@
                     </button>
 
                     <button type="button" @click="syncAll()" :disabled="loading"
-                            class="inline-flex items-center gap-1.5 rounded-lg bg-brand-600 px-3.5 py-2 text-xs font-bold text-white shadow-sm transition hover:bg-brand-700 disabled:opacity-50">
+                            class="inline-flex items-center gap-1.5 rounded-lg bg-brand-600 px-4 py-2 text-xs font-bold text-white shadow-sm transition hover:bg-brand-700 disabled:opacity-50">
                         <svg class="h-4 w-4" :class="loading === 'sync' && 'animate-spin'" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
                         </svg>
@@ -106,19 +106,16 @@
                 <label for="google_sheet_webhook_url" class="form-label">
                     URL Webhook Google Apps Script <span class="text-brand-600">*</span>
                 </label>
-                <div class="relative">
-                    <input type="url" id="google_sheet_webhook_url" name="google_sheet_webhook_url"
-                           value="{{ old('google_sheet_webhook_url', $webhookUrl) }}"
-                           placeholder="https://script.google.com/macros/s/.../exec"
-                           class="form-input font-mono text-xs pr-20" required>
-                    <span class="pointer-events-none absolute right-3 top-2.5 text-[11px] font-mono text-neutral-400">/exec</span>
-                </div>
+                <input type="url" id="google_sheet_webhook_url" name="google_sheet_webhook_url"
+                       value="{{ old('google_sheet_webhook_url', $webhookUrl) }}"
+                       placeholder="https://script.google.com/macros/s/.../exec"
+                       class="form-input font-mono text-xs w-full" required>
                 @error('google_sheet_webhook_url')
                     <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
                 @enderror
             </div>
 
-            <div class="flex items-center gap-3">
+            <div class="flex items-center gap-3 pt-1">
                 <input type="checkbox" id="google_sheet_auto_sync" name="google_sheet_auto_sync" value="1"
                        {{ old('google_sheet_auto_sync', $autoSync) ? 'checked' : '' }}
                        class="h-4 w-4 rounded border-neutral-300 text-brand-600 focus:ring-brand-500">
@@ -135,12 +132,12 @@
         </form>
     </div>
 
-    {{-- Interactive Step-by-Step Guide --}}
-    <div class="admin-card">
+    {{-- Interactive Step-by-Step Guide (Collapsible) --}}
+    <div class="admin-card" x-data="{ showCode: false }">
         <div class="flex items-center justify-between border-b border-line pb-3">
             <div>
-                <h3 class="font-extrabold text-ink">Panduan Setup Google Spreadsheet (Hanya 2 Menit)</h3>
-                <p class="text-xs text-neutral-500">Ikuti 3 langkah mudah ini untuk mengaktifkan koneksi ke Google Spreadsheet Anda:</p>
+                <h3 class="font-extrabold text-ink">Dokumentasi Setup & Cadangan Kode Apps Script</h3>
+                <p class="text-xs text-neutral-500">Google Spreadsheet Anda saat ini sudah otomatis terpasang. Gunakan petunjuk ini jika ingin membuat spreadsheet baru.</p>
             </div>
             <a href="https://sheets.new" target="_blank" class="inline-flex items-center gap-1.5 rounded-lg border border-line bg-cream px-3 py-1.5 text-xs font-bold text-ink transition hover:bg-white">
                 <span>Buka Google Sheets Baru</span>
@@ -148,51 +145,24 @@
             </a>
         </div>
 
-        <div class="mt-4 space-y-4 text-xs text-ink">
-            {{-- Step 1 --}}
-            <div class="flex items-start gap-3 rounded-lg border border-line/60 bg-cream/40 p-3">
-                <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-600 text-xs font-bold text-white">1</span>
+        <div class="mt-4 space-y-3 text-xs text-ink">
+            <div class="flex items-center justify-between rounded-lg border border-line/60 bg-cream/40 p-3">
                 <div>
-                    <h4 class="font-bold">Buka Google Sheets & Apps Script</h4>
-                    <p class="mt-0.5 text-neutral-600">
-                        Buka spreadsheet baru di Google Sheets. Di menu navigasi atas Google Sheets, klik menu <strong>Ekstensi (Extensions)</strong> &rarr; lalu klik <strong>Apps Script</strong>.
-                    </p>
+                    <h4 class="font-bold">Kode Apps Script Otomasi Zada Karya (Master)</h4>
+                    <p class="mt-0.5 text-neutral-600">Kode ini sudah tertanam di Google Spreadsheet Anda dan tidak perlu diutak-atik lagi.</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button type="button" @click="showCode = !showCode" class="rounded border border-line bg-white px-2.5 py-1 text-[11px] font-semibold text-neutral-700 transition hover:bg-cream">
+                        <span x-text="showCode ? 'Sembunyikan Kode' : 'Tampilkan Kode Script'"></span>
+                    </button>
+                    <button type="button" @click="copyCode()" class="inline-flex items-center gap-1 rounded bg-brand-600 px-2.5 py-1 text-[11px] font-bold text-white transition hover:bg-brand-700">
+                        <span x-text="copied ? '✓ Berhasil Disalin!' : 'Salin Kode Script'"></span>
+                    </button>
                 </div>
             </div>
 
-            {{-- Step 2 --}}
-            <div class="flex items-start gap-3 rounded-lg border border-line/60 bg-cream/40 p-3">
-                <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-600 text-xs font-bold text-white">2</span>
-                <div class="w-full">
-                    <div class="flex items-center justify-between">
-                        <h4 class="font-bold">Salin dan Tempel Kode Otomasi Zada Karya</h4>
-                        <button type="button" @click="copyCode()" class="inline-flex items-center gap-1 rounded bg-brand-600 px-2.5 py-1 text-[11px] font-bold text-white transition hover:bg-brand-700">
-                            <span x-text="copied ? '✓ Berhasil Disalin!' : 'Salin Seluruh Kode Script'"></span>
-                        </button>
-                    </div>
-                    <p class="mt-1 text-neutral-600">
-                        Hapus semua teks default di halaman Apps Script, lalu tempel (paste) kode script di bawah ini. Simpan dengan menekan <strong>Ctrl + S</strong> (atau ikon disket).
-                    </p>
-
-                    <div class="mt-2.5 max-h-52 overflow-y-auto rounded-lg border border-slate-800 bg-slate-900 p-3 font-mono text-[11px] text-slate-200">
-                        <pre><code>{{ $scriptCode }}</code></pre>
-                    </div>
-                </div>
-            </div>
-
-            {{-- Step 3 --}}
-            <div class="flex items-start gap-3 rounded-lg border border-line/60 bg-cream/40 p-3">
-                <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-600 text-xs font-bold text-white">3</span>
-                <div>
-                    <h4 class="font-bold">Terapkan Sebagai Web App (Deploy) & Tempelkan URL di Sini</h4>
-                    <p class="mt-0.5 text-neutral-600 leading-relaxed">
-                        1. Di Apps Script, klik tombol biru <strong>Terapkan (Deploy)</strong> di pojok kanan atas &rarr; pilih <strong>Penerapan baru (New deployment)</strong>.<br>
-                        2. Pada kolom jenis, pilih <strong>Aplikasi Web (Web app)</strong>.<br>
-                        3. Pada opsi <em>Siapa yang memiliki akses (Who has access)</em>, pilih <strong>Siapa saja (Anyone)</strong>.<br>
-                        4. Klik <strong>Terapkan (Deploy)</strong> dan berikan izin akses Google.<br>
-                        5. Salin <strong>URL Aplikasi Web</strong> yang didapat, lalu tempelkan ke kolom <em>URL Webhook Google Apps Script</em> di atas & klik Simpan!
-                    </p>
-                </div>
+            <div x-show="showCode" x-cloak class="mt-2.5 max-h-72 overflow-y-auto rounded-lg border border-slate-800 bg-slate-900 p-3 font-mono text-[11px] text-slate-200">
+                <pre><code>{{ $scriptCode }}</code></pre>
             </div>
         </div>
     </div>
@@ -231,7 +201,7 @@ function spreadsheetManager() {
         },
 
         formatSheet() {
-            if (!confirm('Apakah Anda ingin menata ulang tab (Dashboard, Data_Pesanan, Data_Biaya_HPP, Data_Pembayaran) dan kartu laporan di Google Sheets sekarang?')) return;
+            if (!confirm('Apakah Anda ingin menata ulang tab (Dashboard, Arus Kas, Data Order, Rincian Biaya HPP, Rekap Bulanan) di Google Sheets sekarang?')) return;
             this.loading = 'format';
             this.message.text = '';
             fetch('{{ route("admin.spreadsheet.setup") }}', {
