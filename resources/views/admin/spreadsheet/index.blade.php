@@ -3,7 +3,7 @@
 @section('title', 'Integrasi Google Spreadsheet')
 
 @section('content')
-<div class="w-full space-y-6" x-data="spreadsheetManager()">
+<div class="w-full space-y-6">
 
     {{-- Top Status Banner --}}
     <div class="admin-card">
@@ -34,44 +34,40 @@
                 </div>
             </div>
 
-            {{-- Action Buttons --}}
+            {{-- Action Form Buttons (Direct Native HTML Forms for 100% Reliability) --}}
             <div class="flex flex-wrap items-center gap-2">
                 @if($isConnected)
-                    <button type="button" @click="testConnection()" :disabled="loading"
-                            class="inline-flex items-center gap-1.5 rounded-lg border border-line bg-white px-3 py-2 text-xs font-semibold text-neutral-700 transition hover:bg-cream disabled:opacity-50">
-                        <svg class="h-4 w-4 text-neutral-500" :class="loading === 'test' && 'animate-spin'" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
-                        </svg>
-                        <span>Tes Koneksi</span>
-                    </button>
+                    <form method="POST" action="{{ route('admin.spreadsheet.test') }}" class="inline">
+                        @csrf
+                        <button type="submit" class="inline-flex items-center gap-1.5 rounded-lg border border-line bg-white px-3 py-2 text-xs font-semibold text-neutral-700 transition hover:bg-cream">
+                            <svg class="h-4 w-4 text-neutral-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+                            </svg>
+                            <span>Tes Koneksi</span>
+                        </button>
+                    </form>
 
-                    <button type="button" @click="formatSheet()" :disabled="loading"
-                            title="Format ulang struktur tab dan kartu dashboard laporan di Google Spreadsheet"
-                            class="inline-flex items-center gap-1.5 rounded-lg border border-line bg-white px-3 py-2 text-xs font-semibold text-neutral-700 transition hover:bg-cream disabled:opacity-50">
-                        <svg class="h-4 w-4 text-indigo-600" :class="loading === 'format' && 'animate-spin'" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
-                        </svg>
-                        <span>Tata Ulang Dashboard</span>
-                    </button>
+                    <form method="POST" action="{{ route('admin.spreadsheet.setup') }}" class="inline">
+                        @csrf
+                        <button type="submit" title="Format ulang struktur tab dan kartu dashboard laporan di Google Spreadsheet" class="inline-flex items-center gap-1.5 rounded-lg border border-line bg-white px-3 py-2 text-xs font-semibold text-neutral-700 transition hover:bg-cream">
+                            <svg class="h-4 w-4 text-indigo-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
+                            </svg>
+                            <span>Tata Ulang Dashboard</span>
+                        </button>
+                    </form>
 
-                    <button type="button" @click="syncAll()" :disabled="loading"
-                            class="inline-flex items-center gap-1.5 rounded-lg bg-brand-600 px-4 py-2 text-xs font-bold text-white shadow-sm transition hover:bg-brand-700 disabled:opacity-50">
-                        <svg class="h-4 w-4" :class="loading === 'sync' && 'animate-spin'" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
-                        </svg>
-                        <span>Sinkronkan Semua Data</span>
-                    </button>
+                    <form method="POST" action="{{ route('admin.spreadsheet.sync') }}" class="inline">
+                        @csrf
+                        <button type="submit" class="inline-flex items-center gap-1.5 rounded-lg bg-brand-600 px-4 py-2 text-xs font-bold text-white shadow-sm transition hover:bg-brand-700">
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+                            </svg>
+                            <span>Sinkronkan Semua Data Sekarang</span>
+                        </button>
+                    </form>
                 @endif
             </div>
-        </div>
-
-        {{-- Live Notification Box --}}
-        <div x-show="message.text" x-cloak class="mt-4 flex items-center justify-between rounded-lg p-3 text-xs font-semibold"
-             :class="message.type === 'success' ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'bg-red-50 text-red-800 border border-red-200'">
-            <div class="flex items-center gap-2">
-                <span x-text="message.text"></span>
-            </div>
-            <button type="button" @click="message.text = ''" class="text-neutral-400 hover:text-neutral-700">✕</button>
         </div>
 
         {{-- Data summary chips --}}
@@ -95,7 +91,7 @@
     <div class="admin-card">
         <h3 class="font-extrabold text-ink">Pengaturan Webhook Google Sheets</h3>
         <p class="mt-1 text-xs text-neutral-500">
-            Masukkan Webhook URL yang Anda dapatkan setelah menerapkan (deploy) script Apps Script di Google Sheets.
+            Simpan Webhook URL Google Sheets. Begitu Anda menyimpan, sistem akan langsung otomatis menyinkronkan seluruh database.
         </p>
 
         <form method="POST" action="{{ route('admin.spreadsheet.update') }}" class="mt-4 space-y-4">
@@ -126,17 +122,17 @@
 
             <div class="flex items-center gap-3 pt-2">
                 <button type="submit" class="btn-primary">
-                    Simpan Pengaturan
+                    Simpan Pengaturan & Sinkronkan
                 </button>
             </div>
         </form>
     </div>
 
     {{-- Interactive Step-by-Step Guide (Collapsible) --}}
-    <div class="admin-card" x-data="{ showCode: false }">
+    <div class="admin-card" x-data="{ showCode: false, copied: false }">
         <div class="flex items-center justify-between border-b border-line pb-3">
             <div>
-                <h3 class="font-extrabold text-ink">Dokumentasi Setup & Cadangan Kode Apps Script</h3>
+                <h3 class="font-extrabold text-ink">Panduan Setup Google Spreadsheet & Cadangan Kode</h3>
                 <p class="text-xs text-neutral-500">Google Spreadsheet Anda saat ini sudah otomatis terpasang. Gunakan petunjuk ini jika ingin membuat spreadsheet baru.</p>
             </div>
             <a href="https://sheets.new" target="_blank" class="inline-flex items-center gap-1.5 rounded-lg border border-line bg-cream px-3 py-1.5 text-xs font-bold text-ink transition hover:bg-white">
@@ -155,7 +151,7 @@
                     <button type="button" @click="showCode = !showCode" class="rounded border border-line bg-white px-2.5 py-1 text-[11px] font-semibold text-neutral-700 transition hover:bg-cream">
                         <span x-text="showCode ? 'Sembunyikan Kode' : 'Tampilkan Kode Script'"></span>
                     </button>
-                    <button type="button" @click="copyCode()" class="inline-flex items-center gap-1 rounded bg-brand-600 px-2.5 py-1 text-[11px] font-bold text-white transition hover:bg-brand-700">
+                    <button type="button" @click="navigator.clipboard.writeText(@js($scriptCode)).then(() => { copied = true; setTimeout(() => copied = false, 2500); })" class="inline-flex items-center gap-1 rounded bg-brand-600 px-2.5 py-1 text-[11px] font-bold text-white transition hover:bg-brand-700">
                         <span x-text="copied ? '✓ Berhasil Disalin!' : 'Salin Kode Script'"></span>
                     </button>
                 </div>
@@ -168,96 +164,4 @@
     </div>
 
 </div>
-
-<script>
-function spreadsheetManager() {
-    return {
-        loading: null,
-        copied: false,
-        message: { text: '', type: 'success' },
-
-        testConnection() {
-            this.loading = 'test';
-            this.message.text = '';
-            fetch('{{ route("admin.spreadsheet.test") }}', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'Accept': 'application/json'
-                }
-            })
-            .then(res => res.json())
-            .then(data => {
-                this.message = {
-                    text: data.message,
-                    type: data.success ? 'success' : 'error'
-                };
-            })
-            .catch(err => {
-                this.message = { text: 'Gagal melakukan tes koneksi: ' + err.message, type: 'error' };
-            })
-            .finally(() => { this.loading = null; });
-        },
-
-        formatSheet() {
-            if (!confirm('Apakah Anda ingin menata ulang tab (Dashboard, Arus Kas, Data Order, Rincian Biaya HPP, Rekap Bulanan) di Google Sheets sekarang?')) return;
-            this.loading = 'format';
-            this.message.text = '';
-            fetch('{{ route("admin.spreadsheet.setup") }}', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'Accept': 'application/json'
-                }
-            })
-            .then(res => res.json())
-            .then(data => {
-                this.message = {
-                    text: data.message,
-                    type: data.success ? 'success' : 'error'
-                };
-            })
-            .catch(err => {
-                this.message = { text: 'Gagal mengatur format sheet: ' + err.message, type: 'error' };
-            })
-            .finally(() => { this.loading = null; });
-        },
-
-        syncAll() {
-            if (!confirm('Apakah Anda yakin ingin menyinkronkan seluruh data pesanan, pengeluaran HPP, dan pembayaran saat ini ke Google Spreadsheet?')) return;
-            this.loading = 'sync';
-            this.message.text = '';
-            fetch('{{ route("admin.spreadsheet.sync") }}', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'Accept': 'application/json'
-                }
-            })
-            .then(res => res.json())
-            .then(data => {
-                this.message = {
-                    text: data.message + (data.counts ? ` (${data.counts.orders} pesanan, ${data.counts.costs} biaya HPP, ${data.counts.payments} pembayaran)` : ''),
-                    type: data.success ? 'success' : 'error'
-                };
-            })
-            .catch(err => {
-                this.message = { text: 'Gagal menyinkronkan data: ' + err.message, type: 'error' };
-            })
-            .finally(() => { this.loading = null; });
-        },
-
-        copyCode() {
-            const code = @js($scriptCode);
-            navigator.clipboard.writeText(code).then(() => {
-                this.copied = true;
-                setTimeout(() => { this.copied = false; }, 2500);
-            });
-        }
-    };
-}
-</script>
 @endsection

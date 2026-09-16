@@ -31,7 +31,7 @@ class SpreadsheetController extends Controller
         ]);
     }
 
-    public function update(Request $request): RedirectResponse
+    public function update(Request $request, GoogleSheetService $sheetService): RedirectResponse
     {
         $validated = $request->validate([
             'google_sheet_webhook_url' => ['nullable', 'string', 'max:500'],
@@ -42,8 +42,18 @@ class SpreadsheetController extends Controller
         Setting::set('google_sheet_webhook_url', $url);
         Setting::set('google_sheet_auto_sync', $request->boolean('google_sheet_auto_sync') ? '1' : '0');
 
-        return redirect()->route('admin.spreadsheet.index')
-            ->with('success', 'Pengaturan integrasi Google Spreadsheet berhasil disimpan.');
+        $message = 'Pengaturan integrasi Google Spreadsheet berhasil disimpan.';
+
+        // Jika webhook terisi, langsung otomatis jalankan sinkronisasi awal semua data
+        if (! empty($url)) {
+            $syncRes = $sheetService->syncAll($url);
+            if ($syncRes['success']) {
+                $counts = $syncRes['counts'] ?? [];
+                $message .= ' Dan seluruh data (' . ($counts['orders'] ?? 0) . ' pesanan, ' . ($counts['costs'] ?? 0) . ' biaya HPP, ' . ($counts['payments'] ?? 0) . ' pembayaran) berhasil langsung disinkronkan ke Google Sheets!';
+            }
+        }
+
+        return redirect()->route('admin.spreadsheet.index')->with('success', $message);
     }
 
     public function test(Request $request, GoogleSheetService $sheetService): JsonResponse|RedirectResponse
@@ -86,7 +96,9 @@ class SpreadsheetController extends Controller
         }
 
         if ($result['success']) {
-            return redirect()->route('admin.spreadsheet.index')->with('success', $result['message']);
+            $counts = $result['counts'] ?? [];
+            $msg = $result['message'] . ' (' . ($counts['orders'] ?? 0) . ' pesanan, ' . ($counts['costs'] ?? 0) . ' biaya HPP, ' . ($counts['payments'] ?? 0) . ' pembayaran)';
+            return redirect()->route('admin.spreadsheet.index')->with('success', $msg);
         }
 
         return redirect()->route('admin.spreadsheet.index')->with('error', $result['message']);
