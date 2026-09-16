@@ -76,6 +76,12 @@ function respondJSON(obj) {
 function setupSheet() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
 
+  // Pastikan locale English US agar parsing formula SUMIFS, DATE, IFERROR standar & bebas error
+  try {
+    ss.setSpreadsheetLocale('en_US');
+    ss.setSpreadsheetTimeZone('Asia/Jakarta');
+  } catch(e) {}
+
   // 1. Tab Arus Kas (Buku Kas Umum)
   var cashSheet = getOrCreateSheet(ss, 'Arus Kas');
   setupArusKasSheet(cashSheet);
@@ -283,9 +289,9 @@ function setupDashboardSheet(sheet, rekapSheet) {
 
   // KARTU BARIS 1: KAS (Baris 3 & 4)
   var cardRow1 = [
-    { colL: 'A', colR: 'B', title: 'Saldo Kas Saat Ini', formula: '=IFERROR(LOOKUP(2,1/(\'Arus Kas\'!H4:H503<>""),\'Arus Kas\'!H4:H503),0)', bg: '#EBF3FB', text: '#1F497D' },
-    { colL: 'C', colR: 'D', title: 'Total Kas Masuk Bulan Ini', formula: '=SUMIFS(\'Arus Kas\'!F:F,\'Arus Kas\'!A:A,">="&EOMONTH(TODAY(),-1)+1,\'Arus Kas\'!A:A,"<"&EOMONTH(TODAY(),0)+1)', bg: '#EAF8ED', text: '#1E7E34' },
-    { colL: 'E', colR: 'F', title: 'Total Kas Keluar Bulan Ini', formula: '=SUMIFS(\'Arus Kas\'!G:G,\'Arus Kas\'!A:A,">="&EOMONTH(TODAY(),-1)+1,\'Arus Kas\'!A:A,"<"&EOMONTH(TODAY(),0)+1)', bg: '#FDECEC', text: '#C0504D' },
+    { colL: 'A', colR: 'B', title: 'Saldo Kas Saat Ini', formula: '=SUM(\'Arus Kas\'!F4:F)-SUM(\'Arus Kas\'!G4:G)', bg: '#EBF3FB', text: '#1F497D' },
+    { colL: 'C', colR: 'D', title: 'Total Kas Masuk Bulan Ini', formula: '=SUMIFS(\'Arus Kas\'!F4:F,\'Arus Kas\'!A4:A,">="&DATE(YEAR(TODAY()),MONTH(TODAY()),1),\'Arus Kas\'!A4:A,"<="&EOMONTH(TODAY(),0))', bg: '#EAF8ED', text: '#1E7E34' },
+    { colL: 'E', colR: 'F', title: 'Total Kas Keluar Bulan Ini', formula: '=SUMIFS(\'Arus Kas\'!G4:G,\'Arus Kas\'!A4:A,">="&DATE(YEAR(TODAY()),MONTH(TODAY()),1),\'Arus Kas\'!A4:A,"<="&EOMONTH(TODAY(),0))', bg: '#FDECEC', text: '#C0504D' },
     { colL: 'G', colR: 'H', title: 'Arus Kas Bersih Bulan Ini', formula: '=C4-E4', bg: '#F2F4F7', text: '#2A3F54' }
   ];
 
