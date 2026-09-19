@@ -102,6 +102,7 @@ class OrderController extends Controller
                 $order->payments()->create([
                     'invoice_id' => $invoice?->id,
                     'amount' => (int) $data['dp_amount'],
+                    'type' => \App\Models\Payment::TYPE_DP,
                     'payment_date' => $data['dp_date'] ?? now()->toDateString(),
                     'method' => $data['dp_method'] ?? 'transfer',
                     'note' => 'DP',
@@ -218,6 +219,11 @@ class OrderController extends Controller
     public function destroy(Order $order)
     {
         $number = $order->order_number;
+
+        // Dikirim selagi id-nya masih ada; tanpa ini baris pesanan beserta omzet
+        // dan labanya tertinggal selamanya di spreadsheet.
+        $order->loadMissing(['costs', 'payments']);
+        app(\App\Services\GoogleSheetService::class)->deleteOrder($order);
 
         DB::transaction(function () use ($order) {
             foreach ($order->productionPhotos as $photo) {

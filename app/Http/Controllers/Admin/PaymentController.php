@@ -30,6 +30,7 @@ class PaymentController extends Controller
     {
         $data = $request->validate([
             'amount' => ['required', 'integer', 'min:1'],
+            'type' => ['nullable', Rule::in(array_keys(Payment::TYPES))],
             'payment_date' => ['required', 'date'],
             'method' => ['required', Rule::in(array_keys(Payment::METHODS))],
             'reference' => ['nullable', 'string', 'max:150'],
@@ -43,9 +44,14 @@ class PaymentController extends Controller
             $proofPath = $request->file('proof')->store('payments/'.$order->id, 'local');
         }
 
+        // Tanpa pilihan eksplisit, pembayaran pertama sebuah pesanan dianggap DP
+        // dan sisanya pelunasan — sama seperti alur kerja di lapangan.
+        $type = $data['type'] ?? ($order->payments()->exists() ? Payment::TYPE_SETTLEMENT : Payment::TYPE_DP);
+
         $payment = $order->payments()->create([
             'invoice_id' => $data['invoice_id'] ?? null,
             'amount' => $data['amount'],
+            'type' => $type,
             'payment_date' => $data['payment_date'],
             'method' => $data['method'],
             'reference' => $data['reference'] ?? null,
@@ -55,7 +61,7 @@ class PaymentController extends Controller
         ]);
 
         $order->refreshPaymentStatus();
-        $order->logActivity('Pembayaran '.rupiah($data['amount']).' dicatat — status: '.$order->payment_status_label);
+        $order->logActivity($payment->type_label.' '.rupiah($data['amount']).' dicatat — status: '.$order->payment_status_label);
 
         app(\App\Services\GoogleSheetService::class)->syncPayment($payment, 'add');
 

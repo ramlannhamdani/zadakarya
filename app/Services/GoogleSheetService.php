@@ -52,18 +52,36 @@ class GoogleSheetService
                 ->withOptions(['allow_redirects' => true])
                 ->get($url);
 
+            // Harus benar-benar JSON dari skrip kita. Kalau deployment aksesnya
+            // bukan "Anyone", Google membalas HTTP 200 berisi halaman login —
+            // dulu itu lolos sebagai "berhasil" padahal tidak ada yang tersambung.
             if ($response->successful()) {
                 $body = $response->json();
-                $isOk = (is_array($body) && (($body['status'] ?? '') === 'success' || ($body['success'] ?? false)));
+                $isOk = is_array($body) && (($body['status'] ?? '') === 'success' || ($body['success'] ?? false));
 
-                if ($isOk || $response->status() === 200) {
+                if ($isOk) {
                     Setting::set('google_sheet_last_connected_at', now()->toIso8601String());
+                    Setting::set('google_sheet_script_version', $body['version'] ?? '');
 
                     return [
                         'success' => true,
-                        'message' => is_array($body) ? ($body['message'] ?? 'Koneksi ke Google Sheets berhasil!') : 'Koneksi ke Google Sheets berhasil!',
+                        'message' => $body['message'] ?? 'Koneksi ke Google Sheets berhasil!',
                     ];
                 }
+
+                if (! is_array($body)) {
+                    return [
+                        'success' => false,
+                        'message' => 'URL merespons, tapi bukan dari skrip Zada Karya — biasanya karena '
+                            .'deployment-nya belum diatur "Who has access: Anyone", sehingga Google '
+                            .'mengembalikan halaman login. Periksa juga apakah URL-nya berakhiran /exec.',
+                    ];
+                }
+
+                return [
+                    'success' => false,
+                    'message' => $body['message'] ?? 'Skrip membalas, tapi statusnya bukan success.',
+                ];
             }
 
             return [
@@ -184,14 +202,10 @@ class GoogleSheetService
 
         $order->loadMissing(['customer', 'items', 'costs', 'payments']);
 
-        $payload = [
+        return $this->send([
             'type' => 'order',
             'order' => $this->formatOrderData($order),
-        ];
-
-        $res = $this->sendPayload($payload);
-
-        return $res['success'];
+        ]);
     }
 
     /**
@@ -205,22 +219,16 @@ class GoogleSheetService
 
         $cost->loadMissing(['order.customer', 'recorder']);
 
-        if ($action === 'add') {
-            $payload = [
-                'type' => 'cost',
-                'cost' => $this->formatCostData($cost),
-            ];
-            $res = $this->sendPayload($payload);
-        } else {
-            $res = ['success' => true];
-        }
+        $ok = $action === 'add'
+            ? $this->send(['type' => 'cost', 'cost' => $this->formatCostData($cost)])
+            : $this->send(['action' => 'delete', 'entity' => 'cost', 'id' => 'CST-'.$cost->id]);
 
-        // Always refresh parent order row in sheet so Total HPP and Estimasi Laba update
+        // Baris pesanan selalu disegarkan supaya Total HPP dan Estimasi Laba ikut berubah.
         if ($cost->order) {
             $this->syncOrder($cost->order->fresh(['customer', 'items', 'costs', 'payments']));
         }
 
-        return $res['success'];
+        return $ok;
     }
 
     /**
@@ -234,22 +242,35 @@ class GoogleSheetService
 
         $payment->loadMissing(['order.customer', 'invoice']);
 
-        if ($action === 'add') {
-            $payload = [
-                'type' => 'payment',
-                'payment' => $this->formatPaymentData($payment),
-            ];
-            $res = $this->sendPayload($payload);
-        } else {
-            $res = ['success' => true];
-        }
+        $ok = $action === 'add'
+            ? $this->send(['type' => 'payment', 'payment' => $this->formatPaymentData($payment)])
+            : $this->send(['action' => 'delete', 'entity' => 'payment', 'id' => 'PAY-'.$payment->id]);
 
-        // Always refresh parent order row in sheet so DP, Pelunasan, and Sisa Tagihan update
+        // Baris pesanan selalu disegarkan supaya DP, Pelunasan, dan Sisa Tagihan ikut berubah.
         if ($payment->order) {
             $this->syncOrder($payment->order->fresh(['customer', 'items', 'costs', 'payments']));
         }
 
-        return $res['success'];
+        return $ok;
+    }
+
+    /**
+     * Hapus baris pesanan beserta seluruh biaya dan pembayarannya dari sheet.
+     * Dipanggil SEBELUM record dihapus dari database, selagi id-nya masih ada.
+     */
+    public function deleteOrder(Order $order): bool
+    {
+        if (! $this->isAutoSync()) {
+            return false;
+        }
+
+        return $this->send([
+            'action' => 'delete',
+            'entity' => 'order',
+            'id' => 'ORD-'.$order->id,
+            'cost_ids' => $order->costs->map(fn ($c) => 'CST-'.$c->id)->values()->all(),
+            'payment_ids' => $order->payments->map(fn ($p) => 'PAY-'.$p->id)->values()->all(),
+        ]);
     }
 
     /* ---------------------------------------------------------------------- */
@@ -258,12 +279,13 @@ class GoogleSheetService
 
     public function formatOrderData(Order $order): array
     {
-        $dp = (int) $order->payments->filter(fn ($p) => stripos($p->note ?? '', 'DP') !== false)->sum('amount');
-        $settlement = (int) $order->payments->filter(fn ($p) => stripos($p->note ?? '', 'DP') === false)->sum('amount');
+        $dp = $order->dp_paid;
+        $settlement = $order->settlement_paid;
         $qty = (int) $order->total_quantity;
         $unitPrice = $qty > 0 ? (int) round($order->grand_total / $qty) : (int) $order->grand_total;
 
         return [
+            'id' => 'ORD-'.$order->id,
             'date' => $order->created_at?->format('Y-m-d') ?? now()->format('Y-m-d'),
             'order_number' => $order->order_number,
             'customer' => $order->customer?->name ?? '-',
@@ -284,6 +306,7 @@ class GoogleSheetService
     public function formatCostData(OrderCost $cost): array
     {
         return [
+            'id' => 'CST-'.$cost->id,
             'date' => $cost->spent_at?->format('Y-m-d') ?? now()->format('Y-m-d'),
             'order_number' => $cost->order?->order_number ?? '-',
             'category' => $cost->category_label,
@@ -298,14 +321,13 @@ class GoogleSheetService
 
     public function formatPaymentData(Payment $payment): array
     {
-        $isDp = stripos($payment->note ?? '', 'DP') !== false;
-
         return [
+            'id' => 'PAY-'.$payment->id,
             'date' => $payment->payment_date?->format('Y-m-d') ?? now()->format('Y-m-d'),
             'order_number' => $payment->order?->order_number ?? '-',
             'trx_no' => $payment->invoice?->invoice_number ?? $payment->order?->order_number,
             'desc' => 'Pembayaran '.($payment->note ?: 'Pesanan '.($payment->order?->order_number ?? '')),
-            'category' => $isDp ? 'Penjualan/DP' : 'Pelunasan',
+            'category' => $payment->isDp() ? 'Penjualan/DP' : 'Pelunasan',
             'customer' => $payment->order?->customer?->name ?? '-',
             'amount' => (int) $payment->amount,
             'method' => $payment->method_label,
@@ -315,6 +337,43 @@ class GoogleSheetService
     /* ---------------------------------------------------------------------- */
     /* HTTP Transport */
     /* ---------------------------------------------------------------------- */
+
+    /**
+     * Kirim sinkronisasi otomatis setelah respons dikirim ke browser.
+     *
+     * Sebelumnya panggilan HTTP ke Google berjalan di tengah request, sehingga
+     * menyimpan pesanan ikut menunggu Google sampai 15 detik. Dijalankan di
+     * callback terminating, halaman admin sudah tampil lebih dulu. Di CLI dan
+     * saat pengujian tidak ada respons untuk ditunggu, jadi dijalankan langsung.
+     */
+    protected function send(array $payload): bool
+    {
+        if (app()->runningInConsole()) {
+            return $this->sendPayload($payload)['success'];
+        }
+
+        app()->terminating(fn () => $this->sendPayload($payload));
+
+        return true;
+    }
+
+    /**
+     * Sinkronisasi yang gagal dicatat supaya panel bisa memberi tahu bahwa
+     * spreadsheet sedang tertinggal — dulu kegagalan hilang tanpa jejak.
+     */
+    protected function rememberFailure(string $message): void
+    {
+        Setting::set('google_sheet_last_error', $message);
+        Setting::set('google_sheet_last_error_at', now()->toIso8601String());
+    }
+
+    protected function forgetFailure(): void
+    {
+        if (Setting::get('google_sheet_last_error')) {
+            Setting::set('google_sheet_last_error', '');
+            Setting::set('google_sheet_last_error_at', '');
+        }
+    }
 
     /**
      * @return array{success: bool, data?: array, error?: string}
@@ -338,24 +397,33 @@ class GoogleSheetService
                 $isSuccess = is_array($body) && (($body['status'] ?? '') === 'success' || ($body['success'] ?? false));
 
                 if ($isSuccess || $response->status() === 200) {
+                    $this->forgetFailure();
+
+                    if (is_array($body) && ! empty($body['version'])) {
+                        Setting::set('google_sheet_script_version', $body['version']);
+                    }
+
                     return [
                         'success' => true,
                         'data' => is_array($body) ? $body : ['raw' => $response->body()],
                     ];
                 }
 
-                return [
-                    'success' => false,
-                    'error' => $body['message'] ?? $body['error'] ?? 'Response error dari Google Sheets.',
-                ];
+                $error = $body['message'] ?? $body['error'] ?? 'Response error dari Google Sheets.';
+                $this->rememberFailure($error);
+                Log::warning('Google Sheet sync rejected: '.$error);
+
+                return ['success' => false, 'error' => $error];
             }
 
-            return [
-                'success' => false,
-                'error' => 'HTTP Error '.$response->status().': '.$response->reason(),
-            ];
+            $error = 'HTTP Error '.$response->status().': '.$response->reason();
+            $this->rememberFailure($error);
+            Log::warning('Google Sheet sync failed: '.$error);
+
+            return ['success' => false, 'error' => $error];
         } catch (Throwable $e) {
             Log::warning('Google Sheet Webhook Sync failed: '.$e->getMessage());
+            $this->rememberFailure('Koneksi gagal: '.$e->getMessage());
 
             return [
                 'success' => false,

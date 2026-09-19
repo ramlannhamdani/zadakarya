@@ -411,6 +411,24 @@
                     <label class="form-label">Nominal (Rp) <span class="text-brand-600">*</span></label>
                     <input class="form-input" type="number" name="amount" min="1" value="{{ old('amount', $order->remaining ?: '') }}" required>
                 </div>
+                @php
+                    // Pembayaran pertama defaultnya DP; laporan DP/pelunasan/piutang
+                    // di spreadsheet membaca kolom ini, bukan menebak dari catatan.
+                    $defaultType = old('type', $order->payments->isEmpty()
+                        ? \App\Models\Payment::TYPE_DP
+                        : \App\Models\Payment::TYPE_SETTLEMENT);
+                @endphp
+                <div class="mt-4">
+                    <label class="form-label">Jenis Pembayaran <span class="text-brand-600">*</span></label>
+                    <div class="mt-1 grid grid-cols-2 gap-2">
+                        @foreach(\App\Models\Payment::TYPES as $key => $label)
+                            <label class="flex cursor-pointer items-center justify-center gap-2 rounded-lg border px-3 py-2.5 text-sm font-semibold transition has-[:checked]:border-brand-600 has-[:checked]:bg-brand-50 has-[:checked]:text-brand-600 {{ $defaultType === $key ? 'border-brand-600' : 'border-line text-neutral-600 hover:border-brand-600/40' }}">
+                                <input type="radio" name="type" value="{{ $key }}" class="sr-only" @checked($defaultType === $key)>
+                                {{ $label }}
+                            </label>
+                        @endforeach
+                    </div>
+                </div>
                 <div class="mt-4">
                     <label class="form-label">Tanggal Bayar <span class="text-brand-600">*</span></label>
                     <input class="form-input" type="date" name="payment_date" value="{{ old('payment_date', now()->toDateString()) }}" required>

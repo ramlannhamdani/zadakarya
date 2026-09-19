@@ -31,6 +31,35 @@
                             <span>Terakhir Sinkron: <strong class="text-ink">{{ \Carbon\Carbon::parse($lastSyncedAt)->diffForHumans() }}</strong></span>
                         @endif
                     </div>
+
+                    {{-- Mengubah kode di aplikasi tidak mengubah apa pun di akun Google.
+                         Selisih versi inilah yang biasanya bikin sheet terlihat versi lama. --}}
+                    @if($liveScriptVersion && $appScriptVersion && $liveScriptVersion !== $appScriptVersion)
+                        <div class="mt-3 rounded-lg border border-amber-300 bg-amber-50 px-3.5 py-3">
+                            <p class="text-xs font-bold text-amber-900">
+                                Skrip di Google masih versi {{ $liveScriptVersion }}, aplikasi sudah versi {{ $appScriptVersion }}.
+                            </p>
+                            <p class="mt-1 text-xs text-amber-800">
+                                Tampilan dan perbaikan terbaru belum aktif. Salin ulang kode di bawah ke Apps Script,
+                                tekan <strong>Deploy &rarr; Manage deployments &rarr; Edit &rarr; Version: New version</strong>,
+                                lalu jalankan <strong>Tata Ulang Dashboard</strong>.
+                            </p>
+                        </div>
+                    @endif
+
+                    {{-- Kegagalan sinkron dulu hilang tanpa jejak: spreadsheet bisa
+                         tertinggal berhari-hari tanpa satu pun tanda di panel. --}}
+                    @if($lastError)
+                        <div class="mt-3 rounded-lg border border-red-200 bg-red-50 px-3.5 py-3">
+                            <p class="text-xs font-bold text-red-800">
+                                Sinkronisasi terakhir gagal{{ $lastErrorAt ? ' '.\Carbon\Carbon::parse($lastErrorAt)->diffForHumans() : '' }} — spreadsheet kemungkinan tertinggal.
+                            </p>
+                            <p class="mt-1 text-xs text-red-700">{{ $lastError }}</p>
+                            <p class="mt-1.5 text-xs text-red-700">
+                                Perbaiki penyebabnya, lalu tekan <strong>Sinkronkan Semua Data</strong> supaya isinya kembali cocok dengan database.
+                            </p>
+                        </div>
+                    @endif
                 </div>
             </div>
 
@@ -49,7 +78,7 @@
 
                     <form method="POST" action="{{ route('admin.spreadsheet.setup') }}" class="inline">
                         @csrf
-                        <button type="submit" title="Format ulang struktur tab dan kartu dashboard laporan di Google Spreadsheet" class="inline-flex items-center gap-1.5 rounded-lg border border-line bg-white px-3 py-2 text-xs font-semibold text-neutral-700 transition hover:bg-cream">
+                        <button type="submit" title="Bangun ulang struktur tab dan tampilannya, lalu isi kembali seluruh data. Jalankan ini setiap selesai memperbarui kode Apps Script." class="inline-flex items-center gap-1.5 rounded-lg border border-line bg-white px-3 py-2 text-xs font-semibold text-neutral-700 transition hover:bg-cream">
                             <svg class="h-4 w-4 text-indigo-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
                             </svg>
@@ -133,7 +162,7 @@
         <div class="flex items-center justify-between border-b border-line pb-3">
             <div>
                 <h3 class="font-extrabold text-ink">Panduan Setup Google Spreadsheet & Cadangan Kode</h3>
-                <p class="text-xs text-neutral-500">Google Spreadsheet Anda saat ini sudah otomatis terpasang. Gunakan petunjuk ini jika ingin membuat spreadsheet baru.</p>
+                <p class="text-xs text-neutral-500">Pakai petunjuk ini saat menyiapkan spreadsheet baru, dan setiap kali versi kode di bawah berubah &mdash; memperbarui aplikasi tidak ikut memperbarui skrip di akun Google Anda.</p>
             </div>
             <a href="https://sheets.new" target="_blank" class="inline-flex items-center gap-1.5 rounded-lg border border-line bg-cream px-3 py-1.5 text-xs font-bold text-ink transition hover:bg-white">
                 <span>Buka Google Sheets Baru</span>
@@ -145,7 +174,7 @@
             <div class="flex items-center justify-between rounded-lg border border-line/60 bg-cream/40 p-3">
                 <div>
                     <h4 class="font-bold">Kode Apps Script Otomasi Zada Karya (Master)</h4>
-                    <p class="mt-0.5 text-neutral-600">Kode ini sudah tertanam di Google Spreadsheet Anda dan tidak perlu diutak-atik lagi.</p>
+                    <p class="mt-0.5 text-neutral-600">Versi {{ $appScriptVersion ?? '-' }}. Bila berbeda dengan versi yang terpasang di Google, salin seluruh isinya ke Apps Script lalu Deploy ulang.</p>
                 </div>
                 <div class="flex items-center gap-2">
                     <button type="button" @click="showCode = !showCode" class="rounded border border-line bg-white px-2.5 py-1 text-[11px] font-semibold text-neutral-700 transition hover:bg-cream">

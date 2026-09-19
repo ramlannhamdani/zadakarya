@@ -6,6 +6,14 @@
  * ============================================================================
  */
 
+/**
+ * Versi skrip. Ikut dikirim di setiap respons supaya panel admin bisa
+ * memberi tahu kalau skrip yang terpasang di Google sudah tertinggal dari
+ * yang ada di aplikasi — penyebab paling sering tampilan sheet terlihat lama.
+ * Naikkan setiap kali berkas ini diubah.
+ */
+var SCRIPT_VERSION = '2026-09-19';
+
 /* ========================================================================== */
 /* WEBHOOK HANDLERS                                                            */
 /* ========================================================================== */
@@ -37,6 +45,11 @@ function doPost(e) {
       return respondJSON({ status: 'success', message: 'Data synced successfully' });
     }
 
+    if (data.action === 'delete') {
+      handleDelete(data, ss);
+      return respondJSON({ status: 'success', message: 'Baris dihapus dari sheet' });
+    }
+
     if (data.type === 'order' || data.action === 'upsert_order') {
       handleUpsertOrder(data.order || data.row, ss);
     } else if (data.type === 'cost' || data.action === 'add_cost') {
@@ -58,6 +71,8 @@ function doGet(e) {
 }
 
 function respondJSON(obj) {
+  obj.version = SCRIPT_VERSION;
+
   return ContentService.createTextOutput(JSON.stringify(obj))
     .setMimeType(ContentService.MimeType.JSON);
 }
@@ -396,22 +411,17 @@ function setupDataOrderSheet(sheet) {
     .setHorizontalAlignment('center').setVerticalAlignment('middle');
   sheet.setFrozenRows(3);
 
-  // Number formats
-  sheet.getRange('A4:A300').setNumberFormat('dd-mmm-yy');
-  sheet.getRange('E4:E300').setNumberFormat('#,##0');
-  sheet.getRange('F4:L300').setNumberFormat('"Rp"#,##0');
+  setupIdColumn(sheet, 15);
 
-  // Alternating row colors for first 50 rows (covers most use cases)
-  for (var r = 4; r <= 100; r++) {
-    var bg = (r % 2 === 0) ? CLR.rowEven : CLR.rowOdd;
-    sheet.setRowHeight(r, 20);
-    sheet.getRange(r, 1, 1, 14).setBackground(bg);
-  }
+  // Format dipasang untuk seluruh kolom, bukan sampai baris tertentu.
+  var rows = dataRowCount(sheet);
+  sheet.getRange(4, 1, rows, 1).setNumberFormat('dd-mmm-yy');
+  sheet.getRange(4, 5, rows, 1).setNumberFormat('#,##0').setHorizontalAlignment('center');
+  sheet.getRange(4, 6, rows, 7).setNumberFormat('"Rp"#,##0');
+  sheet.getRange(4, 13, rows, 1).setHorizontalAlignment('center').setWrap(false);
+  sheet.getRange(4, 14, rows, 1).setWrap(true);
 
-  // Status column: center align
-  sheet.getRange('M4:M300').setHorizontalAlignment('center').setWrap(false);
-  sheet.getRange('N4:N300').setWrap(true);
-  sheet.getRange('E4:E300').setHorizontalAlignment('center');
+  applyRowStripes(sheet, 15);
 }
 
 /* ========================================================================== */
@@ -455,23 +465,17 @@ function setupArusKasSheet(sheet) {
     .setHorizontalAlignment('center').setVerticalAlignment('middle');
   sheet.setFrozenRows(3);
 
-  // Formats
-  sheet.getRange('A4:A500').setNumberFormat('dd-mmm-yy');
-  sheet.getRange('F4:H500').setNumberFormat('"Rp"#,##0');
+  setupIdColumn(sheet, 10);
 
-  // Saldo running formula rows 4–500
-  var saldoFmls = [];
-  for (var r = 4; r <= 500; r++) {
-    saldoFmls.push(['=IF(A' + r + '="","",SUM($F$4:F' + r + ')-SUM($G$4:G' + r + '))']);
-  }
-  sheet.getRange('H4:H500').setFormulas(saldoFmls);
+  var rows = dataRowCount(sheet);
+  sheet.getRange(4, 1, rows, 1).setNumberFormat('dd-mmm-yy');
+  sheet.getRange(4, 6, rows, 3).setNumberFormat('"Rp"#,##0');
 
-  // Alternating rows
-  for (var ri = 4; ri <= 100; ri++) {
-    var bg = (ri % 2 === 0) ? CLR.rowEven : CLR.rowOdd;
-    sheet.setRowHeight(ri, 20);
-    sheet.getRange(ri, 1, 1, 9).setBackground(bg);
-  }
+  // Rumus Saldo TIDAK dipra-isi di sini. Sel berisi rumus terhitung "ada isinya"
+  // oleh getLastRow(), sehingga baris baru dari panel admin dulu mendarat di
+  // baris 501 — jauh di bawah datanya. Rumus ditulis bersama barisnya.
+
+  applyRowStripes(sheet, 10);
 
   // Kas Masuk = green, Kas Keluar = red font color (Column F & G label alignment)
   sheet.getRange('F3').setBackground('#1A6B36');
@@ -520,20 +524,15 @@ function setupRincianHppSheet(sheet) {
     .setHorizontalAlignment('center').setVerticalAlignment('middle');
   sheet.setFrozenRows(3);
 
-  // Formats
-  sheet.getRange('A4:A500').setNumberFormat('dd-mmm-yy');
-  sheet.getRange('E4:E500').setNumberFormat('#,##0.##');
-  sheet.getRange('G4:H500').setNumberFormat('"Rp"#,##0');
+  setupIdColumn(sheet, 10);
 
-  // Alternating rows
-  for (var ri = 4; ri <= 80; ri++) {
-    var bg = (ri % 2 === 0) ? CLR.rowEven : CLR.rowOdd;
-    sheet.setRowHeight(ri, 20);
-    sheet.getRange(ri, 1, 1, 9).setBackground(bg);
-  }
+  var rows = dataRowCount(sheet);
+  sheet.getRange(4, 1, rows, 1).setNumberFormat('dd-mmm-yy');
+  sheet.getRange(4, 5, rows, 1).setNumberFormat('#,##0.##').setHorizontalAlignment('center');
+  sheet.getRange(4, 6, rows, 1).setHorizontalAlignment('center');
+  sheet.getRange(4, 7, rows, 2).setNumberFormat('"Rp"#,##0');
 
-  sheet.getRange('E4:E500').setHorizontalAlignment('center');
-  sheet.getRange('F4:F500').setHorizontalAlignment('center');
+  applyRowStripes(sheet, 10);
 }
 
 /* ========================================================================== */
@@ -638,7 +637,8 @@ function handleSyncAll(data, ss) {
           o.date, o.order_number, o.customer,
           (o.product || '-'),   // Pastikan product string, bukan angka
           o.qty, o.price_per_unit, o.total_order, o.dp, o.settlement,
-          o.total_cost, o.estimated_profit, o.remaining, o.status, o.notes
+          o.total_cost, o.estimated_profit, o.remaining, o.status, o.notes,
+          o.id || ''
         ];
       });
       orderSheet.getRange(4, 1, orderRows.length, orderRows[0].length).setValues(orderRows);
@@ -653,7 +653,8 @@ function handleSyncAll(data, ss) {
       var costRows = data.costs.map(function(c) {
         return [
           c.date, c.order_number, c.category, c.description,
-          c.qty, c.unit, c.unit_price, c.amount, c.recorded_by
+          c.qty, c.unit, c.unit_price, c.amount, c.recorded_by,
+          c.id || ''
         ];
       });
       costSheet.getRange(4, 1, costRows.length, costRows[0].length).setValues(costRows);
@@ -671,6 +672,7 @@ function handleSyncAll(data, ss) {
         var isDP = (p.note && p.note.toLowerCase().indexOf('dp') !== -1) ||
                    (p.category && p.category.toLowerCase().indexOf('dp') !== -1);
         entries.push({
+          id:      p.id || '',
           date:    p.date,
           trx_no:  p.trx_no || p.order_number,
           desc:    p.desc || ('Pembayaran ' + (p.category || '') + ' — ' + (p.customer || '')),
@@ -686,6 +688,7 @@ function handleSyncAll(data, ss) {
     if (data.costs && data.costs.length > 0) {
       data.costs.forEach(function(c) {
         entries.push({
+          id:      c.id || '',
           date:    c.date,
           trx_no:  c.order_number,
           desc:    (c.description || 'Biaya HPP') + ' (' + (c.order_number || '') + ')',
@@ -707,7 +710,7 @@ function handleSyncAll(data, ss) {
           e.date, e.trx_no, e.desc, e.cat, e.party,
           e.inflow, e.outflow,
           '=IF(A' + rowNum + '="","",SUM($F$4:F' + rowNum + ')-SUM($G$4:G' + rowNum + '))',
-          e.method
+          e.method, e.id
         ];
       });
       cashSheet.getRange(4, 1, cashRows.length, cashRows[0].length).setValues(cashRows);
@@ -724,7 +727,8 @@ function handleUpsertOrder(orderData, ss) {
     (orderData.product || '-'),
     orderData.qty, orderData.price_per_unit, orderData.total_order,
     orderData.dp, orderData.settlement, orderData.total_cost,
-    orderData.estimated_profit, orderData.remaining, orderData.status, orderData.notes
+    orderData.estimated_profit, orderData.remaining, orderData.status, orderData.notes,
+    orderData.id || ''
   ];
 
   var lastRow = sheet.getLastRow();
@@ -750,19 +754,35 @@ function handleAddCost(costData, ss) {
 
   var c = Array.isArray(costData) ? costData : [
     costData.date, costData.order_number, costData.category, costData.description,
-    costData.qty, costData.unit, costData.unit_price, costData.amount, costData.recorded_by
+    costData.qty, costData.unit, costData.unit_price, costData.amount, costData.recorded_by,
+    costData.id || ''
   ];
 
-  if (costSheet) costSheet.appendRow(c);
+  // Biaya yang sama disimpan ulang menimpa barisnya, tidak menumpuk baris baru.
+  if (costSheet) {
+    var costRow = findRowById(costSheet, 10, c[9]);
+    if (costRow > 0) {
+      costSheet.getRange(costRow, 1, 1, c.length).setValues([c]);
+    } else {
+      costSheet.appendRow(c);
+    }
+  }
 
   if (cashSheet) {
-    var nextRow = Math.max(cashSheet.getLastRow() + 1, 4);
-    cashSheet.appendRow([
+    var existing = findRowById(cashSheet, 10, c[9]);
+    var nextRow = existing > 0 ? existing : Math.max(cashSheet.getLastRow() + 1, 4);
+    var cashRow = [
       c[0], c[1], c[3] + ' (' + c[1] + ')', c[2], 'Vendor/Produksi',
       0, c[7],
       '=IF(A' + nextRow + '="","",SUM($F$4:F' + nextRow + ')-SUM($G$4:G' + nextRow + '))',
-      'Kas/Transfer'
-    ]);
+      'Kas/Transfer', c[9]
+    ];
+
+    if (existing > 0) {
+      cashSheet.getRange(existing, 1, 1, cashRow.length).setValues([cashRow]);
+    } else {
+      cashSheet.appendRow(cashRow);
+    }
   }
 }
 
@@ -773,16 +793,72 @@ function handleAddPayment(payData, ss) {
   var p = Array.isArray(payData) ? payData : [
     payData.date, payData.trx_no || payData.order_number, payData.desc,
     payData.category || 'Pelunasan', payData.customer,
-    payData.amount, 0, '', payData.method
+    payData.amount, 0, '', payData.method, payData.id || ''
   ];
 
-  var nextRow = Math.max(cashSheet.getLastRow() + 1, 4);
-  cashSheet.appendRow([
+  var existing = findRowById(cashSheet, 10, p[9]);
+  var nextRow = existing > 0 ? existing : Math.max(cashSheet.getLastRow() + 1, 4);
+  var row = [
     p[0], p[1], p[2] || ('Pembayaran ' + p[1]),
     p[3] || 'Pelunasan', p[4] || '-', p[5] || 0, 0,
     '=IF(A' + nextRow + '="","",SUM($F$4:F' + nextRow + ')-SUM($G$4:G' + nextRow + '))',
-    p[8] || 'Transfer Bank'
-  ]);
+    p[8] || 'Transfer Bank', p[9]
+  ];
+
+  if (existing > 0) {
+    cashSheet.getRange(existing, 1, 1, row.length).setValues([row]);
+  } else {
+    cashSheet.appendRow(row);
+  }
+}
+
+/**
+ * Hapus baris yang datanya dihapus di panel admin. Tanpa ini pesanan yang sudah
+ * dihapus tetap menyumbang omzet dan laba, dan pembayaran yang dihapus
+ * meninggalkan Kas Masuk yang tidak pernah terjadi.
+ */
+function handleDelete(data, ss) {
+  var orderSheet = ss.getSheetByName('Data Order');
+  var costSheet  = ss.getSheetByName('Rincian Biaya HPP');
+  var cashSheet  = ss.getSheetByName('Arus Kas');
+
+  if (data.entity === 'order') {
+    deleteRowById(orderSheet, 15, data.id);
+
+    // Biaya dan pembayaran milik pesanan itu ikut terhapus di database,
+    // jadi barisnya harus hilang juga dari Rincian HPP dan Arus Kas.
+    var costIds = data.cost_ids || [];
+    for (var i = 0; i < costIds.length; i++) {
+      deleteRowById(costSheet, 10, costIds[i]);
+      deleteRowById(cashSheet, 10, costIds[i]);
+    }
+
+    var payIds = data.payment_ids || [];
+    for (var j = 0; j < payIds.length; j++) {
+      deleteRowById(cashSheet, 10, payIds[j]);
+    }
+  } else if (data.entity === 'cost') {
+    deleteRowById(costSheet, 10, data.id);
+    deleteRowById(cashSheet, 10, data.id);
+  } else if (data.entity === 'payment') {
+    deleteRowById(cashSheet, 10, data.id);
+  }
+
+  refreshSaldoFormulas(cashSheet);
+}
+
+/** Saldo berjalan bergantung pada nomor baris, jadi ditulis ulang setiap ada baris hilang. */
+function refreshSaldoFormulas(sheet) {
+  if (!sheet) return;
+
+  var lastRow = sheet.getLastRow();
+  if (lastRow < 4) return;
+
+  var formulas = [];
+  for (var r = 4; r <= lastRow; r++) {
+    formulas.push(['=IF(A' + r + '="","",SUM($F$4:F' + r + ')-SUM($G$4:G' + r + '))']);
+  }
+  sheet.getRange(4, 8, formulas.length, 1).setFormulas(formulas);
 }
 
 /* ========================================================================== */
@@ -792,6 +868,63 @@ function getOrCreateSheet(ss, name) {
   var s = ss.getSheetByName(name);
   if (!s) s = ss.insertSheet(name);
   return s;
+}
+
+/**
+ * Jumlah baris data yang tersedia di sebuah tab (seluruh sheet, bukan 300 baris
+ * pertama). Format yang dipasang sebatas nomor baris tertentu membuat sheet
+ * mendadak polos begitu datanya melewati batas itu.
+ */
+function dataRowCount(sheet) {
+  return Math.max(sheet.getMaxRows() - 3, 1);
+}
+
+/** Baris selang-seling memakai banding bawaan Sheets: satu panggilan, tanpa batas baris. */
+function applyRowStripes(sheet, numCols) {
+  var range = sheet.getRange(4, 1, dataRowCount(sheet), numCols);
+
+  var existing = range.getBandings();
+  for (var i = 0; i < existing.length; i++) { existing[i].remove(); }
+
+  range.applyRowBanding(SpreadsheetApp.BandingTheme.LIGHT_GREY, false, false)
+    .setFirstRowColor(CLR.rowOdd)
+    .setSecondRowColor(CLR.rowEven);
+
+  sheet.setRowHeights(4, dataRowCount(sheet), 20);
+}
+
+/**
+ * Kolom ID teknis (ORD-1, PAY-9, CST-4). Disembunyikan dari pengguna tapi
+ * dipakai untuk menghapus baris yang tepat saat datanya dihapus di panel admin.
+ */
+function setupIdColumn(sheet, col) {
+  sheet.getRange(3, col).setValue('ID')
+    .setFontSize(9).setFontWeight('bold')
+    .setFontColor(CLR.white).setBackground(CLR.blue)
+    .setHorizontalAlignment('center');
+  sheet.setColumnWidth(col, 90);
+  sheet.hideColumns(col);
+}
+
+/** Cari nomor baris berdasarkan nilai di kolom ID. Mengembalikan -1 bila tidak ada. */
+function findRowById(sheet, idCol, id) {
+  if (!sheet || !id) return -1;
+
+  var lastRow = sheet.getLastRow();
+  if (lastRow < 4) return -1;
+
+  var values = sheet.getRange(4, idCol, lastRow - 3, 1).getValues();
+  for (var i = 0; i < values.length; i++) {
+    if (String(values[i][0]) === String(id)) return i + 4;
+  }
+
+  return -1;
+}
+
+function deleteRowById(sheet, idCol, id) {
+  var row = findRowById(sheet, idCol, id);
+  if (row > 0) { sheet.deleteRow(row); return true; }
+  return false;
 }
 
 function clearSheetDataRows(sheet, startRow) {

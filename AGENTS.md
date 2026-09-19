@@ -68,6 +68,11 @@ Kalau menambah atau mengubah rute, sebutkan perintah ini saat menyerahkan hasil.
   `invoice_id`-nya cocok — bukan `$order->amount_paid`.
 - PDF invoice dibuat lewat `App\Support\InvoicePdf` supaya berkas yang diunduh admin,
   yang tampil di pratinjau, dan yang dibagikan ke customer identik.
+- **DP vs pelunasan dibaca dari kolom `payments.type`**, tidak pernah ditebak dari
+  catatan. Seluruh laporan DP, arus kas, dan piutang bergantung padanya.
+- Setiap baris yang dikirim ke spreadsheet membawa id (`ORD-`, `PAY-`, `CST-`) di kolom
+  tersembunyi, supaya baris yang datanya dihapus di panel bisa ikut dihapus di sheet.
+  Menghapus data tanpa mengirim `action: delete` membuat laporan melebih-lebihkan omzet.
 
 ---
 
@@ -101,6 +106,23 @@ ditolak di `www.buatseragam.com`. Keduanya saat ini sama-sama menyajikan situs.
 
 **Tailwind `line-clamp-N` butuh `display:-webkit-box`.** Menggabungkannya dengan `block`
 membuatnya mati diam-diam.
+
+**Mengubah `resources/views/admin/spreadsheet/code.js` tidak mengubah apa pun di akun
+Google.** Skripnya harus ditempel ulang ke Apps Script lalu di-*Deploy* sebagai versi baru.
+Berkas itu punya `SCRIPT_VERSION` yang ikut di setiap respons; panel admin
+membandingkannya dengan versi di aplikasi dan memperingatkan kalau tertinggal. Naikkan
+nilainya setiap kali berkas itu diubah, kalau tidak peringatannya tidak berguna.
+
+**Di Apps Script, sel berisi rumus terhitung "ada isinya" oleh `getLastRow()`.**
+Pernah membuat rumus Saldo dipra-isi sampai baris 500, sehingga `appendRow` mendarat di
+baris 501. Rumus ditulis bersama barisnya, jangan dipra-isi.
+
+**Format sheet jangan dibatasi nomor baris** (`A4:A300`). Begitu data melewatinya, sheet
+mendadak polos. Pakai `dataRowCount(sheet)` dan `applyRowStripes()`.
+
+**`Http::fake()` menggabungkan stub, tidak menggantikannya**, dan stub pertama yang cocok
+menang. Memasang fake di `setUp` membuat tes yang butuh respons gagal tidak akan pernah
+mendapatkannya. Pasang per tes, atau pakai satu closure yang isinya bisa diubah.
 
 ---
 

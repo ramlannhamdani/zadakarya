@@ -23,6 +23,10 @@ class SpreadsheetController extends Controller
             'autoSync' => Setting::get('google_sheet_auto_sync', '1') === '1',
             'lastConnectedAt' => Setting::get('google_sheet_last_connected_at'),
             'lastSyncedAt' => Setting::get('google_sheet_last_synced_at'),
+            'lastError' => Setting::get('google_sheet_last_error') ?: null,
+            'lastErrorAt' => Setting::get('google_sheet_last_error_at') ?: null,
+            'appScriptVersion' => GoogleAppsScriptCode::version(),
+            'liveScriptVersion' => Setting::get('google_sheet_script_version') ?: null,
             'orderCount' => Order::count(),
             'costCount' => OrderCost::count(),
             'paymentCount' => Payment::count(),
@@ -72,19 +76,31 @@ class SpreadsheetController extends Controller
         return redirect()->route('admin.spreadsheet.index')->with('error', $result['message']);
     }
 
+    /**
+     * Menata ulang tab mengosongkan isinya (setiap setup tab diawali sheet.clear()),
+     * jadi datanya langsung diisi ulang di sini. Dulu keduanya tombol terpisah dan
+     * menekan yang ini saja membuat spreadsheet tampak kosong.
+     */
     public function setup(Request $request, GoogleSheetService $sheetService): JsonResponse|RedirectResponse
     {
         $result = $sheetService->setupSheet();
+
+        if ($result['success']) {
+            $sync = $sheetService->syncAll();
+
+            $result['message'] = $sync['success']
+                ? 'Struktur dan tampilan spreadsheet ditata ulang, lalu seluruh data diisikan kembali.'
+                : 'Struktur ditata ulang, tapi pengisian ulang data gagal: '.$sync['message'].' Jalankan "Sinkronkan Semua Data" secara manual.';
+
+            $result['success'] = $sync['success'];
+        }
 
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json($result);
         }
 
-        if ($result['success']) {
-            return redirect()->route('admin.spreadsheet.index')->with('success', $result['message']);
-        }
-
-        return redirect()->route('admin.spreadsheet.index')->with('error', $result['message']);
+        return redirect()->route('admin.spreadsheet.index')
+            ->with($result['success'] ? 'success' : 'error', $result['message']);
     }
 
     public function syncAll(Request $request, GoogleSheetService $sheetService): JsonResponse|RedirectResponse

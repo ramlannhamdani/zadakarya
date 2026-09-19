@@ -133,6 +133,17 @@ class Order extends Model
         return max(0, $this->grand_total - $this->amount_paid);
     }
 
+    /** Uang muka yang benar-benar sudah diterima (bukan kolom rencana dp_amount). */
+    public function getDpPaidAttribute(): int
+    {
+        return (int) $this->payments->where('type', Payment::TYPE_DP)->sum('amount');
+    }
+
+    public function getSettlementPaidAttribute(): int
+    {
+        return (int) $this->payments->where('type', '!=', Payment::TYPE_DP)->sum('amount');
+    }
+
     public function getPaymentStatusLabelAttribute(): string
     {
         return self::PAYMENT_STATUSES[$this->payment_status] ?? $this->payment_status;

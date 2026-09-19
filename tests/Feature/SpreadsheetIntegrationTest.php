@@ -91,10 +91,12 @@ class SpreadsheetIntegrationTest extends TestCase
         $response = $this->actingAs($this->admin)->postJson(route('admin.spreadsheet.setup'));
 
         $response->assertOk();
-        $response->assertJson([
-            'success' => true,
-            'message' => 'Setup Berhasil!',
-        ]);
+        $response->assertJson(['success' => true]);
+
+        // Menata ulang mengosongkan tab, jadi pengisian ulang harus menyusul
+        // dalam aksi yang sama — bukan tugas terpisah yang mudah terlupa.
+        Http::assertSent(fn ($r) => ($r->data()['action'] ?? '') === 'setup');
+        Http::assertSent(fn ($r) => ($r->data()['action'] ?? '') === 'sync_all');
     }
 
     public function test_sync_all_data_action(): void
