@@ -113,6 +113,18 @@ Berkas itu punya `SCRIPT_VERSION` yang ikut di setiap respons; panel admin
 membandingkannya dengan versi di aplikasi dan memperingatkan kalau tertinggal. Naikkan
 nilainya setiap kali berkas itu diubah, kalau tidak peringatannya tidak berguna.
 
+**Di sel gabungan, nilainya hanya ada di sel kiri-atas.** Kartu KPI dashboard
+menggabung dua kolom (A:B, C:D, …), jadi rumus yang menunjuk kolom kanan membaca sel
+kosong dan menghasilkan 0 tanpa error. Pernah membuat Margin Keuntungan dan % Porsi
+total tampil 0,0% padahal datanya ada.
+
+**Label kategori HPP di `code.js` harus sama persis dengan `OrderCost::CATEGORIES`.**
+SUMIF mencocokkan teks utuh; selisih satu kata membuat kategori itu diam-diam Rp0.
+Dijaga oleh `SpreadsheetScriptTest`.
+
+**Grafik Apps Script melayang di atas sel.** Sediakan baris kosong setinggi grafiknya,
+kalau tidak ia menutupi isi di bawahnya.
+
 **Di Apps Script, sel berisi rumus terhitung "ada isinya" oleh `getLastRow()`.**
 Pernah membuat rumus Saldo dipra-isi sampai baris 500, sehingga `appendRow` mendarat di
 baris 501. Rumus ditulis bersama barisnya, jangan dipra-isi.
