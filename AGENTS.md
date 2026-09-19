@@ -125,17 +125,17 @@ Dijaga oleh `SpreadsheetScriptTest`.
 **Grafik Apps Script melayang di atas sel.** Sediakan baris kosong setinggi grafiknya,
 kalau tidak ia menutupi isi di bawahnya.
 
-**`EmbeddedChartBuilder` tidak mengenali baris judul sendiri — panggil
-`setNumHeaders(1)`.** Tanpa itu baris judul ikut terbaca sebagai data, kolom angkanya
-disimpulkan sebagai kolom teks, dan tidak ada satu pun seri yang terbentuk: hasilnya
-kotak berisi judul saja, tanpa sumbu dan tanpa legenda. Menu Insert > Chart mengenali
-baris judul secara otomatis, jadi grafik buatan tangan berhasil sementara yang dari
-skrip gagal — perbedaan itu petunjuk paling jelas kalau gejalanya muncul lagi.
+**Grafik arus kas dipasang MANUAL, jangan coba dibuat dari kode lagi.** Pembuatan lewat
+`EmbeddedChartBuilder` dicoba berkali-kali (label bulan teks, `SpreadsheetApp.flush()`,
+`setNumHeaders(1)`, `useFirstColumnAsDomain`, opsi diminimalkan, dibuat setelah data
+masuk) dan semuanya menghasilkan kotak berisi judul saja — tanpa sumbu, tanpa legenda.
+Grafik yang sama dibuat lewat menu Insert > Chart langsung berhasil. Karena Apps Script
+tidak bisa dijalankan di lingkungan pengembangan, ini berhenti sebagai keputusan sadar,
+bukan kegagalan yang belum selesai. `buildCashChart()` sekarang hanya menampilkan
+petunjuk pemasangan selagi grafiknya belum ada.
 
-**Jangan membuat grafik saat Setup berjalan.** Urutannya: tab dikosongkan, tampilan
-digambar, baru Laravel mengirim data. Grafik yang lahir di tengah urutan itu membaca
-tab yang masih kosong. Dibuat di akhir `handleSyncAll`, dan hanya bila belum ada,
-supaya grafik buatan pengguna sendiri tidak ikut tertimpa.
+**Tidak boleh ada `removeChart` di mana pun.** Grafiknya buatan tangan; sekali terhapus
+harus dipasang ulang manual. Dijaga oleh `SpreadsheetScriptTest`.
 
 **Di Apps Script, sel berisi rumus terhitung "ada isinya" oleh `getLastRow()`.**
 Pernah membuat rumus Saldo dipra-isi sampai baris 500, sehingga `appendRow` mendarat di

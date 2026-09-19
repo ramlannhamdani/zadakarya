@@ -89,31 +89,27 @@ class SpreadsheetScriptTest extends TestCase
         $this->assertStringContainsString('obj.version = SCRIPT_VERSION;', $this->script);
     }
 
-    public function test_the_chart_has_enough_reserved_rows_to_not_cover_anything(): void
+    public function test_the_chart_area_stays_clear_and_ends_above_the_timestamp(): void
     {
-        // Grafik melayang di atas sel, jadi baris di bawahnya harus disediakan.
-        // Dulu grafik ditaruh di samping tabel HPP dan menutupi baris keterangan waktu.
-        preg_match('/setPosition\((\d+), 1,/', $this->script, $pos);
-        preg_match("/setOption\('height', (\d+)\)/", $this->script, $height);
+        // Grafik dipasang manual dan melayang di atas sel, jadi barisnya tetap
+        // harus disediakan — kalau tidak, ia menutupi keterangan di bawahnya.
         preg_match('/for \(var gr = (\d+); gr <= (\d+); gr\+\+\) \{ sheet\.setRowHeight\(gr, ROW_H\); \}/', $this->script, $rows);
-        preg_match("/getRange\('A(\d+):H\\1'\)\s*\.merge\(\)\s*\.setFormula\('=\"Data terakhir/", $this->script, $stamp);
+        // Pola ditulis dengan kutip tunggal: di kutip ganda, \1 dibaca PHP
+        // sebagai escape oktal, bukan backreference.
+        preg_match('/getRange\(\'A(\d+):H\1\'\)\s*\.merge\(\)\s*\.setFormula\(\'="Data terakhir/', $this->script, $stamp);
         preg_match('/var ROW_H = (\d+);/', $this->script, $rowHeight);
 
-        $this->assertNotEmpty($pos, 'Posisi grafik tidak ditemukan.');
         $this->assertNotEmpty($rows, 'Baris cadangan untuk grafik tidak ditemukan.');
         $this->assertNotEmpty($stamp, 'Baris keterangan waktu tidak ditemukan.');
-        $this->assertNotEmpty($rowHeight, 'Tinggi baris ROW_H tidak ditemukan.');
 
-        $anchorRow = (int) $pos[1];
         $reserved = ((int) $rows[2] - (int) $rows[1] + 1) * (int) $rowHeight[1];
 
-        $this->assertSame($anchorRow, (int) $rows[1], 'Baris cadangan harus dimulai di baris tempat grafik ditambatkan.');
-        $this->assertGreaterThanOrEqual((int) $height[1], $reserved, 'Tinggi grafik melebihi baris yang disediakan.');
-        $this->assertGreaterThan((int) $rows[2], (int) $stamp[1], 'Keterangan waktu harus di bawah grafik.');
-        $this->assertGreaterThan(16, $anchorRow, 'Grafik harus di bawah tabel HPP, bukan di sampingnya.');
+        $this->assertGreaterThan(16, (int) $rows[1], 'Area grafik harus di bawah tabel HPP.');
+        $this->assertGreaterThanOrEqual(300, $reserved, 'Ruang untuk grafik terlalu sempit.');
+        $this->assertGreaterThan((int) $rows[2], (int) $stamp[1], 'Keterangan waktu harus di bawah area grafik.');
     }
 
-    public function test_chart_gets_a_text_month_axis_and_data_that_is_already_written(): void
+    public function test_recap_months_are_text_so_a_column_chart_can_use_them(): void
     {
         // Sumbu tanggal membuat grafik kolom memakai skala kontinu sepanjang
         // setahun; batangnya menipis sampai tak terlihat. Label bulan harus teks.
@@ -123,47 +119,24 @@ class SpreadsheetScriptTest extends TestCase
 
         // Batas bulan tidak boleh lagi menumpang kolom A, karena kolom itu teks.
         $this->assertStringNotContainsString('EDATE(A', $this->script);
-
-        $start = strpos($this->script, 'function buildCashChart(');
-        $this->assertNotFalse($start, 'buildCashChart tidak ditemukan.');
-        $chart = substr($this->script, $start);
-
-        // Apps Script menunda penulisan: tanpa flush, grafik dibangun saat tab
-        // Rekap masih kosong dan tidak menemukan satu pun seri.
-        $flushAt = strpos($chart, 'SpreadsheetApp.flush();');
-        $buildAt = strpos($chart, '.asColumnChart()');
-
-        $this->assertNotFalse($flushAt, 'SpreadsheetApp.flush() tidak dipanggil sebelum grafik dibuat.');
-        $this->assertLessThan($buildAt, $flushAt, 'flush() harus dijalankan sebelum grafik dibangun.');
-
-        // Jumlah baris judul dan kolom sumbu dinyatakan, bukan ditebak.
-        $this->assertStringContainsString('.setNumHeaders(1)', $chart);
-        $this->assertStringContainsString("setOption('useFirstColumnAsDomain', true)", $chart);
     }
 
-    public function test_chart_is_created_after_data_arrives_and_never_replaces_your_own(): void
+    public function test_the_script_never_deletes_a_chart(): void
     {
-        // Saat Setup berjalan, tab Arus Kas baru dikosongkan sehingga seluruh
-        // angka Rekap masih nol. Grafik yang lahir di keadaan itu tidak
-        // menemukan seri apa pun, jadi pembuatannya menunggu data masuk.
+        // Grafik arus kas dipasang manual oleh pemilik spreadsheet setelah
+        // pembuatan lewat EmbeddedChartBuilder berkali-kali hanya menghasilkan
+        // kotak kosong. Karena itu tidak boleh ada satu pun jalur kode yang
+        // menghapus grafik — sekali terhapus, harus dipasang ulang manual.
+        $this->assertStringNotContainsString('removeChart', $this->script);
+
+        // Petunjuk pemasangan hanya tampil selagi grafiknya belum ada.
+        $chart = substr($this->script, strpos($this->script, 'function buildCashChart('));
+        $this->assertStringContainsString('if (sheet.getCharts().length > 0) {', $chart);
+        $this->assertStringContainsString('Insert > Chart', $chart);
+
+        // Dipanggil dari dua sisi supaya petunjuknya muncul dan hilang tepat waktu.
         $syncAll = substr($this->script, strpos($this->script, 'function handleSyncAll('));
         $this->assertStringContainsString('buildCashChart(ss);', $syncAll);
-
-        $dashboard = substr(
-            $this->script,
-            strpos($this->script, 'function setupDashboardSheet('),
-            strpos($this->script, 'function setupDataOrderSheet(') - strpos($this->script, 'function setupDashboardSheet(')
-        );
-        $this->assertStringNotContainsString('buildCashChart(', $dashboard);
-
-        $chart = substr($this->script, strpos($this->script, 'function buildCashChart('));
-
-        // Grafik yang sudah ada dibiarkan, termasuk yang dibuat sendiri lewat
-        // Insert > Chart — menata ulang tampilan tidak boleh menghapusnya.
-        $this->assertStringContainsString('if (sheet.getCharts().length > 0) { return; }', $chart);
-
-        // Kegagalannya harus terlihat, bukan ditelan blok catch kosong.
-        $this->assertStringContainsString('Grafik gagal dibuat: ', $chart);
     }
 
     public function test_data_rows_share_one_height_across_every_tab(): void
