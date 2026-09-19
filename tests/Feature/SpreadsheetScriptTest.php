@@ -141,16 +141,28 @@ class SpreadsheetScriptTest extends TestCase
         $this->assertStringContainsString("setOption('useFirstColumnAsDomain', true)", $chart);
     }
 
-    public function test_chart_is_rebuilt_after_data_arrives_not_only_during_setup(): void
+    public function test_chart_is_created_after_data_arrives_and_never_replaces_your_own(): void
     {
         // Saat Setup berjalan, tab Arus Kas baru dikosongkan sehingga seluruh
-        // angka Rekap masih nol. Grafik yang lahir di keadaan itu bisa gagal
-        // menyimpulkan serinya, jadi ia dibangun ulang begitu data masuk.
+        // angka Rekap masih nol. Grafik yang lahir di keadaan itu tidak
+        // menemukan seri apa pun, jadi pembuatannya menunggu data masuk.
         $syncAll = substr($this->script, strpos($this->script, 'function handleSyncAll('));
         $this->assertStringContainsString('buildCashChart(ss);', $syncAll);
 
-        // Kegagalannya harus terlihat, bukan ditelan blok catch kosong.
+        $dashboard = substr(
+            $this->script,
+            strpos($this->script, 'function setupDashboardSheet('),
+            strpos($this->script, 'function setupDataOrderSheet(') - strpos($this->script, 'function setupDashboardSheet(')
+        );
+        $this->assertStringNotContainsString('buildCashChart(', $dashboard);
+
         $chart = substr($this->script, strpos($this->script, 'function buildCashChart('));
+
+        // Grafik yang sudah ada dibiarkan, termasuk yang dibuat sendiri lewat
+        // Insert > Chart — menata ulang tampilan tidak boleh menghapusnya.
+        $this->assertStringContainsString('if (sheet.getCharts().length > 0) { return; }', $chart);
+
+        // Kegagalannya harus terlihat, bukan ditelan blok catch kosong.
         $this->assertStringContainsString('Grafik gagal dibuat: ', $chart);
     }
 

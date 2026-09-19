@@ -12,7 +12,7 @@
  * yang ada di aplikasi — penyebab paling sering tampilan sheet terlihat lama.
  * Naikkan setiap kali berkas ini diubah.
  */
-var SCRIPT_VERSION = '2026-09-19.8';
+var SCRIPT_VERSION = '2026-09-19.9';
 
 /**
  * Tinggi baris data di seluruh tab. Baris judul, banner, dan kartu KPI punya
@@ -172,27 +172,29 @@ var CLR = {
 /* ========================================================================== */
 
 /**
- * Bangun ulang grafik batang di Dashboard dari tab Rekap Bulanan.
+ * Buat grafik batang di Dashboard dari tab Rekap Bulanan — hanya bila belum ada.
  *
- * Dipisah dan dipanggil dua kali — sekali saat menata ulang tampilan, sekali
- * lagi setelah data masuk. Saat Setup berjalan, tab Arus Kas baru saja
- * dikosongkan sehingga seluruh angka Rekap masih nol; grafik yang dibuat di
- * keadaan itu bisa gagal menyimpulkan seri datanya dan hanya menyisakan judul.
+ * Dipanggil di akhir sinkronisasi, bukan saat menata ulang tampilan. Waktu
+ * Setup berjalan, tab Arus Kas baru saja dikosongkan sehingga seluruh angka
+ * Rekap masih nol, dan grafik yang lahir di keadaan itu tidak menemukan seri
+ * apa pun — yang tersisa hanya judulnya.
  *
- * Pilihan opsinya sengaja dibuat sekonvensional mungkin: jumlah baris judul
- * dinyatakan eksplisit (tidak ditebak), kolom pertama ditegaskan sebagai sumbu,
- * dan tata letak dalamnya diserahkan ke Google.
+ * `setNumHeaders(1)` adalah kuncinya: tanpa itu baris judul kolom ikut terbaca
+ * sebagai data, sehingga kolom angkanya disimpulkan sebagai kolom teks dan
+ * tidak ada satu pun seri yang terbentuk. Grafik bawaan Google mengenali baris
+ * judul itu sendiri, makanya Insert > Chart berhasil sementara ini tidak.
  */
 function buildCashChart(ss) {
   var sheet = ss.getSheetByName('Dashboard');
   var rekapSheet = ss.getSheetByName('Rekap Bulanan');
   if (!sheet || !rekapSheet) { return; }
 
+  // Grafik yang sudah ada dibiarkan — termasuk kalau Anda menggantinya sendiri
+  // lewat Insert > Chart. Menata ulang tampilan tidak akan menghapusnya lagi.
+  if (sheet.getCharts().length > 0) { return; }
+
   // Rumus Rekap harus sudah benar-benar tertulis sebelum grafik membacanya.
   SpreadsheetApp.flush();
-
-  var existing = sheet.getCharts();
-  for (var i = 0; i < existing.length; i++) { sheet.removeChart(existing[i]); }
 
   try {
     var chart = sheet.newChart()
@@ -506,7 +508,12 @@ function setupDashboardSheet(sheet, rekapSheet) {
   sheet.setRowHeight(28, 14);
   for (var gr = 29; gr <= 40; gr++) { sheet.setRowHeight(gr, ROW_H); }
 
-  buildCashChart(sheet.getParent());
+  // Grafik sengaja TIDAK dibuat di sini. Saat menata ulang, tab Arus Kas baru
+  // dikosongkan sehingga seluruh angka Rekap masih nol — grafik yang lahir di
+  // keadaan itu tidak menemukan seri apa pun. Ia dibuat di akhir sinkronisasi,
+  // ketika datanya sudah ada.
+  var oldCharts = sheet.getCharts();
+  for (var oc = 0; oc < oldCharts.length; oc++) { sheet.removeChart(oldCharts[oc]); }
 
   /* ── ROW 47: KETERANGAN WAKTU ──────────────────────────────────────────── */
   sheet.setRowHeight(41, 10);
