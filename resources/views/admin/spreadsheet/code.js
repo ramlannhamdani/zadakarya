@@ -12,7 +12,7 @@
  * yang ada di aplikasi — penyebab paling sering tampilan sheet terlihat lama.
  * Naikkan setiap kali berkas ini diubah.
  */
-var SCRIPT_VERSION = '2026-09-19';
+var SCRIPT_VERSION = '2026-09-19.2';
 
 /* ========================================================================== */
 /* WEBHOOK HANDLERS                                                            */
@@ -72,6 +72,17 @@ function doGet(e) {
 
 function respondJSON(obj) {
   obj.version = SCRIPT_VERSION;
+
+  // Alamat spreadsheet ikut dilaporkan supaya panel admin bisa menautkannya
+  // langsung. URL webhook tidak memuat id spreadsheet, jadi hanya skrip ini —
+  // yang memang terpasang di dalamnya — yang tahu alamatnya.
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    if (ss) {
+      obj.sheet_url = ss.getUrl();
+      obj.sheet_name = ss.getName();
+    }
+  } catch (e) {}
 
   return ContentService.createTextOutput(JSON.stringify(obj))
     .setMimeType(ContentService.MimeType.JSON);

@@ -238,6 +238,34 @@ class SpreadsheetAccuracyTest extends TestCase
             ->assertSee('New version', false);
     }
 
+    public function test_panel_links_to_the_spreadsheet_the_script_reports(): void
+    {
+        $url = 'https://docs.google.com/spreadsheets/d/1AbCdEf_zadakarya/edit';
+
+        // Sebelum skrip melaporkannya, aplikasi memang belum tahu alamatnya:
+        // URL webhook tidak memuat id spreadsheet.
+        $this->actingAs($this->admin)->get(route('admin.spreadsheet.index'))
+            ->assertOk()
+            ->assertDontSee('docs.google.com/spreadsheets', false) // belum ada tautan
+            ->assertSee('dilaporkan', false);                      // tapi ada penjelasannya
+
+        Http::fake([self::WEBHOOK => Http::response([
+            'status' => 'success',
+            'version' => \App\Support\GoogleAppsScriptCode::version(),
+            'sheet_url' => $url,
+            'sheet_name' => 'Laporan Zada Karya',
+        ], 200)]);
+
+        $this->actingAs($this->admin)->post(route('admin.spreadsheet.test'))->assertRedirect();
+        $this->assertSame($url, Setting::get('google_sheet_url'));
+
+        $this->actingAs($this->admin)->get(route('admin.spreadsheet.index'))
+            ->assertOk()
+            ->assertSee('Buka Spreadsheet', false)
+            ->assertSee(e($url), false)
+            ->assertSee('Laporan Zada Karya', false);
+    }
+
     public function test_no_version_warning_when_both_sides_match(): void
     {
         $appVersion = \App\Support\GoogleAppsScriptCode::version();

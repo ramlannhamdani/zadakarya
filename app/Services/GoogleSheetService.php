@@ -61,7 +61,7 @@ class GoogleSheetService
 
                 if ($isOk) {
                     Setting::set('google_sheet_last_connected_at', now()->toIso8601String());
-                    Setting::set('google_sheet_script_version', $body['version'] ?? '');
+                    $this->rememberScriptInfo($body);
 
                     return [
                         'success' => true,
@@ -361,6 +361,28 @@ class GoogleSheetService
      * Sinkronisasi yang gagal dicatat supaya panel bisa memberi tahu bahwa
      * spreadsheet sedang tertinggal — dulu kegagalan hilang tanpa jejak.
      */
+    /**
+     * Simpan keterangan yang dilaporkan skrip: versinya, dan alamat spreadsheet
+     * tempat ia terpasang. URL webhook tidak memuat id spreadsheet, jadi ini
+     * satu-satunya cara aplikasi tahu harus menautkan ke mana.
+     */
+    protected function rememberScriptInfo(mixed $body): void
+    {
+        if (! is_array($body)) {
+            return;
+        }
+
+        foreach ([
+            'version' => 'google_sheet_script_version',
+            'sheet_url' => 'google_sheet_url',
+            'sheet_name' => 'google_sheet_name',
+        ] as $key => $setting) {
+            if (! empty($body[$key])) {
+                Setting::set($setting, (string) $body[$key]);
+            }
+        }
+    }
+
     protected function rememberFailure(string $message): void
     {
         Setting::set('google_sheet_last_error', $message);
@@ -398,10 +420,7 @@ class GoogleSheetService
 
                 if ($isSuccess || $response->status() === 200) {
                     $this->forgetFailure();
-
-                    if (is_array($body) && ! empty($body['version'])) {
-                        Setting::set('google_sheet_script_version', $body['version']);
-                    }
+                    $this->rememberScriptInfo($body);
 
                     return [
                         'success' => true,

@@ -27,6 +27,8 @@ class SpreadsheetController extends Controller
             'lastErrorAt' => Setting::get('google_sheet_last_error_at') ?: null,
             'appScriptVersion' => GoogleAppsScriptCode::version(),
             'liveScriptVersion' => Setting::get('google_sheet_script_version') ?: null,
+            'sheetUrl' => Setting::get('google_sheet_url') ?: null,
+            'sheetName' => Setting::get('google_sheet_name') ?: null,
             'orderCount' => Order::count(),
             'costCount' => OrderCost::count(),
             'paymentCount' => Payment::count(),

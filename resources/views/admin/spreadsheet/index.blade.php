@@ -47,6 +47,14 @@
                         </div>
                     @endif
 
+                    @if($isConnected && ! $sheetUrl)
+                        <p class="mt-3 rounded-lg bg-cream px-3.5 py-2.5 text-xs text-neutral-600">
+                            Tombol <strong>Buka Spreadsheet</strong> muncul setelah skrip versi {{ $appScriptVersion }}
+                            terpasang dan Anda menekan <strong>Tes Koneksi</strong> — alamat spreadsheet dilaporkan
+                            oleh skripnya, bukan tersimpan di URL webhook.
+                        </p>
+                    @endif
+
                     {{-- Kegagalan sinkron dulu hilang tanpa jejak: spreadsheet bisa
                          tertinggal berhari-hari tanpa satu pun tanda di panel. --}}
                     @if($lastError)
@@ -65,6 +73,18 @@
 
             {{-- Action Form Buttons (Direct Native HTML Forms for 100% Reliability) --}}
             <div class="flex flex-wrap items-center gap-2">
+                @if($sheetUrl)
+                    <a href="{{ $sheetUrl }}" target="_blank" rel="noopener"
+                       title="{{ $sheetName ? 'Buka '.$sheetName : 'Buka spreadsheet yang terhubung' }}"
+                       class="inline-flex items-center gap-1.5 rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-800 transition hover:bg-emerald-100">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3.375 19.5h17.25M3.375 19.5a1.125 1.125 0 01-1.125-1.125M3.375 19.5h7.5c.621 0 1.125-.504 1.125-1.125m-9.75 0V5.625m19.5 12.75c0 .621-.504 1.125-1.125 1.125m1.125-1.125V5.625m-18.375 0c0-.621.504-1.125 1.125-1.125h16.125c.621 0 1.125.504 1.125 1.125M3.375 9.75h18.375M3.375 14.25h18.375M9.75 5.625v12.75M15.75 5.625v12.75"/>
+                        </svg>
+                        <span>Buka Spreadsheet</span>
+                        <svg class="h-3 w-3 opacity-70" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"/></svg>
+                    </a>
+                @endif
+
                 @if($isConnected)
                     <form method="POST" action="{{ route('admin.spreadsheet.test') }}" class="inline">
                         @csrf
@@ -165,7 +185,7 @@
                 <p class="text-xs text-neutral-500">Pakai petunjuk ini saat menyiapkan spreadsheet baru, dan setiap kali versi kode di bawah berubah &mdash; memperbarui aplikasi tidak ikut memperbarui skrip di akun Google Anda.</p>
             </div>
             <a href="https://sheets.new" target="_blank" class="inline-flex items-center gap-1.5 rounded-lg border border-line bg-cream px-3 py-1.5 text-xs font-bold text-ink transition hover:bg-white">
-                <span>Buka Google Sheets Baru</span>
+                <span>Buat Spreadsheet Baru</span>
                 <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"/></svg>
             </a>
         </div>
