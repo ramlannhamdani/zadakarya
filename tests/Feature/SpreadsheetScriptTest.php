@@ -113,6 +113,27 @@ class SpreadsheetScriptTest extends TestCase
         $this->assertGreaterThan(16, $anchorRow, 'Grafik harus di bawah tabel HPP, bukan di sampingnya.');
     }
 
+    public function test_chart_gets_a_text_month_axis_and_data_that_is_already_written(): void
+    {
+        // Sumbu tanggal membuat grafik kolom memakai skala kontinu sepanjang
+        // setahun; batangnya menipis sampai tak terlihat. Label bulan harus teks.
+        $this->assertStringContainsString('MONTHS_ID[m - 1]', $this->script);
+        $this->assertStringNotContainsString("'=DATE(' + yr + ',' + m + ',1)'", $this->script);
+        $this->assertStringNotContainsString("setNumberFormat('mmmm yyyy')", $this->script);
+
+        // Batas bulan tidak boleh lagi menumpang kolom A, karena kolom itu teks.
+        $this->assertStringNotContainsString('EDATE(A', $this->script);
+
+        // Apps Script menunda penulisan: tanpa flush, grafik dibangun saat tab
+        // Rekap masih kosong dan tidak menemukan satu pun seri.
+        $chart = substr($this->script, strpos($this->script, 'if (rekapSheet) {'));
+        $flushAt = strpos($chart, 'SpreadsheetApp.flush();');
+        $buildAt = strpos($chart, '.asColumnChart()');
+
+        $this->assertNotFalse($flushAt, 'SpreadsheetApp.flush() tidak dipanggil sebelum grafik dibuat.');
+        $this->assertLessThan($buildAt, $flushAt, 'flush() harus dijalankan sebelum grafik dibangun.');
+    }
+
     public function test_data_rows_share_one_height_across_every_tab(): void
     {
         preg_match('/var ROW_H = (\d+);/', $this->script, $m);

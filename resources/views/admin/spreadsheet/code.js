@@ -12,13 +12,17 @@
  * yang ada di aplikasi — penyebab paling sering tampilan sheet terlihat lama.
  * Naikkan setiap kali berkas ini diubah.
  */
-var SCRIPT_VERSION = '2026-09-19.6';
+var SCRIPT_VERSION = '2026-09-19.7';
 
 /**
  * Tinggi baris data di seluruh tab. Baris judul, banner, dan kartu KPI punya
  * tingginya sendiri karena isinya memang berbeda.
  */
 var ROW_H = 28;
+
+/** Nama bulan ditulis sendiri karena locale spreadsheet dipaksa en_US. */
+var MONTHS_ID = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+                 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
 
 /* ========================================================================== */
 /* WEBHOOK HANDLERS                                                            */
@@ -451,6 +455,11 @@ function setupDashboardSheet(sheet, rekapSheet) {
 
   if (rekapSheet) {
     try {
+      // Apps Script menunda penulisan ke sheet. Tanpa flush, grafik dibangun
+      // saat tab Rekap masih kosong sehingga tidak menemukan satu pun seri —
+      // hasilnya kotak putih berisi judul saja, tanpa sumbu dan tanpa legenda.
+      SpreadsheetApp.flush();
+
       var chart = sheet.newChart()
         .asColumnChart()
         .addRange(rekapSheet.getRange('A3:C15'))
@@ -699,21 +708,29 @@ function setupRekapBulananSheet(sheet) {
   var yr = new Date().getFullYear();
   var rows = [];
 
+  // Kolom Bulan diisi TEKS, bukan tanggal. Grafik kolom yang sumbunya berisi
+  // tanggal diperlakukan sebagai sumbu kontinu sepanjang setahun, sehingga
+  // batangnya menipis sampai tak terlihat — itu sebabnya grafik tampak kosong.
+  // Batas bulannya sekarang ditulis eksplisit, tidak lagi menumpang kolom A.
   for (var m = 1; m <= 12; m++) {
     var r = 3 + m;
+    var from = 'DATE(' + yr + ',' + m + ',1)';
+    var to = 'DATE(' + yr + ',' + (m + 1) + ',1)'; // DATE(th,13,1) = Januari tahun berikutnya
+
     rows.push([
-      '=DATE(' + yr + ',' + m + ',1)',
-      "=SUMIFS('Arus Kas'!$F$4:$F,'Arus Kas'!$A$4:$A,\">=\"&A" + r + ",'Arus Kas'!$A$4:$A,\"<\"&EDATE(A" + r + ",1))",
-      "=SUMIFS('Arus Kas'!$G$4:$G,'Arus Kas'!$A$4:$A,\">=\"&A" + r + ",'Arus Kas'!$A$4:$A,\"<\"&EDATE(A" + r + ",1))",
+      MONTHS_ID[m - 1] + ' ' + yr,
+      "=SUMIFS('Arus Kas'!$F$4:$F,'Arus Kas'!$A$4:$A,\">=\"&" + from + ",'Arus Kas'!$A$4:$A,\"<\"&" + to + ")",
+      "=SUMIFS('Arus Kas'!$G$4:$G,'Arus Kas'!$A$4:$A,\">=\"&" + from + ",'Arus Kas'!$A$4:$A,\"<\"&" + to + ")",
       '=B' + r + '-C' + r,
-      "=SUMIFS('Data Order'!$G$4:$G,'Data Order'!$A$4:$A,\">=\"&A" + r + ",'Data Order'!$A$4:$A,\"<\"&EDATE(A" + r + ",1))",
-      "=SUMIFS('Data Order'!$K$4:$K,'Data Order'!$A$4:$A,\">=\"&A" + r + ",'Data Order'!$A$4:$A,\"<\"&EDATE(A" + r + ",1))",
-      "=SUMIFS('Data Order'!$L$4:$L,'Data Order'!$A$4:$A,\">=\"&A" + r + ",'Data Order'!$A$4:$A,\"<\"&EDATE(A" + r + ",1))"
+      "=SUMIFS('Data Order'!$G$4:$G,'Data Order'!$A$4:$A,\">=\"&" + from + ",'Data Order'!$A$4:$A,\"<\"&" + to + ")",
+      "=SUMIFS('Data Order'!$K$4:$K,'Data Order'!$A$4:$A,\">=\"&" + from + ",'Data Order'!$A$4:$A,\"<\"&" + to + ")",
+      "=SUMIFS('Data Order'!$L$4:$L,'Data Order'!$A$4:$A,\">=\"&" + from + ",'Data Order'!$A$4:$A,\"<\"&" + to + ")"
     ]);
   }
 
-  sheet.getRange(4, 1, rows.length, hdrs.length).setFormulas(rows);
-  sheet.getRange('A4:A15').setNumberFormat('mmmm yyyy');
+  // setValues, bukan setFormulas: kolom pertama kini teks biasa.
+  sheet.getRange(4, 1, rows.length, hdrs.length).setValues(rows);
+  sheet.getRange('A4:A15').setHorizontalAlignment('left');
   sheet.getRange('B4:G15').setNumberFormat('"Rp"#,##0');
 
   // Alternating row colors
