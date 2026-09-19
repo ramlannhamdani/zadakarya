@@ -12,7 +12,13 @@
  * yang ada di aplikasi — penyebab paling sering tampilan sheet terlihat lama.
  * Naikkan setiap kali berkas ini diubah.
  */
-var SCRIPT_VERSION = '2026-09-19.4';
+var SCRIPT_VERSION = '2026-09-19.6';
+
+/**
+ * Tinggi baris data di seluruh tab. Baris judul, banner, dan kartu KPI punya
+ * tingginya sendiri karena isinya memang berbeda.
+ */
+var ROW_H = 28;
 
 /* ========================================================================== */
 /* WEBHOOK HANDLERS                                                            */
@@ -265,7 +271,7 @@ function setupDashboardSheet(sheet, rekapSheet) {
       cards: [
         { col: 'A', label: 'Saldo Kas Saat Ini',
           formula: "=IFERROR(SUM('Arus Kas'!F4:F)-SUM('Arus Kas'!G4:G),0)",
-          bg: CLR.blueCard, fg: CLR.blue, fmt: '"Rp"#,##0' },
+          bg: CLR.blueCard, fg: CLR.blue, fmt: '"Rp"#,##0;[Red]-"Rp"#,##0' },
         { col: 'C', label: 'Kas Masuk Bulan Ini',
           formula: "=IFERROR(SUMIFS('Arus Kas'!F4:F,'Arus Kas'!A4:A,\">=\"&EOMONTH(TODAY(),-1)+1,'Arus Kas'!A4:A,\"<=\"&EOMONTH(TODAY(),0)),0)",
           bg: CLR.greenCard, fg: CLR.green, fmt: '"Rp"#,##0' },
@@ -274,7 +280,7 @@ function setupDashboardSheet(sheet, rekapSheet) {
           bg: CLR.redCard, fg: CLR.red, fmt: '"Rp"#,##0' },
         { col: 'G', label: 'Arus Kas Bersih Bulan Ini',
           formula: '=C4-E4',
-          bg: CLR.slateCard, fg: CLR.slate, fmt: '"Rp"#,##0' }
+          bg: CLR.slateCard, fg: CLR.slate, fmt: '"Rp"#,##0;[Red]-"Rp"#,##0' }
       ]
     },
     {
@@ -288,7 +294,7 @@ function setupDashboardSheet(sheet, rekapSheet) {
           bg: CLR.blueCard, fg: CLR.blue, fmt: '"Rp"#,##0' },
         { col: 'E', label: 'Estimasi Laba Kotor',
           formula: "=IFERROR(SUM('Data Order'!K4:K),0)",
-          bg: CLR.greenCard, fg: CLR.green, fmt: '"Rp"#,##0' },
+          bg: CLR.greenCard, fg: CLR.green, fmt: '"Rp"#,##0;[Red]-"Rp"#,##0' },
         { col: 'G', label: 'Margin Keuntungan',
           formula: '=IFERROR(IF(C7>0,E7/C7,0),0)',
           bg: CLR.purpleCard, fg: CLR.purple, fmt: '0.0%' }
@@ -310,114 +316,145 @@ function setupDashboardSheet(sheet, rekapSheet) {
         .setFontSize(9).setFontWeight('bold').setFontColor(CLR.gray2).setBackground(k.bg)
         .setHorizontalAlignment('center').setVerticalAlignment('middle');
 
-      var value = sheet.getRange(k.col + group.valueRow + ':' + right + group.valueRow).merge()
+      sheet.getRange(k.col + group.valueRow + ':' + right + group.valueRow).merge()
         .setFormula(k.formula)
         .setFontSize(17).setFontWeight('bold').setFontColor(k.fg).setBackground(k.bg)
         .setHorizontalAlignment('center').setVerticalAlignment('middle')
-        .setNumberFormat(k.fmt);
-
-      value.setBorder(null, null, true, null, null, null, k.fg, SpreadsheetApp.BorderStyle.SOLID_THICK);
+        .setNumberFormat(k.fmt)
+        .setBorder(null, null, true, null, null, null, k.fg, SpreadsheetApp.BorderStyle.SOLID_THICK);
     }
   }
 
   sheet.setRowHeight(5, 12);
   sheet.setRowHeight(8, 18);
 
-  // ── ROW 9–16: KOMPOSISI HPP (kiri) & RINGKASAN PESANAN (kanan) ───────────
+  /* ── ROW 9–16: KOMPOSISI HPP (kiri) & RINGKASAN PESANAN (kanan) ────────── */
+
   sheet.setRowHeight(9, 26);
-  sheet.getRange('A9:E9').merge()
-    .setValue('KOMPOSISI BIAYA PRODUKSI (HPP)')
+  sheet.getRange('A9:D9').merge()
+    .setValue('KOMPOSISI BIAYA PRODUKSI (HPP)  —  terbesar di atas')
     .setFontSize(10).setFontWeight('bold').setFontColor(CLR.white).setBackground(CLR.blue)
     .setHorizontalAlignment('left').setVerticalAlignment('middle').setWrap(false);
-  sheet.getRange('F9:H9').merge()
+  sheet.getRange('E9:H9').merge()
     .setValue('RINGKASAN PESANAN')
     .setFontSize(10).setFontWeight('bold').setFontColor(CLR.white).setBackground(CLR.slate)
     .setHorizontalAlignment('left').setVerticalAlignment('middle').setWrap(false);
 
   sheet.setRowHeight(10, 24);
-  sheet.getRange(10, 1, 1, 5).setValues([['Kategori HPP', 'Termasuk Apa Saja', 'Total Biaya', '% Porsi', 'Perbandingan']])
+  sheet.getRange(10, 1, 1, 4).setValues([['Kategori HPP', 'Total Biaya', '% Porsi', 'Perbandingan']])
     .setFontSize(9).setFontWeight('bold').setFontColor(CLR.navy).setBackground(CLR.blueLight)
     .setHorizontalAlignment('center').setVerticalAlignment('middle');
 
-  // Label kategori HARUS sama persis dengan App\Models\OrderCost::CATEGORIES.
-  // Kalau meleset, SUMIF-nya diam-diam menghasilkan Rp0 — pernah terjadi pada
-  // "Jasa Makloon". Ada tes yang menjaga kedua daftar ini tetap sama.
-  var cats = [
-    ['Kain & Bahan Baku',            'Kain utama, rib, furing, kerah'],
-    ['Upah CMT / Jahit',             'Upah jahit, cutting, pola, finishing'],
-    ['Jasa Makloon (Bordir/Sablon)', 'Bordir, sablon DTF, plastisol'],
-    ['Aksesoris & Trims',            'Kancing, resleting, label woven, hangtag'],
-    ['Packing & Operasional',        'Plastik, lakban, kurir, operasional']
-  ];
+  // Kategori dibaca langsung dari datanya dan diurutkan dari biaya terbesar,
+  // bukan dari daftar tetap di dalam kode. Selain menjawab "biaya paling besar
+  // apa", ini juga menghapus seluruh kemungkinan label meleset — dulu "Jasa
+  // Makloon" tidak cocok dengan label Laravel dan diam-diam tampil Rp0.
+  // A11 meluber ke A11:B15; JANGAN isi sel di rentang itu atau rumusnya gagal.
+  sheet.getRange('A11').setFormula(
+    '=IFERROR(QUERY(\'Rincian Biaya HPP\'!A4:I,'
+    + '"select C, sum(H) where C is not null group by C order by sum(H) desc limit 5 label sum(H) \'\'",0),"")'
+  );
 
-  for (var k2 = 0; k2 < cats.length; k2++) {
-    var rr = 11 + k2;
-    sheet.setRowHeight(rr, 30);
-    var rowBg = (k2 % 2 === 0) ? CLR.rowOdd : CLR.rowEven;
+  for (var r = 11; r <= 15; r++) {
+    sheet.setRowHeight(r, ROW_H);
+    var rowBg = (r % 2 === 1) ? CLR.rowOdd : CLR.rowEven;
+    sheet.getRange(r, 1, 1, 4).setBackground(rowBg).setVerticalAlignment('middle');
 
-    sheet.getRange(rr, 1, 1, 5).setBackground(rowBg).setVerticalAlignment('middle');
-
-    sheet.getRange(rr, 1).setValue(cats[k2][0])
-      .setFontSize(9).setFontWeight('bold').setWrap(true);
-    sheet.getRange(rr, 2).setValue(cats[k2][1])
-      .setFontSize(8).setFontColor(CLR.gray2).setWrap(true);
-    sheet.getRange(rr, 3)
-      .setFormula("=IFERROR(SUMIF('Rincian Biaya HPP'!C4:C,\"" + cats[k2][0] + "\",'Rincian Biaya HPP'!H4:H),0)")
-      .setFontSize(9).setFontWeight('bold').setNumberFormat('"Rp"#,##0');
-    sheet.getRange(rr, 4)
-      .setFormula('=IFERROR(IF($C$16>0,C' + rr + '/$C$16,0),0)')
+    sheet.getRange(r, 1).setFontSize(9).setFontWeight('bold').setWrap(false);
+    sheet.getRange(r, 2).setFontSize(9).setFontWeight('bold').setNumberFormat('"Rp"#,##0');
+    sheet.getRange(r, 3)
+      .setFormula('=IFERROR(IF($B$16>0,B' + r + '/$B$16,""),"")')
       .setFontSize(9).setNumberFormat('0.0%').setHorizontalAlignment('center');
-    sheet.getRange(rr, 5)
-      .setFormula('=IFERROR(SPARKLINE(C' + rr + ',{"charttype","bar";"max",MAX($C$11:$C$15);"color1","' + CLR.blue + '"}),"")');
+    sheet.getRange(r, 4)
+      .setFormula('=IFERROR(SPARKLINE(B' + r + ',{"charttype","bar";"max",MAX($B$11:$B$15);"color1","' + CLR.blue + '"}),"")');
   }
 
   sheet.setRowHeight(16, 26);
-  sheet.getRange('A16:B16').merge().setValue('TOTAL BIAYA HPP')
+  sheet.getRange('A16').setValue('TOTAL BIAYA HPP')
     .setFontSize(9).setFontWeight('bold').setFontColor(CLR.white)
     .setBackground(CLR.blue).setHorizontalAlignment('right').setVerticalAlignment('middle');
-  sheet.getRange('C16').setFormula('=SUM(C11:C15)')
+  sheet.getRange('B16').setFormula('=IFERROR(SUM(B11:B15),0)')
     .setFontSize(10).setFontWeight('bold').setFontColor(CLR.white)
     .setBackground(CLR.blue).setNumberFormat('"Rp"#,##0');
-  // Jumlah porsinya, bukan dibagi sel kosong seperti sebelumnya (selalu 0,0%).
-  sheet.getRange('D16').setFormula('=IFERROR(SUM(D11:D15),0)')
+  sheet.getRange('C16').setFormula('=IFERROR(SUM(C11:C15),0)')
     .setFontSize(9).setFontWeight('bold').setFontColor(CLR.white)
     .setBackground(CLR.blue).setNumberFormat('0.0%').setHorizontalAlignment('center');
-  sheet.getRange('E16').setBackground(CLR.blue);
+  sheet.getRange('D16').setBackground(CLR.blue);
 
-  // Ringkasan pesanan mengisi ruang kosong di kanan tabel HPP.
   var summary = [
-    ['Jumlah Pesanan',      "=IFERROR(COUNTA('Data Order'!B4:B),0)",                                  '#,##0'],
-    ['Masih Berjalan',      "=IFERROR(COUNTIF('Data Order'!M4:M,\"Aktif*\"),0)",                      '#,##0'],
-    ['Sudah Selesai',       "=IFERROR(COUNTIF('Data Order'!M4:M,\"Selesai*\"),0)",                    '#,##0'],
-    ['Sudah Lunas',         "=IFERROR(COUNTIFS('Data Order'!B4:B,\"<>\",'Data Order'!L4:L,0),0)",     '#,##0'],
-    ['Rata-rata Nilai Order', "=IFERROR(AVERAGE('Data Order'!G4:G),0)",                               '"Rp"#,##0']
+    ['Jumlah Pesanan',        "=IFERROR(COUNTA('Data Order'!B4:B),0)",                              '#,##0'],
+    ['Masih Berjalan',        "=IFERROR(COUNTIF('Data Order'!M4:M,\"Aktif*\"),0)",                  '#,##0'],
+    ['Sudah Selesai',         "=IFERROR(COUNTIF('Data Order'!M4:M,\"Selesai*\"),0)",                '#,##0'],
+    ['Sudah Lunas',           "=IFERROR(COUNTIFS('Data Order'!B4:B,\"<>\",'Data Order'!L4:L,0),0)", '#,##0'],
+    ['Rata-rata Nilai Order', "=IFERROR(AVERAGE('Data Order'!G4:G),0)",                             '"Rp"#,##0']
   ];
 
   for (var s = 0; s < summary.length; s++) {
     var sr = 11 + s;
-    var sBg = (s % 2 === 0) ? CLR.rowOdd : CLR.rowEven;
+    var sBg = (sr % 2 === 1) ? CLR.rowOdd : CLR.rowEven;
 
-    sheet.getRange(sr, 6, 1, 3).setBackground(sBg).setVerticalAlignment('middle');
-    sheet.getRange('F' + sr + ':G' + sr).merge().setValue(summary[s][0])
+    sheet.getRange(sr, 5, 1, 4).setBackground(sBg).setVerticalAlignment('middle');
+    sheet.getRange('E' + sr + ':G' + sr).merge().setValue(summary[s][0])
       .setFontSize(9).setFontColor(CLR.slate).setVerticalAlignment('middle');
     sheet.getRange('H' + sr).setFormula(summary[s][1])
       .setFontSize(10).setFontWeight('bold').setFontColor(CLR.slate)
       .setNumberFormat(summary[s][2]).setHorizontalAlignment('right').setVerticalAlignment('middle');
   }
-  sheet.getRange('F16:H16').merge().setBackground(CLR.slate);
+  sheet.getRange('E16:H16').merge().setBackground(CLR.slate);
 
-  // ── ROW 17–34: GRAFIK ────────────────────────────────────────────────────
-  // Dulu grafik ditaruh di samping tabel HPP dan menimpa baris keterangan
-  // waktu. Sekarang di bawahnya, selebar halaman, dengan baris yang disediakan.
+  /* ── ROW 18–27: MARGIN PER PESANAN ─────────────────────────────────────── */
+
   sheet.setRowHeight(17, 14);
-  for (var gr = 18; gr <= 34; gr++) { sheet.setRowHeight(gr, 20); }
+  sheet.setRowHeight(18, 26);
+  sheet.getRange('A18:H18').merge()
+    .setValue('MARGIN PER PESANAN  —  margin terbesar di atas')
+    .setFontSize(10).setFontWeight('bold').setFontColor(CLR.white).setBackground(CLR.green)
+    .setHorizontalAlignment('left').setVerticalAlignment('middle').setWrap(false);
+
+  sheet.setRowHeight(19, 24);
+  sheet.getRange(19, 1, 1, 6)
+    .setValues([['No. Order', 'Customer', 'Nilai Order', 'Total HPP', 'Estimasi Laba', 'Margin']])
+    .setFontSize(9).setFontWeight('bold').setFontColor(CLR.green).setBackground(CLR.greenLight)
+    .setHorizontalAlignment('center').setVerticalAlignment('middle');
+  sheet.getRange('G19:H19').merge().setValue('Perbandingan Margin')
+    .setFontSize(9).setFontWeight('bold').setFontColor(CLR.green).setBackground(CLR.greenLight)
+    .setHorizontalAlignment('center').setVerticalAlignment('middle');
+
+  // Pesanan tanpa nilai order dilewati supaya margin tidak dibagi nol.
+  // A20 meluber ke A20:F27; jangan isi sel di rentang itu.
+  sheet.getRange('A20').setFormula(
+    '=IFERROR(QUERY(\'Data Order\'!A4:N,'
+    + '"select B, C, G, J, K, K/G where B is not null and G > 0 order by K/G desc limit 8 label K/G \'\'",0),"")'
+  );
+
+  for (var mr = 20; mr <= 27; mr++) {
+    sheet.setRowHeight(mr, ROW_H);
+    var mBg = (mr % 2 === 0) ? CLR.rowOdd : CLR.rowEven;
+    sheet.getRange(mr, 1, 1, 8).setBackground(mBg).setVerticalAlignment('middle');
+
+    sheet.getRange(mr, 1).setFontSize(9).setFontWeight('bold').setFontColor(CLR.navy);
+    sheet.getRange(mr, 2).setFontSize(9);
+    sheet.getRange(mr, 3, 1, 2).setFontSize(9).setNumberFormat('"Rp"#,##0');
+    sheet.getRange(mr, 5).setFontSize(9).setNumberFormat('"Rp"#,##0;[Red]-"Rp"#,##0');
+    sheet.getRange(mr, 6).setFontSize(9).setFontWeight('bold')
+      .setNumberFormat('0.0%;[Red]-0.0%').setHorizontalAlignment('center');
+
+    sheet.getRange('G' + mr + ':H' + mr).merge()
+      .setFormula('=IFERROR(IF(F' + mr + '="","",SPARKLINE(MAX(F' + mr + ',0),'
+        + '{"charttype","bar";"max",MAX($F$20:$F$27);"color1","' + CLR.green + '"})),"")');
+  }
+
+  /* ── ROW 29–45: GRAFIK ─────────────────────────────────────────────────── */
+  // Grafik melayang di atas sel, jadi barisnya disediakan setinggi grafiknya.
+  sheet.setRowHeight(28, 14);
+  for (var gr = 29; gr <= 40; gr++) { sheet.setRowHeight(gr, ROW_H); }
 
   if (rekapSheet) {
     try {
       var chart = sheet.newChart()
         .asColumnChart()
         .addRange(rekapSheet.getRange('A3:C15'))
-        .setPosition(18, 1, 4, 0)
+        .setPosition(29, 1, 4, 0)
         .setOption('title', 'Kas Masuk vs Kas Keluar per Bulan')
         .setOption('titleTextStyle', { fontSize: 12, bold: true, color: CLR.navy })
         .setOption('legend', { position: 'top', alignment: 'start', textStyle: { fontSize: 10 } })
@@ -433,10 +470,10 @@ function setupDashboardSheet(sheet, rekapSheet) {
     } catch(e) {}
   }
 
-  // ── ROW 36: KETERANGAN WAKTU ─────────────────────────────────────────────
-  sheet.setRowHeight(35, 10);
-  sheet.setRowHeight(36, 20);
-  sheet.getRange('A36:H36').merge()
+  /* ── ROW 47: KETERANGAN WAKTU ──────────────────────────────────────────── */
+  sheet.setRowHeight(41, 10);
+  sheet.setRowHeight(42, 22);
+  sheet.getRange('A42:H42').merge()
     .setFormula('="Data terakhir diperbarui: "&TEXT(NOW(),"dd mmmm yyyy, HH:mm")&" WIB"')
     .setFontSize(9).setFontColor(CLR.gray2).setBackground(CLR.gray1)
     .setHorizontalAlignment('right').setVerticalAlignment('middle');
@@ -682,7 +719,7 @@ function setupRekapBulananSheet(sheet) {
   // Alternating row colors
   for (var ri = 4; ri <= 15; ri++) {
     var bg = (ri % 2 === 0) ? '#EBF3FB' : CLR.rowOdd;
-    sheet.setRowHeight(ri, 22);
+    sheet.setRowHeight(ri, ROW_H);
     sheet.getRange(ri, 1, 1, 7).setBackground(bg);
     sheet.getRange(ri, 1).setFontWeight('bold');
     sheet.getRange(ri, 4).setFontWeight('bold');
@@ -977,7 +1014,7 @@ function applyRowStripes(sheet, numCols) {
     .setFirstRowColor(CLR.rowOdd)
     .setSecondRowColor(CLR.rowEven);
 
-  sheet.setRowHeights(4, dataRowCount(sheet), 20);
+  sheet.setRowHeights(4, dataRowCount(sheet), ROW_H);
 }
 
 /**

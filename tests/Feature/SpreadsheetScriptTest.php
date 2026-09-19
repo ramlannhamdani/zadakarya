@@ -22,22 +22,40 @@ class SpreadsheetScriptTest extends TestCase
         $this->script = GoogleAppsScriptCode::getScript();
     }
 
-    public function test_dashboard_categories_match_the_ones_laravel_sends(): void
+    public function test_hpp_categories_come_from_the_data_and_are_ranked_by_size(): void
     {
-        preg_match('/var cats = \[(.*?)\];/s', $this->script, $block);
-        $this->assertNotEmpty($block, 'Daftar kategori di dashboard tidak ditemukan.');
+        // Dulu dashboard memakai daftar kategori tetap di dalam kode dan
+        // mencocokkannya dengan SUMIF. Begitu label Laravel berbunyi "Jasa
+        // Makloon (Bordir/Sablon)" sementara kode menulis "Jasa Makloon",
+        // kategori itu diam-diam tampil Rp0. Dibaca dari datanya, label tidak
+        // mungkin meleset lagi — dan sekaligus bisa diurutkan menurut besarnya.
+        $this->assertStringNotContainsString('var cats = [', $this->script);
 
-        preg_match_all("/\['([^']+)'/", $block[1], $found);
-        $inScript = $found[1];
+        preg_match('/getRange\(\'A11\'\)\.setFormula\((.*?)\);/s', $this->script, $m);
+        $this->assertNotEmpty($m, 'Rumus komposisi HPP tidak ditemukan.');
 
-        // SUMIF di dashboard mencocokkan label persis. Saat label Laravel berbunyi
-        // "Jasa Makloon (Bordir/Sablon)" sementara skrip menulis "Jasa Makloon",
-        // kategori itu diam-diam menampilkan Rp0 di laporan.
-        $this->assertEqualsCanonicalizing(
-            array_values(OrderCost::CATEGORIES),
-            $inScript,
-            'Label kategori HPP di code.js harus sama persis dengan OrderCost::CATEGORIES.'
-        );
+        $formula = $m[1];
+        $this->assertStringContainsString('Rincian Biaya HPP', $formula);
+        $this->assertStringContainsString('group by C', $formula);
+        $this->assertStringContainsString('order by sum(H) desc', $formula);
+        $this->assertStringContainsString('limit 5', $formula);
+
+        // Batasnya harus menampung seluruh kategori yang mungkin dikirim Laravel,
+        // kalau tidak kategori paling kecil hilang dari laporan.
+        $this->assertGreaterThanOrEqual(count(OrderCost::CATEGORIES), 5);
+    }
+
+    public function test_orders_are_ranked_by_margin_from_largest(): void
+    {
+        preg_match('/getRange\(\'A20\'\)\.setFormula\((.*?)\);/s', $this->script, $m);
+        $this->assertNotEmpty($m, 'Rumus peringkat margin tidak ditemukan.');
+
+        $formula = $m[1];
+        $this->assertStringContainsString('Data Order', $formula);
+        $this->assertStringContainsString('order by K/G desc', $formula);
+
+        // Tanpa syarat ini, pesanan bernilai nol membuat margin dibagi nol.
+        $this->assertStringContainsString('G > 0', $formula);
     }
 
     public function test_margin_reads_the_left_cell_of_each_merged_kpi_card(): void
@@ -77,20 +95,34 @@ class SpreadsheetScriptTest extends TestCase
         // Dulu grafik ditaruh di samping tabel HPP dan menutupi baris keterangan waktu.
         preg_match('/setPosition\((\d+), 1,/', $this->script, $pos);
         preg_match("/setOption\('height', (\d+)\)/", $this->script, $height);
-        preg_match('/for \(var gr = (\d+); gr <= (\d+); gr\+\+\) \{ sheet\.setRowHeight\(gr, (\d+)\); \}/', $this->script, $rows);
+        preg_match('/for \(var gr = (\d+); gr <= (\d+); gr\+\+\) \{ sheet\.setRowHeight\(gr, ROW_H\); \}/', $this->script, $rows);
         preg_match("/getRange\('A(\d+):H\\1'\)\s*\.merge\(\)\s*\.setFormula\('=\"Data terakhir/", $this->script, $stamp);
+        preg_match('/var ROW_H = (\d+);/', $this->script, $rowHeight);
 
         $this->assertNotEmpty($pos, 'Posisi grafik tidak ditemukan.');
         $this->assertNotEmpty($rows, 'Baris cadangan untuk grafik tidak ditemukan.');
         $this->assertNotEmpty($stamp, 'Baris keterangan waktu tidak ditemukan.');
+        $this->assertNotEmpty($rowHeight, 'Tinggi baris ROW_H tidak ditemukan.');
 
         $anchorRow = (int) $pos[1];
-        $reserved = ((int) $rows[2] - (int) $rows[1] + 1) * (int) $rows[3];
+        $reserved = ((int) $rows[2] - (int) $rows[1] + 1) * (int) $rowHeight[1];
 
         $this->assertSame($anchorRow, (int) $rows[1], 'Baris cadangan harus dimulai di baris tempat grafik ditambatkan.');
         $this->assertGreaterThanOrEqual((int) $height[1], $reserved, 'Tinggi grafik melebihi baris yang disediakan.');
         $this->assertGreaterThan((int) $rows[2], (int) $stamp[1], 'Keterangan waktu harus di bawah grafik.');
         $this->assertGreaterThan(16, $anchorRow, 'Grafik harus di bawah tabel HPP, bukan di sampingnya.');
+    }
+
+    public function test_data_rows_share_one_height_across_every_tab(): void
+    {
+        preg_match('/var ROW_H = (\d+);/', $this->script, $m);
+        $this->assertNotEmpty($m, 'ROW_H tidak ditemukan.');
+        $this->assertSame(28, (int) $m[1]);
+
+        // Tinggi baris data tidak boleh ditulis sebagai angka lepas di mana pun,
+        // supaya tabel di semua tab tetap seragam saat nilainya diubah.
+        $this->assertStringContainsString('sheet.setRowHeights(4, dataRowCount(sheet), ROW_H)', $this->script);
+        $this->assertStringNotContainsString('sheet.setRowHeights(4, dataRowCount(sheet), 20)', $this->script);
     }
 
     public function test_cash_ledger_descriptions_do_not_repeat_the_transaction_number(): void
