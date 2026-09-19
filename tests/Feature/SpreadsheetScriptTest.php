@@ -124,14 +124,34 @@ class SpreadsheetScriptTest extends TestCase
         // Batas bulan tidak boleh lagi menumpang kolom A, karena kolom itu teks.
         $this->assertStringNotContainsString('EDATE(A', $this->script);
 
+        $start = strpos($this->script, 'function buildCashChart(');
+        $this->assertNotFalse($start, 'buildCashChart tidak ditemukan.');
+        $chart = substr($this->script, $start);
+
         // Apps Script menunda penulisan: tanpa flush, grafik dibangun saat tab
         // Rekap masih kosong dan tidak menemukan satu pun seri.
-        $chart = substr($this->script, strpos($this->script, 'if (rekapSheet) {'));
         $flushAt = strpos($chart, 'SpreadsheetApp.flush();');
         $buildAt = strpos($chart, '.asColumnChart()');
 
         $this->assertNotFalse($flushAt, 'SpreadsheetApp.flush() tidak dipanggil sebelum grafik dibuat.');
         $this->assertLessThan($buildAt, $flushAt, 'flush() harus dijalankan sebelum grafik dibangun.');
+
+        // Jumlah baris judul dan kolom sumbu dinyatakan, bukan ditebak.
+        $this->assertStringContainsString('.setNumHeaders(1)', $chart);
+        $this->assertStringContainsString("setOption('useFirstColumnAsDomain', true)", $chart);
+    }
+
+    public function test_chart_is_rebuilt_after_data_arrives_not_only_during_setup(): void
+    {
+        // Saat Setup berjalan, tab Arus Kas baru dikosongkan sehingga seluruh
+        // angka Rekap masih nol. Grafik yang lahir di keadaan itu bisa gagal
+        // menyimpulkan serinya, jadi ia dibangun ulang begitu data masuk.
+        $syncAll = substr($this->script, strpos($this->script, 'function handleSyncAll('));
+        $this->assertStringContainsString('buildCashChart(ss);', $syncAll);
+
+        // Kegagalannya harus terlihat, bukan ditelan blok catch kosong.
+        $chart = substr($this->script, strpos($this->script, 'function buildCashChart('));
+        $this->assertStringContainsString('Grafik gagal dibuat: ', $chart);
     }
 
     public function test_data_rows_share_one_height_across_every_tab(): void

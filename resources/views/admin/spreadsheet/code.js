@@ -12,7 +12,7 @@
  * yang ada di aplikasi — penyebab paling sering tampilan sheet terlihat lama.
  * Naikkan setiap kali berkas ini diubah.
  */
-var SCRIPT_VERSION = '2026-09-19.7';
+var SCRIPT_VERSION = '2026-09-19.8';
 
 /**
  * Tinggi baris data di seluruh tab. Baris judul, banner, dan kartu KPI punya
@@ -166,6 +166,59 @@ var CLR = {
   gray2:      '#64748B',
   total:      '#1F3864'
 };
+
+/* ========================================================================== */
+/* GRAFIK ARUS KAS                                                             */
+/* ========================================================================== */
+
+/**
+ * Bangun ulang grafik batang di Dashboard dari tab Rekap Bulanan.
+ *
+ * Dipisah dan dipanggil dua kali — sekali saat menata ulang tampilan, sekali
+ * lagi setelah data masuk. Saat Setup berjalan, tab Arus Kas baru saja
+ * dikosongkan sehingga seluruh angka Rekap masih nol; grafik yang dibuat di
+ * keadaan itu bisa gagal menyimpulkan seri datanya dan hanya menyisakan judul.
+ *
+ * Pilihan opsinya sengaja dibuat sekonvensional mungkin: jumlah baris judul
+ * dinyatakan eksplisit (tidak ditebak), kolom pertama ditegaskan sebagai sumbu,
+ * dan tata letak dalamnya diserahkan ke Google.
+ */
+function buildCashChart(ss) {
+  var sheet = ss.getSheetByName('Dashboard');
+  var rekapSheet = ss.getSheetByName('Rekap Bulanan');
+  if (!sheet || !rekapSheet) { return; }
+
+  // Rumus Rekap harus sudah benar-benar tertulis sebelum grafik membacanya.
+  SpreadsheetApp.flush();
+
+  var existing = sheet.getCharts();
+  for (var i = 0; i < existing.length; i++) { sheet.removeChart(existing[i]); }
+
+  try {
+    var chart = sheet.newChart()
+      .asColumnChart()
+      .addRange(rekapSheet.getRange('A3:C15'))
+      .setNumHeaders(1)
+      .setPosition(29, 1, 4, 0)
+      .setOption('useFirstColumnAsDomain', true)
+      .setOption('title', 'Kas Masuk vs Kas Keluar per Bulan')
+      .setOption('titleTextStyle', { fontSize: 12, bold: true, color: CLR.navy })
+      .setOption('legend', { position: 'top' })
+      .setOption('colors', ['#1A6B36', '#B22222'])
+      .setOption('hAxis', { slantedText: true, slantedTextAngle: 45 })
+      .setOption('width', 1340)
+      .setOption('height', 330)
+      .build();
+
+    sheet.insertChart(chart);
+    sheet.getRange('A44').clearContent();
+  } catch (e) {
+    // Dulu kegagalan di sini ditelan diam-diam, jadi tidak ada cara tahu
+    // apakah grafiknya gagal dibuat atau hanya tidak menemukan data.
+    sheet.getRange('A44').setValue('Grafik gagal dibuat: ' + e)
+      .setFontSize(9).setFontColor(CLR.red);
+  }
+}
 
 /* ========================================================================== */
 /* TAB: ANALISA (PIVOT)                                                        */
@@ -453,31 +506,7 @@ function setupDashboardSheet(sheet, rekapSheet) {
   sheet.setRowHeight(28, 14);
   for (var gr = 29; gr <= 40; gr++) { sheet.setRowHeight(gr, ROW_H); }
 
-  if (rekapSheet) {
-    try {
-      // Apps Script menunda penulisan ke sheet. Tanpa flush, grafik dibangun
-      // saat tab Rekap masih kosong sehingga tidak menemukan satu pun seri —
-      // hasilnya kotak putih berisi judul saja, tanpa sumbu dan tanpa legenda.
-      SpreadsheetApp.flush();
-
-      var chart = sheet.newChart()
-        .asColumnChart()
-        .addRange(rekapSheet.getRange('A3:C15'))
-        .setPosition(29, 1, 4, 0)
-        .setOption('title', 'Kas Masuk vs Kas Keluar per Bulan')
-        .setOption('titleTextStyle', { fontSize: 12, bold: true, color: CLR.navy })
-        .setOption('legend', { position: 'top', alignment: 'start', textStyle: { fontSize: 10 } })
-        .setOption('colors', ['#1A6B36', '#B22222'])
-        .setOption('backgroundColor', { fill: CLR.white, stroke: CLR.border, strokeWidth: 1 })
-        .setOption('chartArea', { left: 90, top: 56, width: '84%', height: '68%' })
-        .setOption('hAxis', { textStyle: { fontSize: 9 }, slantedText: true, slantedTextAngle: 40 })
-        .setOption('vAxis', { textStyle: { fontSize: 9 }, format: '"Rp"#,##0', gridlines: { color: '#E8EDF4' } })
-        .setOption('width', 1340)
-        .setOption('height', 330)
-        .build();
-      sheet.insertChart(chart);
-    } catch(e) {}
-  }
+  buildCashChart(sheet.getParent());
 
   /* ── ROW 47: KETERANGAN WAKTU ──────────────────────────────────────────── */
   sheet.setRowHeight(41, 10);
@@ -857,6 +886,10 @@ function handleSyncAll(data, ss) {
       cashSheet.getRange(4, 1, cashRows.length, cashRows[0].length).setValues(cashRows);
     }
   }
+
+  // Grafik dibangun ulang di sini, bukan hanya saat Setup: waktu Setup berjalan
+  // tab Arus Kas baru dikosongkan, sehingga seluruh angka Rekap masih nol.
+  buildCashChart(ss);
 }
 
 function handleUpsertOrder(orderData, ss) {
