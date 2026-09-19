@@ -326,7 +326,10 @@ class GoogleSheetService
             'date' => $payment->payment_date?->format('Y-m-d') ?? now()->format('Y-m-d'),
             'order_number' => $payment->order?->order_number ?? '-',
             'trx_no' => $payment->invoice?->invoice_number ?? $payment->order?->order_number,
-            'desc' => 'Pembayaran '.($payment->note ?: 'Pesanan '.($payment->order?->order_number ?? '')),
+            // Nomor pesanan sudah punya kolomnya sendiri di Arus Kas, jadi
+            // keterangan diisi hal yang belum ada di kolom lain: catatan admin,
+            // atau nama produk yang dibayar.
+            'desc' => $payment->note ?: ($payment->order?->name ?: $payment->type_label),
             'category' => $payment->isDp() ? 'Penjualan/DP' : 'Pelunasan',
             'customer' => $payment->order?->customer?->name ?? '-',
             'amount' => (int) $payment->amount,

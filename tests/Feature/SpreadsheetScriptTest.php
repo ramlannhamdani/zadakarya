@@ -93,6 +93,33 @@ class SpreadsheetScriptTest extends TestCase
         $this->assertGreaterThan(16, $anchorRow, 'Grafik harus di bawah tabel HPP, bukan di sampingnya.');
     }
 
+    public function test_cash_ledger_descriptions_do_not_repeat_the_transaction_number(): void
+    {
+        // No. Transaksi punya kolomnya sendiri; mengulangnya di Keterangan
+        // memakan lebar dan menutupi nama barangnya.
+        $this->assertStringNotContainsString("+ ' (' + (c.order_number || '') + ')'", $this->script);
+        $this->assertStringNotContainsString("c[3] + ' (' + c[1] + ')'", $this->script);
+    }
+
+    public function test_analysis_tab_is_never_rebuilt_once_it_has_content(): void
+    {
+        // Setup mengosongkan tab lain setiap dijalankan. Kalau itu berlaku di
+        // tab Analisa, pivot dan filter buatan pengguna hilang tiap kali
+        // menekan "Tata Ulang Dashboard".
+        preg_match('/function setupAnalisaSheet\(.*?\n\}/s', $this->script, $fn);
+        $this->assertNotEmpty($fn, 'Fungsi setupAnalisaSheet tidak ditemukan.');
+
+        $this->assertStringContainsString('getLastRow() > 0', $fn[0]);
+        $this->assertStringContainsString('return;', $fn[0]);
+        $this->assertStringNotContainsString('sheet.clear()', $fn[0]);
+
+        // ...dan tab itu tidak boleh ikut terhapus oleh pembersihan tab lama.
+        preg_match("/var oldTabs = \[(.*?)\];/", $this->script, $old);
+        $this->assertStringNotContainsString('Analisa', $old[1]);
+
+        $this->assertStringContainsString('setupAnalisaSheet(ss, orderSheet, costSheet)', $this->script);
+    }
+
     public function test_every_data_tab_has_a_hidden_id_column_for_deletions(): void
     {
         foreach ([15, 10] as $col) {

@@ -112,6 +112,31 @@ class SpreadsheetAccuracyTest extends TestCase
         $this->assertSame(Payment::TYPE_DP, $order->payments()->latest('id')->first()->type);
     }
 
+    public function test_payment_description_adds_information_instead_of_repeating_the_order_number(): void
+    {
+        $this->fakeOk();
+
+        $order = $this->makeOrder();
+        $service = app(GoogleSheetService::class);
+
+        // Tanpa catatan: nama produk lebih berguna daripada mengulang nomornya,
+        // karena No. Transaksi sudah jadi kolom tersendiri di Arus Kas.
+        $plain = $order->payments()->create([
+            'amount' => 1000000, 'type' => Payment::TYPE_DP,
+            'payment_date' => now(), 'method' => 'transfer',
+        ]);
+        $row = $service->formatPaymentData($plain->fresh('order'));
+        $this->assertSame('Kaos Polo', $row['desc']);
+        $this->assertStringNotContainsString($order->order_number, $row['desc']);
+
+        // Dengan catatan: catatan admin yang dipakai.
+        $noted = $order->payments()->create([
+            'amount' => 500000, 'type' => Payment::TYPE_SETTLEMENT,
+            'payment_date' => now(), 'method' => 'cash', 'note' => 'Pelunasan termin 2',
+        ]);
+        $this->assertSame('Pelunasan termin 2', $service->formatPaymentData($noted->fresh('order'))['desc']);
+    }
+
     public function test_every_synced_row_carries_an_id_so_it_can_be_deleted_later(): void
     {
         $this->fakeOk();

@@ -12,7 +12,7 @@
  * yang ada di aplikasi — penyebab paling sering tampilan sheet terlihat lama.
  * Naikkan setiap kali berkas ini diubah.
  */
-var SCRIPT_VERSION = '2026-09-19.3';
+var SCRIPT_VERSION = '2026-09-19.4';
 
 /* ========================================================================== */
 /* WEBHOOK HANDLERS                                                            */
@@ -111,6 +111,7 @@ function setupSheet() {
   setupRincianHppSheet(costSheet);
   setupRekapBulananSheet(rekapSheet);
   setupDashboardSheet(dashSheet, rekapSheet);
+  setupAnalisaSheet(ss, orderSheet, costSheet);
 
   var oldTabs = ['Sheet1', 'Data_Pesanan', 'Data_Biaya_HPP', 'Data_Pembayaran', 'Dashboard Laporan'];
   for (var i = 0; i < oldTabs.length; i++) {
@@ -155,6 +156,82 @@ var CLR = {
   gray2:      '#64748B',
   total:      '#1F3864'
 };
+
+/* ========================================================================== */
+/* TAB: ANALISA (PIVOT)                                                        */
+/* ========================================================================== */
+
+/**
+ * Tab untuk menggali sendiri: pivot bisa diubah, ditambah filter, atau diganti
+ * pengelompokannya tanpa menyentuh kode.
+ *
+ * Berbeda dari tab lain, tab ini TIDAK dibangun ulang kalau sudah ada isinya.
+ * Setup mengosongkan tab lain setiap kali dijalankan; kalau itu berlaku di sini,
+ * pivot dan filter yang Anda susun sendiri akan hilang tiap kali menekan
+ * "Tata Ulang Dashboard".
+ */
+function setupAnalisaSheet(ss, orderSheet, costSheet) {
+  var sheet = ss.getSheetByName('Analisa');
+
+  if (sheet && sheet.getLastRow() > 0) {
+    return; // sudah dipakai — biarkan apa adanya
+  }
+
+  if (!sheet) { sheet = ss.insertSheet('Analisa'); }
+
+  sheet.setColumnWidth(1, 200);
+  for (var c = 2; c <= 9; c++) { sheet.setColumnWidth(c, 150); }
+
+  sheet.setRowHeight(1, 45);
+  sheet.getRange('A1:I1').merge()
+    .setValue('ANALISA  ·  ZADA KARYA PRODUCTION')
+    .setFontFamily('Arial').setFontSize(13).setFontWeight('bold')
+    .setFontColor(CLR.white).setBackground(CLR.navy)
+    .setHorizontalAlignment('center').setVerticalAlignment('middle');
+
+  sheet.setRowHeight(2, 4);
+  sheet.getRange('A2:I2').setBackground('#F59E0B');
+
+  sheet.setRowHeight(3, 34);
+  sheet.getRange('A3:I3').merge()
+    .setValue('Tabel di bawah bisa Anda ubah sendiri — klik pivotnya, lalu atur baris, kolom, '
+            + 'dan filter lewat panel di kanan. Isi tab ini tidak akan ditimpa saat menekan "Tata Ulang Dashboard".')
+    .setFontSize(9).setFontColor(CLR.gray2).setBackground(CLR.gray1)
+    .setVerticalAlignment('middle').setWrap(true);
+
+  sheet.getRange('A5').setValue('LABA PER CUSTOMER')
+    .setFontSize(10).setFontWeight('bold').setFontColor(CLR.navy);
+  sheet.getRange('F5').setValue('BIAYA PER KATEGORI')
+    .setFontSize(10).setFontWeight('bold').setFontColor(CLR.navy);
+
+  // Rentang sumber menyertakan baris judul (baris 3) supaya pivot tahu nama kolomnya.
+  try {
+    var orderSource = orderSheet.getRange(3, 1, orderSheet.getMaxRows() - 2, 14);
+    var p1 = sheet.getRange('A6').createPivotTable(orderSource);
+    var group1 = p1.addRowGroup(3); // Customer
+
+    var totalOrder = p1.addPivotValue(7, SpreadsheetApp.PivotTableSummarizeFunction.SUM);
+    var totalHpp = p1.addPivotValue(10, SpreadsheetApp.PivotTableSummarizeFunction.SUM);
+    var profit = p1.addPivotValue(11, SpreadsheetApp.PivotTableSummarizeFunction.SUM);
+
+    totalOrder.setDisplayName('Nilai Order');
+    totalHpp.setDisplayName('Total HPP');
+    profit.setDisplayName('Estimasi Laba');
+
+    // Customer paling menguntungkan di atas. Kalau versi Sheets menolak
+    // pengurutan ini, pivotnya tetap terbentuk, hanya urut nama.
+    try { group1.sortDescending().sortBy(profit, []); } catch (e) {}
+  } catch (e) {}
+
+  try {
+    var costSource = costSheet.getRange(3, 1, costSheet.getMaxRows() - 2, 9);
+    var p2 = sheet.getRange('F6').createPivotTable(costSource);
+    p2.addRowGroup(3); // Kategori HPP
+
+    var biaya = p2.addPivotValue(8, SpreadsheetApp.PivotTableSummarizeFunction.SUM);
+    biaya.setDisplayName('Total Biaya');
+  } catch (e) {}
+}
 
 /* ========================================================================== */
 /* TAB: DASHBOARD                                                              */
@@ -701,7 +778,7 @@ function handleSyncAll(data, ss) {
           id:      c.id || '',
           date:    c.date,
           trx_no:  c.order_number,
-          desc:    (c.description || 'Biaya HPP') + ' (' + (c.order_number || '') + ')',
+          desc:    c.description || 'Biaya HPP',
           cat:     c.category || 'Biaya Produksi',
           party:   'Vendor / Tim Produksi',
           inflow:  0,
@@ -782,7 +859,7 @@ function handleAddCost(costData, ss) {
     var existing = findRowById(cashSheet, 10, c[9]);
     var nextRow = existing > 0 ? existing : Math.max(cashSheet.getLastRow() + 1, 4);
     var cashRow = [
-      c[0], c[1], c[3] + ' (' + c[1] + ')', c[2], 'Vendor/Produksi',
+      c[0], c[1], c[3] || 'Biaya HPP', c[2], 'Vendor/Produksi',
       0, c[7],
       '=IF(A' + nextRow + '="","",SUM($F$4:F' + nextRow + ')-SUM($G$4:G' + nextRow + '))',
       'Kas/Transfer', c[9]
