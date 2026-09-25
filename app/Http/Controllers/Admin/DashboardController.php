@@ -28,6 +28,21 @@ class DashboardController extends Controller
             'order_value' => (int) $nonCancelled->sum('grand_total'),
         ];
 
+        // Laba Kotor, Beban Operasional, dan Laba Bersih Perusahaan
+        $totalHpp = (int) \App\Models\OrderCost::whereHas('order', fn ($o) => $o->where('status', '!=', 'cancelled'))->sum('amount');
+        $grossProfit = max(0, $revenue['order_value'] - $totalHpp);
+        $totalExpenses = (int) \App\Models\OperationalExpense::sum('amount');
+        $thisMonthExpenses = (int) \App\Models\OperationalExpense::whereBetween('expense_date', [now()->startOfMonth(), now()->endOfMonth()])->sum('amount');
+        $netProfit = $grossProfit - $totalExpenses;
+
+        $financials = [
+            'total_hpp' => $totalHpp,
+            'gross_profit' => $grossProfit,
+            'total_expenses' => $totalExpenses,
+            'this_month_expenses' => $thisMonthExpenses,
+            'net_profit' => $netProfit,
+        ];
+
         // Grafik 6 bulan terakhir (pembayaran per bulan).
         $start = now()->subMonths(5)->startOfMonth();
         $byMonth = Payment::where('payment_date', '>=', $start)
@@ -58,6 +73,7 @@ class DashboardController extends Controller
         return view('admin.dashboard', [
             'stats' => $stats,
             'revenue' => $revenue,
+            'financials' => $financials,
             'monthly' => $monthly,
             'monthlyMax' => max(1, $monthly->max('amount')),
             'actionRequired' => $actionRequired,

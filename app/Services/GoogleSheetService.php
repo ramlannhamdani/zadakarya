@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\OperationalExpense;
 use App\Models\Order;
 use App\Models\OrderCost;
 use App\Models\Payment;
@@ -157,15 +158,22 @@ class GoogleSheetService
             ->latest('id')
             ->get();
 
+        $expenses = OperationalExpense::with('recorder')
+            ->latest('expense_date')
+            ->latest('id')
+            ->get();
+
         $formattedOrders = $orders->map(fn (Order $order) => $this->formatOrderData($order))->all();
         $formattedCosts = $costs->map(fn (OrderCost $cost) => $this->formatCostData($cost))->all();
         $formattedPayments = $payments->map(fn (Payment $payment) => $this->formatPaymentData($payment))->all();
+        $formattedExpenses = $expenses->map(fn (OperationalExpense $expense) => $this->formatExpenseData($expense))->all();
 
         $payload = [
             'action' => 'sync_all',
             'orders' => $formattedOrders,
             'costs' => $formattedCosts,
             'payments' => $formattedPayments,
+            'expenses' => $formattedExpenses,
             'synced_at' => now()->translatedFormat('d F Y H:i:s'),
         ];
 
@@ -181,6 +189,7 @@ class GoogleSheetService
                     'orders' => $orders->count(),
                     'costs' => $costs->count(),
                     'payments' => $payments->count(),
+                    'expenses' => $expenses->count(),
                 ],
             ];
         }
@@ -273,6 +282,22 @@ class GoogleSheetService
         ]);
     }
 
+    /**
+     * Add or delete a single operational expense entry in Google Sheets.
+     */
+    public function syncExpense(OperationalExpense $expense, string $action = 'add'): bool
+    {
+        if (! $this->isAutoSync()) {
+            return false;
+        }
+
+        $expense->loadMissing('recorder');
+
+        return $action === 'add'
+            ? $this->send(['type' => 'expense', 'expense' => $this->formatExpenseData($expense)])
+            : $this->send(['action' => 'delete', 'entity' => 'expense', 'id' => $expense->reference_no ?: ('EXP-'.$expense->id)]);
+    }
+
     /* ---------------------------------------------------------------------- */
     /* Formatter Helpers (ATM Structure) */
     /* ---------------------------------------------------------------------- */
@@ -334,6 +359,21 @@ class GoogleSheetService
             'customer' => $payment->order?->customer?->name ?? '-',
             'amount' => (int) $payment->amount,
             'method' => $payment->method_label,
+        ];
+    }
+
+    public function formatExpenseData(OperationalExpense $expense): array
+    {
+        return [
+            'id' => $expense->reference_no ?: ('EXP-'.$expense->id),
+            'date' => $expense->expense_date?->format('Y-m-d') ?? now()->format('Y-m-d'),
+            'trx_no' => $expense->reference_no,
+            'desc' => $expense->title.($expense->notes ? ' ('.$expense->notes.')' : ''),
+            'category' => 'Beban Operasional — '.$expense->category_label,
+            'party' => $expense->category_label,
+            'amount' => (int) $expense->amount,
+            'method' => $expense->method_label,
+            'recorded_by' => $expense->recorder?->name ?? 'Admin',
         ];
     }
 

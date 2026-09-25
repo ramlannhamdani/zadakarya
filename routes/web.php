@@ -144,6 +144,10 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::patch('payments/{payment}/invoice', [Admin\PaymentController::class, 'linkInvoice'])->name('payments.link');
         Route::delete('payments/{payment}', [Admin\PaymentController::class, 'destroy'])->name('payments.destroy');
 
+        // Operational Expenses (Beban Operasional)
+        Route::resource('expenses', Admin\OperationalExpenseController::class)->except(['show']);
+        Route::get('expenses/{expense}/receipt', [Admin\OperationalExpenseController::class, 'receipt'])->name('expenses.receipt');
+
         // Spreadsheet Integration
         Route::get('spreadsheet', [Admin\SpreadsheetController::class, 'index'])->name('spreadsheet.index');
         Route::patch('spreadsheet', [Admin\SpreadsheetController::class, 'update'])->name('spreadsheet.update');

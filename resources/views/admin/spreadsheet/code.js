@@ -12,7 +12,7 @@
  * yang ada di aplikasi — penyebab paling sering tampilan sheet terlihat lama.
  * Naikkan setiap kali berkas ini diubah.
  */
-var SCRIPT_VERSION = '2026-09-19.10';
+var SCRIPT_VERSION = '2026-09-25.01';
 
 /**
  * Tinggi baris data di seluruh tab. Baris judul, banner, dan kartu KPI punya
@@ -66,6 +66,8 @@ function doPost(e) {
       handleAddCost(data.cost || data.row, ss);
     } else if (data.type === 'payment' || data.action === 'add_payment') {
       handleAddPayment(data.payment || data.row, ss);
+    } else if (data.type === 'expense' || data.action === 'add_expense') {
+      handleAddExpense(data.expense || data.row, ss);
     }
 
     return respondJSON({ status: 'success', message: 'Data synced successfully' });
@@ -859,6 +861,22 @@ function handleSyncAll(data, ss) {
       });
     }
 
+    if (data.expenses && data.expenses.length > 0) {
+      data.expenses.forEach(function(exp) {
+        entries.push({
+          id:      exp.id || '',
+          date:    exp.date,
+          trx_no:  exp.trx_no || exp.reference_no,
+          desc:    exp.desc || exp.title || 'Beban Operasional',
+          cat:     exp.category || 'Beban Operasional',
+          party:   exp.party || 'Vendor / Operasional',
+          inflow:  0,
+          outflow: exp.amount || 0,
+          method:  exp.method || 'Transfer / Kas'
+        });
+      });
+    }
+
     entries.sort(function(a, b) { return (a.date || '').localeCompare(b.date || ''); });
 
     if (entries.length > 0) {
@@ -974,6 +992,33 @@ function handleAddPayment(payData, ss) {
   }
 }
 
+function handleAddExpense(expData, ss) {
+  var cashSheet = ss.getSheetByName('Arus Kas');
+  if (!cashSheet) return;
+
+  var e = Array.isArray(expData) ? expData : [
+    expData.date, expData.trx_no || expData.reference_no, expData.desc || expData.title,
+    expData.category || 'Beban Operasional', expData.party || 'Vendor / Operasional',
+    0, expData.amount || 0, '', expData.method || 'Transfer / Kas', expData.id || ''
+  ];
+
+  var existing = findRowById(cashSheet, 10, e[9]);
+  var nextRow = existing > 0 ? existing : Math.max(cashSheet.getLastRow() + 1, 4);
+  var cashRow = [
+    e[0], e[1], e[2],
+    e[3], e[4],
+    0, e[6],
+    '=IF(A' + nextRow + '="","",SUM($F$4:F' + nextRow + ')-SUM($G$4:G' + nextRow + '))',
+    e[8], e[9]
+  ];
+
+  if (existing > 0) {
+    cashSheet.getRange(existing, 1, 1, cashRow.length).setValues([cashRow]);
+  } else {
+    cashSheet.appendRow(cashRow);
+  }
+}
+
 /**
  * Hapus baris yang datanya dihapus di panel admin. Tanpa ini pesanan yang sudah
  * dihapus tetap menyumbang omzet dan laba, dan pembayaran yang dihapus
@@ -1003,6 +1048,8 @@ function handleDelete(data, ss) {
     deleteRowById(costSheet, 10, data.id);
     deleteRowById(cashSheet, 10, data.id);
   } else if (data.entity === 'payment') {
+    deleteRowById(cashSheet, 10, data.id);
+  } else if (data.entity === 'expense') {
     deleteRowById(cashSheet, 10, data.id);
   }
 

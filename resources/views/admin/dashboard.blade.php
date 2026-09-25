@@ -58,6 +58,51 @@
     </div>
 </div>
 
+{{-- Profit & Overhead Breakdown (Laba Kotor vs Beban Operasional vs Laba Bersih) --}}
+<div class="mt-6">
+    <div class="flex items-center justify-between mb-3">
+        <div>
+            <h2 class="text-base font-extrabold text-ink">Laba Perusahaan &amp; Beban Operasional</h2>
+            <p class="text-xs text-neutral-500">Perhitungan keuntungan global setelah dikurangi biaya produksi (HPP) dan beban operasional (OPEX).</p>
+        </div>
+        <a href="{{ route('admin.expenses.index') }}" class="text-xs font-bold text-brand-600 hover:underline inline-flex items-center gap-1">
+            <span>Kelola Beban Operasional</span>
+            <span>&rarr;</span>
+        </a>
+    </div>
+
+    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div class="admin-card border-l-4 !border-l-blue-500">
+            <p class="text-xs font-bold uppercase tracking-wider text-neutral-500">Total HPP Produksi</p>
+            <p class="mt-2 text-2xl font-extrabold text-blue-600">{{ rupiah($financials['total_hpp']) }}</p>
+            <p class="mt-1 text-xs text-neutral-500">Biaya kain, trims, makloon & CMT pesanan</p>
+        </div>
+
+        <div class="admin-card border-l-4 !border-l-indigo-500">
+            <p class="text-xs font-bold uppercase tracking-wider text-neutral-500">Laba Kotor Pesanan</p>
+            <p class="mt-2 text-2xl font-extrabold text-indigo-600">{{ rupiah($financials['gross_profit']) }}</p>
+            <p class="mt-1 text-xs text-neutral-500">Total Nilai Order − Total HPP</p>
+        </div>
+
+        <div class="admin-card border-l-4 !border-l-rose-500">
+            <div class="flex items-center justify-between">
+                <p class="text-xs font-bold uppercase tracking-wider text-neutral-500">Beban Operasional</p>
+                <span class="text-[10px] font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded">Listrik, Sewa, Gaji dll</span>
+            </div>
+            <p class="mt-2 text-2xl font-extrabold text-rose-600">{{ rupiah($financials['total_expenses']) }}</p>
+            <p class="mt-1 text-xs text-neutral-500">Bulan ini: <strong class="text-ink">{{ rupiah($financials['this_month_expenses']) }}</strong></p>
+        </div>
+
+        <div class="admin-card border-l-4 {{ $financials['net_profit'] >= 0 ? '!border-l-emerald-500 bg-emerald-50/20' : '!border-l-red-500 bg-red-50/20' }}">
+            <p class="text-xs font-bold uppercase tracking-wider text-neutral-500">Laba Bersih Perusahaan</p>
+            <p class="mt-2 text-2xl font-extrabold {{ $financials['net_profit'] >= 0 ? 'text-emerald-700' : 'text-red-600' }}">
+                {{ rupiah($financials['net_profit']) }}
+            </p>
+            <p class="mt-1 text-xs text-neutral-500">Laba Kotor − Beban Operasional</p>
+        </div>
+    </div>
+</div>
+
 {{-- Action required --}}
 <div class="mt-6 grid gap-5 xl:grid-cols-3">
     <div class="admin-card">
