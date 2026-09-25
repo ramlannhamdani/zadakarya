@@ -65,10 +65,12 @@
             <h2 class="text-base font-extrabold text-ink">Laba Perusahaan &amp; Beban Operasional</h2>
             <p class="text-xs text-neutral-500">Perhitungan keuntungan global setelah dikurangi biaya produksi (HPP) dan beban operasional (OPEX).</p>
         </div>
+        @if(\Illuminate\Support\Facades\Route::has('admin.expenses.index'))
         <a href="{{ route('admin.expenses.index') }}" class="text-xs font-bold text-brand-600 hover:underline inline-flex items-center gap-1">
             <span>Kelola Beban Operasional</span>
             <span>&rarr;</span>
         </a>
+        @endif
     </div>
 
     <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

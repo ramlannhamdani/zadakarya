@@ -53,7 +53,7 @@
         @endphp
         <nav class="min-h-0 flex-1 space-y-0.5 overflow-y-auto p-3 md:p-2 xl:p-3">
             @foreach($nav as $item)
-                <a href="{{ route($item['route']) }}" title="{{ $item['label'] }}"
+                <a href="{{ \Illuminate\Support\Facades\Route::has($item['route']) ? route($item['route']) : '#' }}" title="{{ $item['label'] }}"
                    class="{{ $navItem }} {{ request()->routeIs($item['match']) ? 'bg-brand-600 text-white' : 'text-neutral-600 hover:bg-cream hover:text-ink' }}">
                     <svg class="{{ $navIcon }}" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="{{ $item['icon'] }}"/></svg>
                     <span>{{ $item['label'] }}</span>

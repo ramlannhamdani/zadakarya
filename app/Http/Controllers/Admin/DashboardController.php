@@ -28,11 +28,30 @@ class DashboardController extends Controller
             'order_value' => (int) $nonCancelled->sum('grand_total'),
         ];
 
-        // Laba Kotor, Beban Operasional, dan Laba Bersih Perusahaan
-        $totalHpp = (int) \App\Models\OrderCost::whereHas('order', fn ($o) => $o->where('status', '!=', 'cancelled'))->sum('amount');
+        // Laba Kotor, Beban Operasional, dan Laba Bersih Perusahaan (Fail-safe bila belum migrasi)
+        $totalHpp = 0;
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasTable('order_costs')) {
+                $totalHpp = (int) \App\Models\OrderCost::whereHas('order', fn ($o) => $o->where('status', '!=', 'cancelled'))->sum('amount');
+            }
+        } catch (\Throwable) {
+            $totalHpp = 0;
+        }
+
         $grossProfit = max(0, $revenue['order_value'] - $totalHpp);
-        $totalExpenses = (int) \App\Models\OperationalExpense::sum('amount');
-        $thisMonthExpenses = (int) \App\Models\OperationalExpense::whereBetween('expense_date', [now()->startOfMonth(), now()->endOfMonth()])->sum('amount');
+
+        $totalExpenses = 0;
+        $thisMonthExpenses = 0;
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasTable('operational_expenses')) {
+                $totalExpenses = (int) \App\Models\OperationalExpense::sum('amount');
+                $thisMonthExpenses = (int) \App\Models\OperationalExpense::whereBetween('expense_date', [now()->startOfMonth(), now()->endOfMonth()])->sum('amount');
+            }
+        } catch (\Throwable) {
+            $totalExpenses = 0;
+            $thisMonthExpenses = 0;
+        }
+
         $netProfit = $grossProfit - $totalExpenses;
 
         $financials = [
