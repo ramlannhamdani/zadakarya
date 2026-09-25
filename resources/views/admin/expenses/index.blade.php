@@ -3,29 +3,106 @@
 @section('title', 'Beban Operasional')
 
 @section('content')
-{{-- Summary cards --}}
+{{-- Financial Position: 4 Core Metrics --}}
 <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-    <div class="admin-card border-l-4 !border-l-red-500">
-        <p class="text-xs font-bold uppercase tracking-wider text-neutral-500">Beban Bulan Ini</p>
-        <p class="mt-2 text-2xl font-extrabold text-red-600">{{ rupiah($thisMonthTotal) }}</p>
-        <p class="mt-1 text-xs text-neutral-500">{{ now()->translatedFormat('F Y') }}</p>
+    <div class="admin-card border-l-4 !border-l-green-500">
+        <p class="text-xs font-bold uppercase tracking-wider text-neutral-500">Total Pemasukan (Kas Masuk)</p>
+        <p class="mt-2 text-2xl font-extrabold text-green-600">{{ rupiah($periodIncome) }}</p>
+        <p class="mt-1 text-xs text-neutral-500">Pembayaran masuk {{ $isAllPeriod ? 'seluruhnya' : $periodLabel }}</p>
     </div>
-    <div class="admin-card border-l-4 !border-l-amber-500">
-        <p class="text-xs font-bold uppercase tracking-wider text-neutral-500">Beban Terbesar Bulan Ini</p>
-        <p class="mt-2 text-lg font-extrabold text-ink truncate" title="{{ $topCategory ? $topCategory['name'] : '—' }}">
-            {{ $topCategory ? $topCategory['name'] : '—' }}
+
+    <div class="admin-card border-l-4 !border-l-blue-500">
+        <p class="text-xs font-bold uppercase tracking-wider text-neutral-500">Biaya HPP (Produksi)</p>
+        <p class="mt-2 text-2xl font-extrabold text-blue-600">{{ rupiah($periodHpp) }}</p>
+        <p class="mt-1 text-xs text-neutral-500">Kain, trims, makloon &amp; CMT pesanan</p>
+    </div>
+
+    <div class="admin-card border-l-4 !border-l-rose-500">
+        <div class="flex items-center justify-between">
+            <p class="text-xs font-bold uppercase tracking-wider text-neutral-500">Beban Operasional</p>
+            <span class="text-[10px] font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded">Di Luar HPP</span>
+        </div>
+        <p class="mt-2 text-2xl font-extrabold text-rose-600">{{ rupiah($periodExpense) }}</p>
+        <p class="mt-1 text-xs text-neutral-500">Listrik, sewa gedung, gaji, kantor dll</p>
+    </div>
+
+    <div class="admin-card border-l-4 {{ $periodNetBalance >= 0 ? '!border-l-emerald-500 bg-emerald-50/20' : '!border-l-red-500 bg-red-50/20' }}">
+        <p class="text-xs font-bold uppercase tracking-wider text-neutral-500">Sisa Saldo Kas (Arus Kas Bersih)</p>
+        <p class="mt-2 text-2xl font-extrabold {{ $periodNetBalance >= 0 ? 'text-emerald-700' : 'text-red-600' }}">
+            {{ rupiah($periodNetBalance) }}
         </p>
-        <p class="mt-1 text-xs text-neutral-500">{{ $topCategory ? rupiah($topCategory['amount']) : 'Belum ada data' }}</p>
+        <p class="mt-1 text-xs text-neutral-500">Pemasukan − (HPP + Beban)</p>
     </div>
-    <div class="admin-card border-l-4 !border-l-brand-600">
-        <p class="text-xs font-bold uppercase tracking-wider text-neutral-500">Beban Tahun Ini</p>
-        <p class="mt-2 text-2xl font-extrabold text-brand-600">{{ rupiah($thisYearTotal) }}</p>
-        <p class="mt-1 text-xs text-neutral-500">Tahun {{ now()->format('Y') }}</p>
+</div>
+
+{{-- Comprehensive Financial Statement Panels --}}
+<div class="mt-4 grid gap-4 lg:grid-cols-2">
+    {{-- Panel 1: Arus Kas & Posisi Saldo Riil --}}
+    <div class="admin-card">
+        <div class="flex items-center justify-between pb-2.5 border-b border-line">
+            <div class="flex items-center gap-2">
+                <span class="inline-flex h-2 w-2 rounded-full bg-green-500"></span>
+                <span class="text-xs font-extrabold uppercase tracking-wider text-neutral-700">Laporan Arus Kas ({{ $isAllPeriod ? 'Semua Waktu' : $periodLabel }})</span>
+            </div>
+            <span class="text-xs font-medium text-neutral-500">
+                Saldo Kas Riil Saat Ini: <strong class="text-ink font-bold">{{ rupiah($totalCurrentBalance) }}</strong>
+            </span>
+        </div>
+        <div class="mt-3 space-y-2 text-sm">
+            <div class="flex items-center justify-between">
+                <span class="text-neutral-600">Total Kas Masuk (Pembayaran Customer)</span>
+                <span class="font-bold text-green-600">{{ rupiah($periodIncome) }}</span>
+            </div>
+            <div class="flex items-center justify-between">
+                <span class="text-neutral-600">Total Pengeluaran Kas (HPP + Beban Operasional)</span>
+                <span class="font-bold text-red-600">- {{ rupiah($periodTotalOutflow) }}</span>
+            </div>
+            <div class="flex items-center justify-between text-xs text-neutral-500 pl-3">
+                <span>↳ Biaya Produksi (HPP Pesanan): {{ rupiah($periodHpp) }}</span>
+                <span>↳ Beban Operasional (OPEX): {{ rupiah($periodExpense) }}</span>
+            </div>
+            <div class="flex items-center justify-between pt-2 border-t border-line text-sm">
+                <span class="font-extrabold text-ink">Sisa Kas Periode Ini (Net Cash Flow)</span>
+                <span class="font-extrabold text-base {{ $periodNetBalance >= 0 ? 'text-emerald-700' : 'text-red-600' }}">
+                    {{ rupiah($periodNetBalance) }}
+                </span>
+            </div>
+        </div>
     </div>
-    <div class="admin-card border-l-4 !border-l-slate-600">
-        <p class="text-xs font-bold uppercase tracking-wider text-neutral-500">Total Seluruh Beban</p>
-        <p class="mt-2 text-2xl font-extrabold text-slate-700">{{ rupiah($allTimeTotal) }}</p>
-        <p class="mt-1 text-xs text-neutral-500">Akumulasi pengeluaran operasional</p>
+
+    {{-- Panel 2: Kinerja Laba Perusahaan --}}
+    <div class="admin-card">
+        <div class="flex items-center justify-between pb-2.5 border-b border-line">
+            <div class="flex items-center gap-2">
+                <span class="inline-flex h-2 w-2 rounded-full bg-brand-600"></span>
+                <span class="text-xs font-extrabold uppercase tracking-wider text-neutral-700">Laporan Laba Perusahaan ({{ $isAllPeriod ? 'Semua Waktu' : $periodLabel }})</span>
+            </div>
+            @if($topCategory)
+                <span class="text-xs text-neutral-500 truncate" title="{{ $topCategory['name'] }}: {{ rupiah($topCategory['amount']) }}">
+                    Beban Terbesar: <strong class="text-ink">{{ $topCategory['name'] }}</strong>
+                </span>
+            @endif
+        </div>
+        <div class="mt-3 space-y-2 text-sm">
+            <div class="flex items-center justify-between">
+                <span class="text-neutral-600">Total Nilai Pesanan (Omset Periode)</span>
+                <span class="font-bold text-ink">{{ rupiah($periodOrderValue) }}</span>
+            </div>
+            <div class="flex items-center justify-between">
+                <span class="text-neutral-600">Laba Kotor Pesanan (Omset − HPP)</span>
+                <span class="font-bold text-indigo-600">{{ rupiah($periodGrossProfit) }}</span>
+            </div>
+            <div class="flex items-center justify-between">
+                <span class="text-neutral-600">Beban Operasional (Pengurang Laba Global)</span>
+                <span class="font-bold text-rose-600">- {{ rupiah($periodExpense) }}</span>
+            </div>
+            <div class="flex items-center justify-between pt-2 border-t border-line text-sm">
+                <span class="font-extrabold text-ink">Laba Bersih Perusahaan (Net Profit)</span>
+                <span class="font-extrabold text-base {{ $periodNetProfit >= 0 ? 'text-emerald-700' : 'text-red-600' }}">
+                    {{ rupiah($periodNetProfit) }}
+                </span>
+            </div>
+        </div>
     </div>
 </div>
 

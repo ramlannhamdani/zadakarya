@@ -4,10 +4,14 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\OperationalExpense;
+use App\Models\Order;
+use App\Models\OrderCost;
+use App\Models\Payment;
 use App\Services\GoogleSheetService;
 use App\Support\ImageUploader;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
@@ -17,13 +21,16 @@ class OperationalExpenseController extends Controller
     {
         $month = $request->filled('month') ? (int) $request->month : (int) now()->format('n');
         $year = $request->filled('year') ? (int) $request->year : (int) now()->format('Y');
+        $isAllPeriod = $request->get('period') === 'all';
+
+        $startDate = Carbon::createFromDate($year, $month, 1)->startOfMonth();
+        $endDate = Carbon::createFromDate($year, $month, 1)->endOfMonth();
+        $periodLabel = Carbon::createFromDate($year, $month, 1)->translatedFormat('F Y');
 
         $query = OperationalExpense::with('recorder');
 
         // Filter tanggal / bulan
-        if ($request->get('period') !== 'all') {
-            $startDate = Carbon::createFromDate($year, $month, 1)->startOfMonth();
-            $endDate = Carbon::createFromDate($year, $month, 1)->endOfMonth();
+        if (! $isAllPeriod) {
             $query->whereBetween('expense_date', [$startDate, $endDate]);
         }
 
@@ -48,47 +55,101 @@ class OperationalExpenseController extends Controller
             ->paginate(20)
             ->withQueryString();
 
-        // Metrik Ringkasan
-        $now = now();
-        $thisMonthStart = $now->copy()->startOfMonth();
-        $thisMonthEnd = $now->copy()->endOfMonth();
-        $thisYearStart = $now->copy()->startOfYear();
-        $thisYearEnd = $now->copy()->endOfYear();
+        // 1. Metrik Arus Kas Periode Ini (Cash Flow)
+        $paymentQuery = Payment::query();
+        $hppQuery = OrderCost::query();
+        $expensePeriodQuery = OperationalExpense::query();
+        $orderPeriodQuery = Order::where('status', '!=', 'cancelled');
 
-        $thisMonthTotal = (int) OperationalExpense::whereBetween('expense_date', [$thisMonthStart, $thisMonthEnd])->sum('amount');
-        $thisYearTotal = (int) OperationalExpense::whereBetween('expense_date', [$thisYearStart, $thisYearEnd])->sum('amount');
-        $allTimeTotal = (int) OperationalExpense::sum('amount');
-
-        // Kategori beban terbesar bulan ini
-        $topCategoryRow = OperationalExpense::whereBetween('expense_date', [$thisMonthStart, $thisMonthEnd])
-            ->selectRaw('category, SUM(amount) as total')
-            ->groupBy('category')
-            ->orderByDesc('total')
-            ->first();
-
-        $topCategory = null;
-        if ($topCategoryRow) {
-            $topCategory = [
-                'name' => OperationalExpense::CATEGORIES[$topCategoryRow->category] ?? $topCategoryRow->category,
-                'amount' => (int) $topCategoryRow->total,
-            ];
+        if (! $isAllPeriod) {
+            $paymentQuery->whereBetween('payment_date', [$startDate, $endDate]);
+            $hppQuery->whereBetween('spent_at', [$startDate, $endDate]);
+            $expensePeriodQuery->whereBetween('expense_date', [$startDate, $endDate]);
+            $orderPeriodQuery->whereBetween('created_at', [$startDate, $endDate]);
         }
 
+        $periodIncome = 0;
+        $periodHpp = 0;
+        $periodExpense = 0;
+        $periodOrderValue = 0;
+
+        try {
+            $periodIncome = (int) $paymentQuery->sum('amount');
+            $periodHpp = Schema::hasTable('order_costs') ? (int) $hppQuery->sum('amount') : 0;
+            $periodExpense = Schema::hasTable('operational_expenses') ? (int) $expensePeriodQuery->sum('amount') : 0;
+            $periodOrderValue = (int) $orderPeriodQuery->sum('grand_total');
+        } catch (\Throwable) {}
+
+        $periodTotalOutflow = $periodHpp + $periodExpense;
+        $periodNetBalance = $periodIncome - $periodTotalOutflow;
+
+        // 2. Metrik Laba Periode Ini (Profitability)
+        $periodGrossProfit = max(0, $periodOrderValue - $periodHpp);
+        $periodNetProfit = $periodGrossProfit - $periodExpense;
+
+        // 3. Saldo Kas Kumulatif Keseluruhan (Real-time Running Balance)
+        $totalAllIncome = 0;
+        $totalAllHpp = 0;
+        $totalAllExpense = 0;
+
+        try {
+            $totalAllIncome = (int) Payment::sum('amount');
+            $totalAllHpp = Schema::hasTable('order_costs') ? (int) OrderCost::sum('amount') : 0;
+            $totalAllExpense = Schema::hasTable('operational_expenses') ? (int) OperationalExpense::sum('amount') : 0;
+        } catch (\Throwable) {}
+
+        $totalAllOutflow = $totalAllHpp + $totalAllExpense;
+        $totalCurrentBalance = $totalAllIncome - $totalAllOutflow;
+
+        // Kategori beban terbesar periode ini
+        $topCategory = null;
+        try {
+            $topQuery = OperationalExpense::query();
+            if (! $isAllPeriod) {
+                $topQuery->whereBetween('expense_date', [$startDate, $endDate]);
+            }
+            $topCategoryRow = $topQuery->selectRaw('category, SUM(amount) as total')
+                ->groupBy('category')
+                ->orderByDesc('total')
+                ->first();
+
+            if ($topCategoryRow) {
+                $topCategory = [
+                    'name' => OperationalExpense::CATEGORIES[$topCategoryRow->category] ?? $topCategoryRow->category,
+                    'amount' => (int) $topCategoryRow->total,
+                ];
+            }
+        } catch (\Throwable) {}
+
         // Daftar tahun untuk filter dropdown
-        $earliestYear = OperationalExpense::min('expense_date');
-        $startYear = $earliestYear ? (int) Carbon::parse($earliestYear)->format('Y') : (int) now()->format('Y');
+        $startYear = now()->format('Y');
+        try {
+            $earliestYear = OperationalExpense::min('expense_date');
+            $startYear = $earliestYear ? (int) Carbon::parse($earliestYear)->format('Y') : (int) now()->format('Y');
+        } catch (\Throwable) {}
+
         $years = range(max($startYear, now()->format('Y') - 3), now()->format('Y') + 1);
         rsort($years);
 
         return view('admin.expenses.index', compact(
             'expenses',
-            'thisMonthTotal',
-            'thisYearTotal',
-            'allTimeTotal',
+            'periodIncome',
+            'periodHpp',
+            'periodExpense',
+            'periodTotalOutflow',
+            'periodNetBalance',
+            'periodOrderValue',
+            'periodGrossProfit',
+            'periodNetProfit',
+            'totalCurrentBalance',
+            'totalAllIncome',
+            'totalAllOutflow',
             'topCategory',
             'month',
             'year',
-            'years'
+            'years',
+            'isAllPeriod',
+            'periodLabel'
         ));
     }
 
