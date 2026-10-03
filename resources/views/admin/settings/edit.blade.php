@@ -16,10 +16,10 @@
     ];
     // Field per tab: dipakai untuk membuka tab yang punya error validasi.
     $tabFields = [
-        'perusahaan' => ['company_name', 'tagline', 'whatsapp', 'email', 'address', 'city'],
+        'perusahaan' => ['company_name', 'tagline', 'whatsapp', 'whatsapp_2', 'email', 'address', 'city'],
         'branding' => ['logo', 'logo_light', 'favicon', 'workshop_photo_1', 'workshop_photo_2', 'workshop_photo_3'],
         'beranda' => ['hero_image', 'hero_image_style', 'hero_badge', 'hero_title', 'hero_title_accent', 'hero_text', 'hero_rating_text', 'hero_stats'],
-        'sosial' => ['instagram', 'facebook', 'tiktok', 'google_maps_url', 'footer_text'],
+        'sosial' => ['instagram', 'facebook', 'tiktok', 'youtube', 'google_maps_url', 'footer_text'],
         'seo' => ['seo_title', 'seo_description', 'analytics_id'],
         'tracking' => ['show_ongoing'],
         'invoice' => ['invoice_company_name', 'invoice_address', 'invoice_bank_info', 'invoice_terms', 'invoice_signer', 'invoice_signature', 'invoice_stamp'],
@@ -82,8 +82,12 @@
                         <input class="form-input" type="text" id="tagline" name="tagline" value="{{ old('tagline', $settings['tagline'] ?? '') }}">
                     </div>
                     <div>
-                        <label class="form-label" for="whatsapp">WhatsApp <span class="text-brand-600">*</span></label>
+                        <label class="form-label" for="whatsapp">WhatsApp Admin 1 <span class="text-brand-600">*</span></label>
                         <input class="form-input" type="text" id="whatsapp" name="whatsapp" value="{{ old('whatsapp', $settings['whatsapp'] ?? '') }}">
+                    </div>
+                    <div>
+                        <label class="form-label" for="whatsapp_2">WhatsApp Admin 2 (Biolink)</label>
+                        <input class="form-input" type="text" id="whatsapp_2" name="whatsapp_2" value="{{ old('whatsapp_2', $settings['whatsapp_2'] ?? '') }}" placeholder="+62 813-...">
                     </div>
                     <div>
                         <label class="form-label" for="email">Email</label>
@@ -226,7 +230,7 @@
         <div data-tab="sosial" x-show="tab === 'sosial'" x-cloak>
             <div class="admin-card">
                 <h2 class="font-extrabold text-ink">Sosial Media &amp; Footer</h2>
-                <div class="mt-4 grid gap-5 sm:grid-cols-3">
+                <div class="mt-4 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
                     <div>
                         <label class="form-label" for="instagram">Instagram (URL)</label>
                         <input class="form-input" type="text" id="instagram" name="instagram" value="{{ old('instagram', $settings['instagram'] ?? '') }}">
@@ -239,8 +243,12 @@
                         <label class="form-label" for="tiktok">TikTok (URL)</label>
                         <input class="form-input" type="text" id="tiktok" name="tiktok" value="{{ old('tiktok', $settings['tiktok'] ?? '') }}">
                     </div>
-                    <div class="sm:col-span-3">
-                        <label class="form-label" for="google_maps_url">Link Google Maps (untuk section ulasan)</label>
+                    <div>
+                        <label class="form-label" for="youtube">YouTube (URL)</label>
+                        <input class="form-input" type="text" id="youtube" name="youtube" value="{{ old('youtube', $settings['youtube'] ?? '') }}" placeholder="https://youtube.com/@...">
+                    </div>
+                    <div class="sm:col-span-2 lg:col-span-4">
+                        <label class="form-label" for="google_maps_url">Link Google Maps (untuk section ulasan &amp; biolink)</label>
                         <input class="form-input" type="url" id="google_maps_url" name="google_maps_url" value="{{ old('google_maps_url', $settings['google_maps_url'] ?? '') }}" placeholder="https://maps.app.goo.gl/...">
                     </div>
                     <div class="sm:col-span-3">

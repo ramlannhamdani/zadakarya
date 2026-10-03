@@ -61,8 +61,12 @@ Route::get('/sitemap.xml', Site\SitemapController::class)->name('sitemap');
 Route::get('/tracking', [Site\TrackingController::class, 'legacyRedirect']);
 Route::permanentRedirect('/tracking/foto/{photo}', '/lacak-pesanan/foto/{photo}');
 
+Route::get('/biolink', [Site\BiolinkController::class, 'index'])->name('biolink');
+
 // Ejaan lain yang wajar ditebak orang maupun mesin pencari.
 foreach ([
+    '/bio' => '/biolink',
+    '/links' => '/biolink',
     '/lacak' => '/lacak-pesanan',
     '/cek-pesanan' => '/lacak-pesanan',
     '/portofolio' => '/portfolio',

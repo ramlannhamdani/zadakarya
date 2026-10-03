@@ -21,6 +21,7 @@ class SitemapController extends Controller
             ['loc' => route('consultation.create'), 'priority' => '0.9'],
             ['loc' => route('tracking.index'), 'priority' => '0.6'],
             ['loc' => route('contact'), 'priority' => '0.5'],
+            ['loc' => route('biolink'), 'priority' => '0.7'],
         ]);
 
         $urls = $urls

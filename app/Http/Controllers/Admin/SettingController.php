@@ -12,8 +12,8 @@ use Illuminate\Support\Str;
 class SettingController extends Controller
 {
     public const KEYS = [
-        'company_name', 'tagline', 'whatsapp', 'email', 'address', 'city',
-        'instagram', 'facebook', 'tiktok', 'google_maps_url', 'footer_text',
+        'company_name', 'tagline', 'whatsapp', 'whatsapp_2', 'email', 'address', 'city',
+        'instagram', 'facebook', 'tiktok', 'youtube', 'google_maps_url', 'footer_text',
         'seo_title', 'seo_description',
         'invoice_company_name', 'invoice_address', 'invoice_bank_info', 'invoice_terms', 'invoice_signer',
         'hero_badge', 'hero_title', 'hero_title_accent', 'hero_text', 'hero_rating_text', 'hero_stats', 'hero_image_style',
@@ -33,12 +33,14 @@ class SettingController extends Controller
             'company_name' => ['required', 'string', 'max:150'],
             'tagline' => ['nullable', 'string', 'max:300'],
             'whatsapp' => ['required', 'string', 'max:30'],
+            'whatsapp_2' => ['nullable', 'string', 'max:30'],
             'email' => ['nullable', 'email', 'max:150'],
             'address' => ['nullable', 'string', 'max:500'],
             'city' => ['nullable', 'string', 'max:100'],
             'instagram' => ['nullable', 'string', 'max:200'],
             'facebook' => ['nullable', 'string', 'max:200'],
             'tiktok' => ['nullable', 'string', 'max:200'],
+            'youtube' => ['nullable', 'string', 'max:200'],
             'google_maps_url' => ['nullable', 'url', 'max:500'],
             'footer_text' => ['nullable', 'string', 'max:500'],
             'seo_title' => ['nullable', 'string', 'max:200'],
