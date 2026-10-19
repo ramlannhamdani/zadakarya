@@ -21,6 +21,9 @@
     <title>{{ $metaTitle }}</title>
     <meta name="description" content="{{ $metaDescription }}">
     <link rel="canonical" href="{{ url()->current() }}">
+    @if(setting('google_site_verification'))
+        <meta name="google-site-verification" content="{{ setting('google_site_verification') }}">
+    @endif
 
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="{{ $siteName }}">

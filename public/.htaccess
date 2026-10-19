@@ -5,6 +5,9 @@
 
     RewriteEngine On
 
+    # Route Google site verification through Laravel front controller
+    RewriteRule ^google[a-zA-Z0-9_-]+\.html$ index.php [L]
+
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]

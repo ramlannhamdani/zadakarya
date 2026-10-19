@@ -20,7 +20,7 @@
         'branding' => ['logo', 'logo_light', 'favicon', 'workshop_photo_1', 'workshop_photo_2', 'workshop_photo_3'],
         'beranda' => ['hero_image', 'hero_image_style', 'hero_badge', 'hero_title', 'hero_title_accent', 'hero_text', 'hero_rating_text', 'hero_stats'],
         'sosial' => ['instagram', 'facebook', 'tiktok', 'youtube', 'google_maps_url', 'footer_text'],
-        'seo' => ['seo_title', 'seo_description', 'analytics_id'],
+        'seo' => ['seo_title', 'seo_description', 'analytics_id', 'google_site_verification'],
         'tracking' => ['show_ongoing'],
         'invoice' => ['invoice_company_name', 'invoice_address', 'invoice_bank_info', 'invoice_terms', 'invoice_signer', 'invoice_signature', 'invoice_stamp'],
         'akun' => ['current_password', 'password', 'password_confirmation'],
@@ -275,6 +275,11 @@
                     <div>
                         <label class="form-label" for="analytics_id">Google Analytics ID</label>
                         <input class="form-input" type="text" id="analytics_id" name="analytics_id" value="{{ old('analytics_id', $settings['analytics_id'] ?? '') }}" placeholder="G-XXXXXXXXXX">
+                    </div>
+                    <div>
+                        <label class="form-label" for="google_site_verification">Google Search Console Verification (Tag HTML)</label>
+                        <input class="form-input" type="text" id="google_site_verification" name="google_site_verification" value="{{ old('google_site_verification', $settings['google_site_verification'] ?? '') }}" placeholder="Contoh: google35163a4fcf062a76 atau token verifikasi">
+                        <p class="mt-1 text-xs text-neutral-500">Jika menggunakan metode <strong>Tag HTML</strong> di Google Search Console, masukkan nilai dari atribut <code>content</code> di sini.</p>
                     </div>
                 </div>
             </div>

@@ -17,7 +17,7 @@ class SettingController extends Controller
         'seo_title', 'seo_description',
         'invoice_company_name', 'invoice_address', 'invoice_bank_info', 'invoice_terms', 'invoice_signer',
         'hero_badge', 'hero_title', 'hero_title_accent', 'hero_text', 'hero_rating_text', 'hero_stats', 'hero_image_style',
-        'analytics_id', 'show_ongoing',
+        'analytics_id', 'google_site_verification', 'show_ongoing',
     ];
 
     public function edit()
@@ -64,6 +64,7 @@ class SettingController extends Controller
             'hero_image_pick' => ['nullable', 'integer', 'exists:gallery_items,id'],
             'hero_image_style' => ['nullable', 'in:cutout,framed'],
             'analytics_id' => ['nullable', 'string', 'max:50'],
+            'google_site_verification' => ['nullable', 'string', 'max:255'],
             'show_ongoing' => ['nullable', 'in:0,1'],
             'logo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
             'logo_light' => ['nullable', 'image', 'mimes:png,webp', 'max:2048'],

@@ -169,4 +169,13 @@ class PublicSiteTest extends TestCase
 
         $this->assertAuthenticatedAs($user);
     }
+
+    public function test_google_site_verification_meta_tag_renders_when_configured(): void
+    {
+        \App\Models\Setting::set('google_site_verification', 'test-token-12345');
+
+        $html = $this->get('/')->assertOk()->getContent();
+        $this->assertStringContainsString('<meta name="google-site-verification" content="test-token-12345">', $html);
+    }
 }
+
