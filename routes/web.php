@@ -45,6 +45,7 @@ Route::get('/invoice/{invoice}', [Site\InvoiceController::class, 'show'])
     ->name('invoice.public');
 
 Route::get('/sitemap.xml', Site\SitemapController::class)->name('sitemap');
+Route::get('/google35163a4fcf062a76.html', fn () => response("google-site-verification: google35163a4fcf062a76.html\n", 200, ['Content-Type' => 'text/html; charset=UTF-8']));
 
 /*
 |--------------------------------------------------------------------------
