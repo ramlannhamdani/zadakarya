@@ -21,8 +21,11 @@
     <title>{{ $metaTitle }}</title>
     <meta name="description" content="{{ $metaDescription }}">
     <link rel="canonical" href="{{ url()->current() }}">
-    @if(setting('google_site_verification'))
-        <meta name="google-site-verification" content="{{ setting('google_site_verification') }}">
+    @php
+        $googleSiteVerification = setting('google_site_verification', 'NrtahUqZ3ItWPjeapfzmhHIIn7j0et4FozJ7reuiNN0');
+    @endphp
+    @if($googleSiteVerification)
+        <meta name="google-site-verification" content="{{ $googleSiteVerification }}">
     @endif
 
     <meta property="og:type" content="website">
