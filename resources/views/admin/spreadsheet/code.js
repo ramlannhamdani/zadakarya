@@ -12,7 +12,7 @@
  * yang ada di aplikasi — penyebab paling sering tampilan sheet terlihat lama.
  * Naikkan setiap kali berkas ini diubah.
  */
-var SCRIPT_VERSION = '2026-09-25.01';
+var SCRIPT_VERSION = '2026-10-23.01';
 
 /**
  * Tinggi baris data di seluruh tab. Baris judul, banner, dan kartu KPI punya
@@ -569,6 +569,19 @@ function setupDataOrderSheet(sheet) {
   sheet.getRange(4, 14, rows, 1).setWrap(true);
 
   applyRowStripes(sheet, 15);
+
+  // Sorotan visual jika ada pesanan yang sedang nombok kas kantor (DP < HPP)
+  try {
+    var statusRange = sheet.getRange(4, 13, rows, 1);
+    var ruleNombok = SpreadsheetApp.newConditionalFormatRule()
+      .whenTextContains('Nombok Kas')
+      .setBackground(CLR.redCard)
+      .setFontColor(CLR.red)
+      .setBold(true)
+      .setRanges([statusRange])
+      .build();
+    sheet.setConditionalFormatRules([ruleNombok]);
+  } catch (e) {}
 }
 
 /* ========================================================================== */
@@ -631,6 +644,25 @@ function setupArusKasSheet(sheet) {
   sheet.getRange('F3').setBackground('#1A6B36');
   sheet.getRange('G3').setBackground('#B22222');
   sheet.getRange('H3').setBackground('#1F3864');
+
+  // Pembeda visual otomatis antara Ops. Konveksi (bisnis) dan Ops. Pribadi (prive owner)
+  try {
+    var catRange = sheet.getRange(4, 4, rows, 1);
+    var rulePribadi = SpreadsheetApp.newConditionalFormatRule()
+      .whenTextContains('Ops. Pribadi')
+      .setBackground('#FDF2F8')
+      .setFontColor('#9D174D')
+      .setBold(true)
+      .setRanges([catRange])
+      .build();
+    var ruleKonveksi = SpreadsheetApp.newConditionalFormatRule()
+      .whenTextContains('Ops. Konveksi')
+      .setBackground('#EEF2FF')
+      .setFontColor('#3730A3')
+      .setRanges([catRange])
+      .build();
+    sheet.setConditionalFormatRules([rulePribadi, ruleKonveksi]);
+  } catch (e) {}
 }
 
 /* ========================================================================== */
