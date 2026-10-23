@@ -34,6 +34,11 @@ class OperationalExpenseController extends Controller
             $query->whereBetween('expense_date', [$startDate, $endDate]);
         }
 
+        // Filter jenis beban (Ops. Konveksi vs Ops. Pribadi)
+        if ($request->filled('expense_type')) {
+            $query->where('expense_type', $request->expense_type);
+        }
+
         // Filter kategori
         if ($request->filled('category')) {
             $query->where('category', $request->category);
@@ -71,31 +76,43 @@ class OperationalExpenseController extends Controller
         $periodIncome = 0;
         $periodHpp = 0;
         $periodExpense = 0;
+        $periodConvectionExpense = 0;
+        $periodPersonalExpense = 0;
         $periodOrderValue = 0;
 
         try {
             $periodIncome = (int) $paymentQuery->sum('amount');
             $periodHpp = Schema::hasTable('order_costs') ? (int) $hppQuery->sum('amount') : 0;
-            $periodExpense = Schema::hasTable('operational_expenses') ? (int) $expensePeriodQuery->sum('amount') : 0;
+            if (Schema::hasTable('operational_expenses')) {
+                $periodExpense = (int) $expensePeriodQuery->sum('amount');
+                $periodConvectionExpense = (int) (clone $expensePeriodQuery)->where('expense_type', OperationalExpense::TYPE_CONVECTION)->sum('amount');
+                $periodPersonalExpense = (int) (clone $expensePeriodQuery)->where('expense_type', OperationalExpense::TYPE_PERSONAL)->sum('amount');
+            }
             $periodOrderValue = (int) $orderPeriodQuery->sum('grand_total');
         } catch (\Throwable) {}
 
         $periodTotalOutflow = $periodHpp + $periodExpense;
         $periodNetBalance = $periodIncome - $periodTotalOutflow;
 
-        // 2. Metrik Laba Periode Ini (Profitability)
+        // 2. Metrik Laba Periode Ini (Laba Bisnis Konveksi)
         $periodGrossProfit = max(0, $periodOrderValue - $periodHpp);
-        $periodNetProfit = $periodGrossProfit - $periodExpense;
+        $periodNetProfit = $periodGrossProfit - $periodConvectionExpense;
 
         // 3. Saldo Kas Kumulatif Keseluruhan (Real-time Running Balance)
         $totalAllIncome = 0;
         $totalAllHpp = 0;
         $totalAllExpense = 0;
+        $totalAllConvectionExpense = 0;
+        $totalAllPersonalExpense = 0;
 
         try {
             $totalAllIncome = (int) Payment::sum('amount');
             $totalAllHpp = Schema::hasTable('order_costs') ? (int) OrderCost::sum('amount') : 0;
-            $totalAllExpense = Schema::hasTable('operational_expenses') ? (int) OperationalExpense::sum('amount') : 0;
+            if (Schema::hasTable('operational_expenses')) {
+                $totalAllExpense = (int) OperationalExpense::sum('amount');
+                $totalAllConvectionExpense = (int) OperationalExpense::where('expense_type', OperationalExpense::TYPE_CONVECTION)->sum('amount');
+                $totalAllPersonalExpense = (int) OperationalExpense::where('expense_type', OperationalExpense::TYPE_PERSONAL)->sum('amount');
+            }
         } catch (\Throwable) {}
 
         $totalAllOutflow = $totalAllHpp + $totalAllExpense;
@@ -152,6 +169,8 @@ class OperationalExpenseController extends Controller
             'periodIncome',
             'periodHpp',
             'periodExpense',
+            'periodConvectionExpense',
+            'periodPersonalExpense',
             'periodTotalOutflow',
             'periodNetBalance',
             'periodOrderValue',
@@ -160,6 +179,8 @@ class OperationalExpenseController extends Controller
             'totalCurrentBalance',
             'totalAllIncome',
             'totalAllOutflow',
+            'totalAllConvectionExpense',
+            'totalAllPersonalExpense',
             'activeAdvances',
             'activeDeficitCount',
             'topCategory',
@@ -171,12 +192,13 @@ class OperationalExpenseController extends Controller
         ));
     }
 
-    public function create()
+    public function create(Request $request)
     {
         return view('admin.expenses.form', [
             'expense' => new OperationalExpense([
                 'expense_date' => now(),
                 'payment_method' => 'transfer',
+                'expense_type' => $request->get('expense_type', OperationalExpense::TYPE_CONVECTION),
             ]),
             'isEdit' => false,
         ]);
@@ -189,11 +211,15 @@ class OperationalExpenseController extends Controller
             $cleaned = preg_replace('/[^\d]/', '', (string) $request->amount);
             $merge['amount'] = $cleaned === '' ? null : (int) $cleaned;
         }
+        if (! $request->filled('expense_type')) {
+            $merge['expense_type'] = OperationalExpense::TYPE_CONVECTION;
+        }
         if (! empty($merge)) {
             $request->merge($merge);
         }
 
         $data = $request->validate([
+            'expense_type' => ['required', Rule::in(array_keys(OperationalExpense::TYPES))],
             'title' => ['required', 'string', 'max:255'],
             'category' => ['required', Rule::in(array_keys(OperationalExpense::CATEGORIES))],
             'amount' => ['required', 'integer', 'min:1'],
@@ -202,6 +228,7 @@ class OperationalExpenseController extends Controller
             'notes' => ['nullable', 'string', 'max:1000'],
             'receipt' => ['nullable', 'file', 'max:5120', 'mimes:jpg,jpeg,png,webp,pdf'],
         ], [
+            'expense_type.required' => 'Jenis pengeluaran (Ops. Konveksi / Ops. Pribadi) wajib dipilih.',
             'title.required' => 'Keterangan pengeluaran wajib diisi.',
             'category.required' => 'Kategori beban wajib dipilih.',
             'amount.required' => 'Nominal pengeluaran wajib diisi.',
@@ -217,6 +244,7 @@ class OperationalExpenseController extends Controller
 
         $expense = OperationalExpense::create([
             'reference_no' => OperationalExpense::generateReferenceNo(),
+            'expense_type' => $data['expense_type'],
             'category' => $data['category'],
             'title' => $data['title'],
             'amount' => $data['amount'],
@@ -231,7 +259,7 @@ class OperationalExpenseController extends Controller
         app(GoogleSheetService::class)->syncExpense($expense, 'add');
 
         return redirect()->route('admin.expenses.index')
-            ->with('success', 'Beban operasional ' . rupiah($expense->amount) . ' ("' . $expense->title . '") berhasil dicatat.');
+            ->with('success', 'Beban ' . $expense->type_label . ' ' . rupiah($expense->amount) . ' ("' . $expense->title . '") berhasil dicatat.');
     }
 
     public function edit(OperationalExpense $expense)
@@ -249,11 +277,15 @@ class OperationalExpenseController extends Controller
             $cleaned = preg_replace('/[^\d]/', '', (string) $request->amount);
             $merge['amount'] = $cleaned === '' ? null : (int) $cleaned;
         }
+        if (! $request->filled('expense_type')) {
+            $merge['expense_type'] = $expense->expense_type ?? OperationalExpense::TYPE_CONVECTION;
+        }
         if (! empty($merge)) {
             $request->merge($merge);
         }
 
         $data = $request->validate([
+            'expense_type' => ['required', Rule::in(array_keys(OperationalExpense::TYPES))],
             'title' => ['required', 'string', 'max:255'],
             'category' => ['required', Rule::in(array_keys(OperationalExpense::CATEGORIES))],
             'amount' => ['required', 'integer', 'min:1'],
@@ -262,6 +294,7 @@ class OperationalExpenseController extends Controller
             'notes' => ['nullable', 'string', 'max:1000'],
             'receipt' => ['nullable', 'file', 'max:5120', 'mimes:jpg,jpeg,png,webp,pdf'],
         ], [
+            'expense_type.required' => 'Jenis pengeluaran (Ops. Konveksi / Ops. Pribadi) wajib dipilih.',
             'title.required' => 'Keterangan pengeluaran wajib diisi.',
             'category.required' => 'Kategori beban wajib dipilih.',
             'amount.required' => 'Nominal pengeluaran wajib diisi.',
@@ -278,6 +311,7 @@ class OperationalExpenseController extends Controller
         }
 
         $expense->update([
+            'expense_type' => $data['expense_type'],
             'category' => $data['category'],
             'title' => $data['title'],
             'amount' => $data['amount'],

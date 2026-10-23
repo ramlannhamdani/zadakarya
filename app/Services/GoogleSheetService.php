@@ -376,12 +376,13 @@ class GoogleSheetService
             'id' => $expense->reference_no ?: ('EXP-'.$expense->id),
             'date' => $expense->expense_date?->format('Y-m-d') ?? now()->format('Y-m-d'),
             'trx_no' => $expense->reference_no,
-            'desc' => $expense->title.($expense->notes ? ' ('.$expense->notes.')' : ''),
-            'category' => 'Beban Operasional — '.$expense->category_label,
+            'desc' => '['.$expense->type_label.'] '.$expense->title.($expense->notes ? ' ('.$expense->notes.')' : ''),
+            'category' => 'Beban Operasional — ['.$expense->type_label.'] '.$expense->category_label,
             'party' => $expense->category_label,
             'amount' => (int) $expense->amount,
             'method' => $expense->method_label,
             'recorded_by' => $expense->recorder?->name ?? 'Admin',
+            'expense_type' => $expense->expense_type,
         ];
     }
 

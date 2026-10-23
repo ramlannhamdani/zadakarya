@@ -42,17 +42,36 @@ class DashboardController extends Controller
 
         $totalExpenses = 0;
         $thisMonthExpenses = 0;
+        $convectionExpensesTotal = 0;
+        $convectionExpensesThisMonth = 0;
+        $personalExpensesTotal = 0;
+        $personalExpensesThisMonth = 0;
+
         try {
             if (\Illuminate\Support\Facades\Schema::hasTable('operational_expenses')) {
+                $nowStart = now()->startOfMonth();
+                $nowEnd = now()->endOfMonth();
+
                 $totalExpenses = (int) \App\Models\OperationalExpense::sum('amount');
-                $thisMonthExpenses = (int) \App\Models\OperationalExpense::whereBetween('expense_date', [now()->startOfMonth(), now()->endOfMonth()])->sum('amount');
+                $thisMonthExpenses = (int) \App\Models\OperationalExpense::whereBetween('expense_date', [$nowStart, $nowEnd])->sum('amount');
+
+                $convectionExpensesTotal = (int) \App\Models\OperationalExpense::where('expense_type', 'convection')->sum('amount');
+                $convectionExpensesThisMonth = (int) \App\Models\OperationalExpense::where('expense_type', 'convection')->whereBetween('expense_date', [$nowStart, $nowEnd])->sum('amount');
+
+                $personalExpensesTotal = (int) \App\Models\OperationalExpense::where('expense_type', 'personal')->sum('amount');
+                $personalExpensesThisMonth = (int) \App\Models\OperationalExpense::where('expense_type', 'personal')->whereBetween('expense_date', [$nowStart, $nowEnd])->sum('amount');
             }
         } catch (\Throwable) {
             $totalExpenses = 0;
             $thisMonthExpenses = 0;
+            $convectionExpensesTotal = 0;
+            $convectionExpensesThisMonth = 0;
+            $personalExpensesTotal = 0;
+            $personalExpensesThisMonth = 0;
         }
 
-        $netProfit = $grossProfit - $totalExpenses;
+        // Laba bersih operasional konveksi (Laba Kotor - Beban Konveksi)
+        $netProfit = $grossProfit - $convectionExpensesTotal;
 
         // Total Dana Talangan Kas yang sedang terpakai menombok pesanan aktif (HPP > Uang Masuk)
         $totalCashAdvances = 0;
@@ -81,6 +100,10 @@ class DashboardController extends Controller
             'gross_profit' => $grossProfit,
             'total_expenses' => $totalExpenses,
             'this_month_expenses' => $thisMonthExpenses,
+            'convection_expenses_total' => $convectionExpensesTotal,
+            'convection_expenses_this_month' => $convectionExpensesThisMonth,
+            'personal_expenses_total' => $personalExpensesTotal,
+            'personal_expenses_this_month' => $personalExpensesThisMonth,
             'net_profit' => $netProfit,
             'total_cash_advances' => $totalCashAdvances,
             'deficit_orders_count' => $deficitOrdersCount,

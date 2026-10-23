@@ -234,9 +234,73 @@ class OperationalExpenseTest extends TestCase
         $response->assertSee('Rp 4.000.000');
         $response->assertSee('Laba Kotor Pesanan');
         $response->assertSee('Rp 6.000.000');
-        $response->assertSee('Beban Operasional');
+        $response->assertSee('Ops. Konveksi');
         $response->assertSee('Rp 1.500.000');
-        $response->assertSee('Laba Bersih Perusahaan');
+        $response->assertSee('Laba Bersih');
         $response->assertSee('Rp 4.500.000');
+    }
+
+    public function test_convection_and_personal_expenses_tracking_and_filtering(): void
+    {
+        // 1. Catat Ops. Konveksi (Beban Bisnis)
+        $convection = OperationalExpense::create([
+            'reference_no' => 'EXP-202610-0001',
+            'expense_type' => 'convection',
+            'category' => 'listrik_air',
+            'title' => 'Listrik Mesin Konveksi',
+            'amount' => 2000000,
+            'expense_date' => now(),
+            'payment_method' => 'transfer',
+            'recorded_by' => $this->admin->id,
+        ]);
+
+        // 2. Catat Ops. Pribadi (Prive Owner)
+        $personal = OperationalExpense::create([
+            'reference_no' => 'EXP-202610-0002',
+            'expense_type' => 'personal',
+            'category' => 'prive_owner',
+            'title' => 'Prive Kebutuhan Owner',
+            'amount' => 1000000,
+            'expense_date' => now(),
+            'payment_method' => 'cash',
+            'recorded_by' => $this->admin->id,
+        ]);
+
+        $this->assertSame('Ops. Konveksi', $convection->type_label);
+        $this->assertTrue($convection->isConvection());
+        $this->assertFalse($convection->isPersonal());
+
+        $this->assertSame('Ops. Pribadi', $personal->type_label);
+        $this->assertTrue($personal->isPersonal());
+        $this->assertFalse($personal->isConvection());
+
+        // 3. Test Dashboard menampilkan kedua metrik
+        $dashResponse = $this->actingAs($this->admin)->get(route('admin.dashboard'));
+        $dashResponse->assertOk();
+        $dashResponse->assertSee('Ops. Konveksi');
+        $dashResponse->assertSee('Rp 2.000.000');
+        $dashResponse->assertSee('Ops. Pribadi');
+        $dashResponse->assertSee('Rp 1.000.000');
+
+        // 4. Test Filter di Halaman Beban Operasional
+        // Filter convection: hanya melihat Ops. Konveksi
+        $convFilterResponse = $this->actingAs($this->admin)->get(route('admin.expenses.index', ['expense_type' => 'convection']));
+        $convFilterResponse->assertOk();
+        $convFilterResponse->assertSee('Listrik Mesin Konveksi');
+        $convFilterResponse->assertDontSee('Prive Kebutuhan Owner');
+
+        // Filter personal: hanya melihat Ops. Pribadi
+        $persFilterResponse = $this->actingAs($this->admin)->get(route('admin.expenses.index', ['expense_type' => 'personal']));
+        $persFilterResponse->assertOk();
+        $persFilterResponse->assertSee('Prive Kebutuhan Owner');
+        $persFilterResponse->assertDontSee('Listrik Mesin Konveksi');
+
+        // 5. Test Google Sheet Format
+        $sheetService = new \App\Services\GoogleSheetService();
+        $formattedConv = $sheetService->formatExpenseData($convection);
+        $this->assertStringContainsString('[Ops. Konveksi]', $formattedConv['desc']);
+
+        $formattedPers = $sheetService->formatExpenseData($personal);
+        $this->assertStringContainsString('[Ops. Pribadi]', $formattedPers['desc']);
     }
 }

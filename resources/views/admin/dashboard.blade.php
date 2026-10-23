@@ -73,37 +73,56 @@
         @endif
     </div>
 
-    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
         <div class="admin-card border-l-4 !border-l-blue-500">
             <p class="text-xs font-bold uppercase tracking-wider text-neutral-500">Total HPP Produksi</p>
             <p class="mt-2 text-2xl font-extrabold text-blue-600">{{ rupiah($financials['total_hpp']) }}</p>
-            <p class="mt-1 text-xs text-neutral-500">Biaya kain, trims, makloon & CMT pesanan</p>
+            <p class="mt-1 text-xs text-neutral-500">Kain, trims, makloon &amp; CMT</p>
         </div>
 
-        <div class="admin-card border-l-4 !border-l-indigo-500">
+        <div class="admin-card border-l-4 !border-l-emerald-500">
             <p class="text-xs font-bold uppercase tracking-wider text-neutral-500">Laba Kotor Pesanan</p>
-            <p class="mt-2 text-2xl font-extrabold text-indigo-600">{{ rupiah($financials['gross_profit']) }}</p>
-            <p class="mt-1 text-xs text-neutral-500">Total Nilai Order − Total HPP</p>
+            <p class="mt-2 text-2xl font-extrabold text-emerald-600">{{ rupiah($financials['gross_profit']) }}</p>
+            <p class="mt-1 text-xs text-neutral-500">Nilai Order − Total HPP</p>
         </div>
 
-        <div class="admin-card border-l-4 !border-l-rose-500">
+        {{-- Ops. Konveksi (Bln ini & Total) --}}
+        <div class="admin-card border-l-4 !border-l-indigo-600 bg-indigo-50/10">
             <div class="flex items-center justify-between">
-                <p class="text-xs font-bold uppercase tracking-wider text-neutral-500">Beban Operasional</p>
-                <span class="text-[10px] font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded">Listrik, Sewa, Gaji dll</span>
+                <p class="text-xs font-bold uppercase tracking-wider text-neutral-500">Ops. Konveksi</p>
+                <a href="{{ route('admin.expenses.index', ['expense_type' => 'convection']) }}" class="text-[10px] font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 px-2 py-0.5 rounded transition">
+                    Bisnis &rarr;
+                </a>
             </div>
-            <p class="mt-2 text-2xl font-extrabold text-rose-600">{{ rupiah($financials['total_expenses']) }}</p>
-            <p class="mt-1 text-xs text-neutral-500">Bulan ini: <strong class="text-ink">{{ rupiah($financials['this_month_expenses']) }}</strong></p>
+            <p class="mt-2 text-2xl font-extrabold text-indigo-700">{{ rupiah($financials['convection_expenses_this_month']) }}</p>
+            <div class="mt-1 text-xs text-neutral-500">
+                <span>Bulan Ini</span> &bull; Total: <strong class="text-ink font-semibold">{{ rupiah($financials['convection_expenses_total']) }}</strong>
+            </div>
         </div>
 
-        <div class="admin-card border-l-4 {{ $financials['net_profit'] >= 0 ? '!border-l-emerald-500 bg-emerald-50/20' : '!border-l-red-500 bg-red-50/20' }}">
-            <p class="text-xs font-bold uppercase tracking-wider text-neutral-500">Laba Bersih Perusahaan</p>
-            <p class="mt-2 text-2xl font-extrabold {{ $financials['net_profit'] >= 0 ? 'text-emerald-700' : 'text-red-600' }}">
+        {{-- Ops. Pribadi (Bln ini & Total) --}}
+        <div class="admin-card border-l-4 !border-l-rose-500 bg-rose-50/10">
+            <div class="flex items-center justify-between">
+                <p class="text-xs font-bold uppercase tracking-wider text-neutral-500">Ops. Pribadi</p>
+                <a href="{{ route('admin.expenses.index', ['expense_type' => 'personal']) }}" class="text-[10px] font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 px-2 py-0.5 rounded transition">
+                    Prive &rarr;
+                </a>
+            </div>
+            <p class="mt-2 text-2xl font-extrabold text-rose-600">{{ rupiah($financials['personal_expenses_this_month']) }}</p>
+            <div class="mt-1 text-xs text-neutral-500">
+                <span>Bulan Ini</span> &bull; Total: <strong class="text-ink font-semibold">{{ rupiah($financials['personal_expenses_total']) }}</strong>
+            </div>
+        </div>
+
+        <div class="admin-card border-l-4 {{ $financials['net_profit'] >= 0 ? '!border-l-teal-600 bg-teal-50/20' : '!border-l-red-500 bg-red-50/20' }}">
+            <p class="text-xs font-bold uppercase tracking-wider text-neutral-500">Laba Bersih Bisnis</p>
+            <p class="mt-2 text-2xl font-extrabold {{ $financials['net_profit'] >= 0 ? 'text-teal-700' : 'text-red-600' }}">
                 {{ rupiah($financials['net_profit']) }}
             </p>
-            <p class="mt-1 text-xs text-neutral-500">Laba Kotor − Beban Operasional</p>
+            <p class="mt-1 text-xs text-neutral-500">Laba Kotor − Ops. Konveksi</p>
         </div>
 
-        <div class="admin-card border-l-4 {{ ($financials['total_cash_advances'] ?? 0) > 0 ? '!border-l-amber-500 bg-amber-50/30' : '!border-l-teal-500 bg-teal-50/20' }}">
+        <div class="admin-card border-l-4 {{ ($financials['total_cash_advances'] ?? 0) > 0 ? '!border-l-amber-500 bg-amber-50/30' : '!border-l-slate-400' }}">
             <div class="flex items-center justify-between">
                 <p class="text-xs font-bold uppercase tracking-wider text-neutral-500">Talangan Kas (Nombok)</p>
                 @if(($financials['deficit_orders_count'] ?? 0) > 0)
@@ -112,14 +131,14 @@
                     </a>
                 @endif
             </div>
-            <p class="mt-2 text-2xl font-extrabold {{ ($financials['total_cash_advances'] ?? 0) > 0 ? 'text-amber-700' : 'text-teal-700' }}">
+            <p class="mt-2 text-2xl font-extrabold {{ ($financials['total_cash_advances'] ?? 0) > 0 ? 'text-amber-700' : 'text-slate-700' }}">
                 {{ rupiah($financials['total_cash_advances'] ?? 0) }}
             </p>
             <p class="mt-1 text-xs text-neutral-500">
                 @if(($financials['total_cash_advances'] ?? 0) > 0)
-                    Kas kantor menombok belanja HPP > DP
+                    Kas kantor menombok DP
                 @else
-                    Semua belanja HPP tertutup DP
+                    Semua belanja tertutup DP
                 @endif
             </p>
         </div>

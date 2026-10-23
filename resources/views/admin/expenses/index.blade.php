@@ -3,8 +3,8 @@
 @section('title', 'Beban Operasional')
 
 @section('content')
-{{-- Financial Position: 4 Core Metrics --}}
-<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+{{-- Financial Position: 5 Core Metrics --}}
+<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
     <div class="admin-card border-l-4 !border-l-green-500">
         <p class="text-xs font-bold uppercase tracking-wider text-neutral-500">Total Pemasukan (Kas Masuk)</p>
         <p class="mt-2 text-2xl font-extrabold text-green-600">{{ rupiah($periodIncome) }}</p>
@@ -14,24 +14,33 @@
     <div class="admin-card border-l-4 !border-l-blue-500">
         <p class="text-xs font-bold uppercase tracking-wider text-neutral-500">Biaya HPP (Produksi)</p>
         <p class="mt-2 text-2xl font-extrabold text-blue-600">{{ rupiah($periodHpp) }}</p>
-        <p class="mt-1 text-xs text-neutral-500">Kain, trims, makloon &amp; CMT pesanan</p>
+        <p class="mt-1 text-xs text-neutral-500">Kain, trims, makloon &amp; CMT</p>
     </div>
 
-    <div class="admin-card border-l-4 !border-l-rose-500">
+    <div class="admin-card border-l-4 !border-l-indigo-600 bg-indigo-50/10">
         <div class="flex items-center justify-between">
-            <p class="text-xs font-bold uppercase tracking-wider text-neutral-500">Beban Operasional</p>
-            <span class="text-[10px] font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded">Di Luar HPP</span>
+            <p class="text-xs font-bold uppercase tracking-wider text-neutral-500">Ops. Konveksi</p>
+            <span class="text-[10px] font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded">Bisnis</span>
         </div>
-        <p class="mt-2 text-2xl font-extrabold text-rose-600">{{ rupiah($periodExpense) }}</p>
-        <p class="mt-1 text-xs text-neutral-500">Listrik, sewa gedung, gaji, kantor dll</p>
+        <p class="mt-2 text-2xl font-extrabold text-indigo-700">{{ rupiah($periodConvectionExpense) }}</p>
+        <p class="mt-1 text-xs text-neutral-500">Total semua: <strong class="text-ink font-semibold">{{ rupiah($totalAllConvectionExpense) }}</strong></p>
     </div>
 
-    <div class="admin-card border-l-4 {{ $periodNetBalance >= 0 ? '!border-l-emerald-500 bg-emerald-50/20' : '!border-l-red-500 bg-red-50/20' }}">
-        <p class="text-xs font-bold uppercase tracking-wider text-neutral-500">Sisa Saldo Kas (Arus Kas Bersih)</p>
-        <p class="mt-2 text-2xl font-extrabold {{ $periodNetBalance >= 0 ? 'text-emerald-700' : 'text-red-600' }}">
-            {{ rupiah($periodNetBalance) }}
+    <div class="admin-card border-l-4 !border-l-rose-500 bg-rose-50/10">
+        <div class="flex items-center justify-between">
+            <p class="text-xs font-bold uppercase tracking-wider text-neutral-500">Ops. Pribadi</p>
+            <span class="text-[10px] font-bold text-rose-700 bg-rose-50 px-2 py-0.5 rounded">Prive Owner</span>
+        </div>
+        <p class="mt-2 text-2xl font-extrabold text-rose-600">{{ rupiah($periodPersonalExpense) }}</p>
+        <p class="mt-1 text-xs text-neutral-500">Total semua: <strong class="text-ink font-semibold">{{ rupiah($totalAllPersonalExpense) }}</strong></p>
+    </div>
+
+    <div class="admin-card border-l-4 {{ $totalCurrentBalance >= 0 ? '!border-l-emerald-500 bg-emerald-50/20' : '!border-l-red-500 bg-red-50/20' }}">
+        <p class="text-xs font-bold uppercase tracking-wider text-neutral-500">Saldo Kas Riil Saat Ini</p>
+        <p class="mt-2 text-2xl font-extrabold {{ $totalCurrentBalance >= 0 ? 'text-emerald-700' : 'text-red-600' }}">
+            {{ rupiah($totalCurrentBalance) }}
         </p>
-        <p class="mt-1 text-xs text-neutral-500">Pemasukan − (HPP + Beban)</p>
+        <p class="mt-1 text-xs text-neutral-500">Total Kas Masuk − Seluruh Pengeluaran</p>
     </div>
 </div>
 
@@ -45,7 +54,7 @@
                 <span class="text-xs font-extrabold uppercase tracking-wider text-neutral-700">Laporan Arus Kas ({{ $isAllPeriod ? 'Semua Waktu' : $periodLabel }})</span>
             </div>
             <span class="text-xs font-medium text-neutral-500">
-                Saldo Kas Riil Saat Ini: <strong class="text-ink font-bold">{{ rupiah($totalCurrentBalance) }}</strong>
+                Sisa Kas Periode Ini: <strong class="font-bold {{ $periodNetBalance >= 0 ? 'text-emerald-700' : 'text-red-600' }}">{{ rupiah($periodNetBalance) }}</strong>
             </span>
         </div>
         <div class="mt-3 space-y-2 text-sm">
@@ -54,17 +63,27 @@
                 <span class="font-bold text-green-600">{{ rupiah($periodIncome) }}</span>
             </div>
             <div class="flex items-center justify-between">
-                <span class="text-neutral-600">Total Pengeluaran Kas (HPP + Beban Operasional)</span>
+                <span class="text-neutral-600">Total Pengeluaran Kas (HPP + Semua Beban)</span>
                 <span class="font-bold text-red-600">- {{ rupiah($periodTotalOutflow) }}</span>
             </div>
-            <div class="flex items-center justify-between text-xs text-neutral-500 pl-3">
-                <span>↳ Biaya Produksi (HPP Pesanan): {{ rupiah($periodHpp) }}</span>
-                <span>↳ Beban Operasional (OPEX): {{ rupiah($periodExpense) }}</span>
+            <div class="flex flex-col gap-1 text-xs text-neutral-500 pl-3">
+                <div class="flex justify-between">
+                    <span>↳ Biaya Produksi (HPP Pesanan):</span>
+                    <span class="font-medium text-neutral-700">{{ rupiah($periodHpp) }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span>↳ Ops. Konveksi (Workshop & Bisnis):</span>
+                    <span class="font-medium text-indigo-700">{{ rupiah($periodConvectionExpense) }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span>↳ Ops. Pribadi (Prive / Keluarga):</span>
+                    <span class="font-medium text-rose-700">{{ rupiah($periodPersonalExpense) }}</span>
+                </div>
             </div>
             <div class="flex items-center justify-between pt-2 border-t border-line text-sm">
-                <span class="font-extrabold text-ink">Sisa Kas Periode Ini (Net Cash Flow)</span>
-                <span class="font-extrabold text-base {{ $periodNetBalance >= 0 ? 'text-emerald-700' : 'text-red-600' }}">
-                    {{ rupiah($periodNetBalance) }}
+                <span class="font-extrabold text-ink">Saldo Kas Berjalan Kumulatif</span>
+                <span class="font-extrabold text-base {{ $totalCurrentBalance >= 0 ? 'text-emerald-700' : 'text-red-600' }}">
+                    {{ rupiah($totalCurrentBalance) }}
                 </span>
             </div>
             @if(isset($activeAdvances) && $activeAdvances > 0)
@@ -79,12 +98,12 @@
         </div>
     </div>
 
-    {{-- Panel 2: Kinerja Laba Perusahaan --}}
+    {{-- Panel 2: Kinerja Laba Bisnis Konveksi --}}
     <div class="admin-card">
         <div class="flex items-center justify-between pb-2.5 border-b border-line">
             <div class="flex items-center gap-2">
                 <span class="inline-flex h-2 w-2 rounded-full bg-brand-600"></span>
-                <span class="text-xs font-extrabold uppercase tracking-wider text-neutral-700">Laporan Laba Perusahaan ({{ $isAllPeriod ? 'Semua Waktu' : $periodLabel }})</span>
+                <span class="text-xs font-extrabold uppercase tracking-wider text-neutral-700">Laba Bisnis Konveksi ({{ $isAllPeriod ? 'Semua Waktu' : $periodLabel }})</span>
             </div>
             @if($topCategory)
                 <span class="text-xs text-neutral-500 truncate" title="{{ $topCategory['name'] }}: {{ rupiah($topCategory['amount']) }}">
@@ -102,14 +121,17 @@
                 <span class="font-bold text-indigo-600">{{ rupiah($periodGrossProfit) }}</span>
             </div>
             <div class="flex items-center justify-between">
-                <span class="text-neutral-600">Beban Operasional (Pengurang Laba Global)</span>
-                <span class="font-bold text-rose-600">- {{ rupiah($periodExpense) }}</span>
+                <span class="text-neutral-600">Beban Ops. Konveksi (Pengurang Laba Bisnis)</span>
+                <span class="font-bold text-rose-600">- {{ rupiah($periodConvectionExpense) }}</span>
             </div>
             <div class="flex items-center justify-between pt-2 border-t border-line text-sm">
-                <span class="font-extrabold text-ink">Laba Bersih Perusahaan (Net Profit)</span>
+                <span class="font-extrabold text-ink">Laba Bersih Konveksi</span>
                 <span class="font-extrabold text-base {{ $periodNetProfit >= 0 ? 'text-emerald-700' : 'text-red-600' }}">
                     {{ rupiah($periodNetProfit) }}
                 </span>
+            </div>
+            <div class="mt-2 rounded bg-neutral-50 px-3 py-2 text-xs text-neutral-600">
+                💡 <strong>Catatan Prive:</strong> Ops. Pribadi ({{ rupiah($periodPersonalExpense) }}) tidak mengurangi laba operasional konveksi, tetapi dicatat sebagai penarikan kas pemilik.
             </div>
         </div>
     </div>
@@ -118,7 +140,14 @@
 {{-- Filter and Action bar --}}
 <div class="mt-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
     <form method="GET" class="flex flex-wrap items-center gap-2">
-        <input type="search" name="q" value="{{ request('q') }}" placeholder="Cari keterangan / no. bukti..." class="form-input min-w-0 !py-2 text-sm sm:!w-64">
+        <input type="search" name="q" value="{{ request('q') }}" placeholder="Cari keterangan / no. ref..." class="form-input min-w-0 !py-2 text-sm sm:!w-60">
+
+        <select name="expense_type" class="form-input !py-2 text-sm !w-auto">
+            <option value="">— Semua Jenis —</option>
+            @foreach(\App\Models\OperationalExpense::TYPES as $key => $label)
+                <option value="{{ $key }}" @selected(request('expense_type') === $key)>{{ $label }}</option>
+            @endforeach
+        </select>
 
         <select name="category" class="form-input !py-2 text-sm !w-auto">
             <option value="">— Semua Kategori —</option>
@@ -144,7 +173,7 @@
         @endif
 
         <button type="submit" class="btn-outline !px-3 !py-2 text-sm">Filter</button>
-        @if(request()->anyFilled(['q', 'category']) || request('period') === 'all')
+        @if(request()->anyFilled(['q', 'expense_type', 'category']) || request('period') === 'all')
             <a href="{{ route('admin.expenses.index') }}" class="text-xs text-neutral-500 hover:text-red-600">Reset</a>
         @endif
     </form>
@@ -165,11 +194,12 @@
 
 {{-- Data Table --}}
 <div class="admin-card mt-5 overflow-x-auto !p-0">
-    <table class="w-full min-w-[850px] text-sm">
+    <table class="w-full min-w-[900px] text-sm">
         <thead>
             <tr class="border-b border-line bg-cream/60 text-left text-xs font-bold uppercase tracking-wider text-neutral-500">
                 <th class="px-5 py-3">Tanggal</th>
                 <th class="px-5 py-3">No. Ref</th>
+                <th class="px-5 py-3">Jenis</th>
                 <th class="px-5 py-3">Kategori</th>
                 <th class="px-5 py-3">Keterangan</th>
                 <th class="px-5 py-3 text-right">Nominal</th>
@@ -186,6 +216,11 @@
                     </td>
                     <td class="whitespace-nowrap px-5 py-3.5 font-mono text-xs font-semibold text-neutral-600">
                         {{ $expense->reference_no }}
+                    </td>
+                    <td class="whitespace-nowrap px-5 py-3.5">
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold border {{ $expense->type_color }}">
+                            {{ $expense->type_label }}
+                        </span>
                     </td>
                     <td class="whitespace-nowrap px-5 py-3.5">
                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border {{ $expense->category_color }}">
@@ -227,7 +262,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="8" class="px-5 py-12 text-center text-neutral-500">
+                    <td colspan="9" class="px-5 py-12 text-center text-neutral-500">
                         <div class="flex flex-col items-center justify-center">
                             <svg class="h-10 w-10 text-neutral-300 mb-2" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                             <p class="font-medium">Belum ada beban operasional tercatat pada periode ini.</p>

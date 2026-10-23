@@ -17,6 +17,7 @@
       enctype="multipart/form-data"
       class="max-w-3xl"
       x-data="{
+          expenseType: '{{ old('expense_type', $expense->expense_type ?? 'convection') }}',
           amount: '{{ old('amount', $expense->amount ?? '') }}',
           formatRupiah(val) {
               let num = val.toString().replace(/[^\d]/g, '');
@@ -29,6 +30,29 @@
     @endif
 
     <div class="admin-card space-y-5">
+        {{-- Pilihan Jenis Beban (Ops. Konveksi vs Ops. Pribadi) --}}
+        <div>
+            <label class="form-label mb-2 block">Jenis Pengeluaran Beban <span class="text-brand-600">*</span></label>
+            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <label class="relative flex cursor-pointer items-start rounded-xl border p-3.5 shadow-sm transition hover:border-indigo-400"
+                       :class="expenseType === 'convection' ? 'border-indigo-600 bg-indigo-50/50 ring-2 ring-indigo-500/20' : 'border-line bg-white'">
+                    <input type="radio" name="expense_type" value="convection" x-model="expenseType" class="mt-1 text-indigo-600 focus:ring-indigo-500" required>
+                    <div class="ml-3">
+                        <span class="block text-sm font-extrabold text-indigo-900">🏭 Ops. Konveksi (Bisnis)</span>
+                        <span class="mt-0.5 block text-xs text-neutral-500 leading-relaxed">Beban operasional konveksi: listrik, workshop, gaji, servis mesin dll. Mengurangi laba bersih konveksi.</span>
+                    </div>
+                </label>
+
+                <label class="relative flex cursor-pointer items-start rounded-xl border p-3.5 shadow-sm transition hover:border-rose-400"
+                       :class="expenseType === 'personal' ? 'border-rose-600 bg-rose-50/50 ring-2 ring-rose-500/20' : 'border-line bg-white'">
+                    <input type="radio" name="expense_type" value="personal" x-model="expenseType" class="mt-1 text-rose-600 focus:ring-rose-500" required>
+                    <div class="ml-3">
+                        <span class="block text-sm font-extrabold text-rose-900">👤 Ops. Pribadi (Prive Owner)</span>
+                        <span class="mt-0.5 block text-xs text-neutral-500 leading-relaxed">Penarikan pribadi/keluarga dari kas. Mengurangi uang kas riil, bukan beban operasional konveksi.</span>
+                    </div>
+                </label>
+            </div>
+        </div>
         <div class="grid gap-5 sm:grid-cols-2">
             <div>
                 <label class="form-label" for="expense_date">Tanggal Pengeluaran <span class="text-brand-600">*</span></label>
