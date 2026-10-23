@@ -67,6 +67,15 @@
                     {{ rupiah($periodNetBalance) }}
                 </span>
             </div>
+            @if(isset($activeAdvances) && $activeAdvances > 0)
+                <div class="mt-2.5 rounded-lg border border-amber-200 bg-amber-50/80 p-2.5 text-xs text-amber-900 flex flex-wrap items-center justify-between gap-2">
+                    <span class="flex items-center gap-1.5">
+                        <span>⚠️</span>
+                        <span>Kas Sedang Menalangi HPP Pesanan (DP Kurang): <strong>{{ rupiah($activeAdvances) }}</strong> ({{ $activeDeficitCount }} pesanan)</span>
+                    </span>
+                    <a href="{{ route('admin.orders.index', ['cash_status' => 'deficit']) }}" class="font-bold text-amber-900 hover:underline">Lihat Pesanan &rarr;</a>
+                </div>
+            @endif
         </div>
     </div>
 

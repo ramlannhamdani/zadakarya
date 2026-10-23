@@ -73,7 +73,7 @@
         @endif
     </div>
 
-    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         <div class="admin-card border-l-4 !border-l-blue-500">
             <p class="text-xs font-bold uppercase tracking-wider text-neutral-500">Total HPP Produksi</p>
             <p class="mt-2 text-2xl font-extrabold text-blue-600">{{ rupiah($financials['total_hpp']) }}</p>
@@ -101,6 +101,27 @@
                 {{ rupiah($financials['net_profit']) }}
             </p>
             <p class="mt-1 text-xs text-neutral-500">Laba Kotor − Beban Operasional</p>
+        </div>
+
+        <div class="admin-card border-l-4 {{ ($financials['total_cash_advances'] ?? 0) > 0 ? '!border-l-amber-500 bg-amber-50/30' : '!border-l-teal-500 bg-teal-50/20' }}">
+            <div class="flex items-center justify-between">
+                <p class="text-xs font-bold uppercase tracking-wider text-neutral-500">Talangan Kas (Nombok)</p>
+                @if(($financials['deficit_orders_count'] ?? 0) > 0)
+                    <a href="{{ route('admin.orders.index', ['cash_status' => 'deficit']) }}" class="text-[10px] font-bold text-amber-700 bg-amber-100 hover:bg-amber-200 px-2 py-0.5 rounded transition">
+                        {{ $financials['deficit_orders_count'] }} Order &rarr;
+                    </a>
+                @endif
+            </div>
+            <p class="mt-2 text-2xl font-extrabold {{ ($financials['total_cash_advances'] ?? 0) > 0 ? 'text-amber-700' : 'text-teal-700' }}">
+                {{ rupiah($financials['total_cash_advances'] ?? 0) }}
+            </p>
+            <p class="mt-1 text-xs text-neutral-500">
+                @if(($financials['total_cash_advances'] ?? 0) > 0)
+                    Kas kantor menombok belanja HPP > DP
+                @else
+                    Semua belanja HPP tertutup DP
+                @endif
+            </p>
         </div>
     </div>
 </div>
@@ -142,7 +163,18 @@
                     </a>
                 </li>
             @endif
-            @if(array_sum($actionRequired) === 0)
+            @if(($actionRequired['cash_deficits'] ?? 0) > 0)
+                <li>
+                    <a href="{{ route('admin.orders.index', ['cash_status' => 'deficit']) }}" class="flex items-center justify-between rounded-lg bg-amber-50/90 px-4 py-3 font-medium text-amber-900 transition hover:bg-amber-100 border border-amber-200">
+                        <div class="pr-2">
+                            <span class="font-bold text-amber-900">{{ $actionRequired['cash_deficits'] }} pesanan nombok kas ({{ rupiah($actionRequired['cash_deficits_amount'] ?? 0) }})</span>
+                            <span class="block text-xs font-normal text-amber-700">Belanja HPP > DP masuk &bull; kas kantor menalangi sampai pelunasan</span>
+                        </div>
+                        <span class="text-amber-800 font-bold">&rarr;</span>
+                    </a>
+                </li>
+            @endif
+            @if(array_sum(array_filter($actionRequired, fn ($k) => $k !== 'cash_deficits_amount', ARRAY_FILTER_USE_KEY)) === 0)
                 <li class="rounded-lg bg-green-50 px-4 py-3 font-medium text-green-700">Semua beres — tidak ada tindakan mendesak. 🎉</li>
             @endif
         </ul>

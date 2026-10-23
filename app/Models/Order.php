@@ -245,6 +245,85 @@ class Order extends Model
         };
     }
 
+    /** Arus kas riil pesanan saat ini (Total Pembayaran Masuk dikurangi Total Belanja HPP). */
+    public function getNetCashFlowAttribute(): int
+    {
+        return (int) ($this->amount_paid - $this->total_cost);
+    }
+
+    /**
+     * Dana talangan kas kantor yang terpakai untuk pesanan ini.
+     * Bernilai positif jika belanja HPP melebihi pembayaran/DP yang sudah masuk.
+     */
+    public function getCashDeficitAttribute(): int
+    {
+        return max(0, $this->total_cost - $this->amount_paid);
+    }
+
+    /** Sisa uang DP/pembayaran setelah dipakai belanja HPP (jika masih surplus). */
+    public function getCashSurplusAttribute(): int
+    {
+        return max(0, $this->amount_paid - $this->total_cost);
+    }
+
+    /** Apakah pesanan aktif ini sedang menombok uang kas kantor sebelum pelunasan. */
+    public function getIsCashDeficitAttribute(): bool
+    {
+        return $this->status === 'active'
+            && $this->payment_status !== 'paid'
+            && $this->cash_deficit > 0;
+    }
+
+    /** Status & metadata posisi kas pesanan untuk badge dan penjelasan UI. */
+    public function getCashStatusMetaAttribute(): array
+    {
+        if ($this->payment_status === 'paid') {
+            return [
+                'status' => 'settled',
+                'label' => 'Lunas — Kas Aman',
+                'short_label' => 'Lunas',
+                'badge' => 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800',
+                'color' => 'text-emerald-600 dark:text-emerald-400',
+                'icon' => 'check',
+                'description' => 'Pesanan sudah dilunasi penuh. Seluruh belanja HPP tertutup dan laba bersih kas terealisasi.',
+            ];
+        }
+
+        if ($this->total_cost <= 0) {
+            return [
+                'status' => 'pending_cost',
+                'label' => $this->amount_paid > 0 ? 'DP Masuk — Belum Belanja' : 'Belum Ada Transaksi',
+                'short_label' => $this->amount_paid > 0 ? 'DP Masuk' : 'Belum Ada Biaya',
+                'badge' => 'bg-slate-50 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700',
+                'color' => 'text-slate-500 dark:text-slate-400',
+                'icon' => 'clock',
+                'description' => 'Belum ada pengeluaran nota/biaya HPP yang dicatat untuk pesanan ini.',
+            ];
+        }
+
+        if ($this->cash_deficit > 0) {
+            return [
+                'status' => 'deficit',
+                'label' => 'Nombok Kas ' . rupiah($this->cash_deficit),
+                'short_label' => 'Nombok ' . rupiah($this->cash_deficit),
+                'badge' => 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-800',
+                'color' => 'text-rose-600 dark:text-rose-400',
+                'icon' => 'alert-triangle',
+                'description' => 'Belanja HPP melebihi DP masuk. Kas kantor menalangi ' . rupiah($this->cash_deficit) . ' sampai pelunasan.',
+            ];
+        }
+
+        return [
+            'status' => 'surplus',
+            'label' => 'DP Cukup (Sisa ' . rupiah($this->cash_surplus) . ')',
+            'short_label' => 'DP Cukup',
+            'badge' => 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800',
+            'color' => 'text-blue-600 dark:text-blue-400',
+            'icon' => 'shield-check',
+            'description' => 'Uang muka mencukupi seluruh biaya belanja HPP saat ini. Kas kantor aman.',
+        ];
+    }
+
     public function logActivity(string $description, ?int $userId = null): void
     {
         $this->activities()->create([

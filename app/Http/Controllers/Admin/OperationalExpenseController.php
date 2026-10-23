@@ -128,7 +128,23 @@ class OperationalExpenseController extends Controller
             $startYear = $earliestYear ? (int) Carbon::parse($earliestYear)->format('Y') : (int) now()->format('Y');
         } catch (\Throwable) {}
 
-        $years = range(max($startYear, now()->format('Y') - 3), now()->format('Y') + 1);
+        $activeAdvances = 0;
+        $activeDeficitCount = 0;
+        try {
+            $deficitOrders = Order::with('costs')
+                ->where('status', '!=', 'cancelled')
+                ->where('payment_status', '!=', 'paid')
+                ->get();
+
+            foreach ($deficitOrders as $ord) {
+                if ($ord->cash_deficit > 0) {
+                    $activeAdvances += $ord->cash_deficit;
+                    $activeDeficitCount++;
+                }
+            }
+        } catch (\Throwable) {}
+
+        $years = range(max($startYear, (int) now()->format('Y') - 3), (int) now()->format('Y') + 1);
         rsort($years);
 
         return view('admin.expenses.index', compact(
@@ -144,6 +160,8 @@ class OperationalExpenseController extends Controller
             'totalCurrentBalance',
             'totalAllIncome',
             'totalAllOutflow',
+            'activeAdvances',
+            'activeDeficitCount',
             'topCategory',
             'month',
             'year',

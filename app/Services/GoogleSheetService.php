@@ -309,6 +309,11 @@ class GoogleSheetService
         $qty = (int) $order->total_quantity;
         $unitPrice = $qty > 0 ? (int) round($order->grand_total / $qty) : (int) $order->grand_total;
 
+        $statusText = $order->status_label.' ('.$order->current_stage_name.')';
+        if ($order->is_cash_deficit) {
+            $statusText .= ' [⚠️ Nombok Kas: Rp '.number_format($order->cash_deficit, 0, ',', '.').']';
+        }
+
         return [
             'id' => 'ORD-'.$order->id,
             'date' => $order->created_at?->format('Y-m-d') ?? now()->format('Y-m-d'),
@@ -323,8 +328,11 @@ class GoogleSheetService
             'total_cost' => (int) $order->total_cost,
             'estimated_profit' => (int) $order->gross_profit,
             'remaining' => (int) $order->remaining,
-            'status' => $order->status_label.' ('.$order->current_stage_name.')',
+            'status' => $statusText,
             'notes' => $order->notes ?? '-',
+            'cash_position' => (int) $order->net_cash_flow,
+            'cash_deficit' => (int) $order->cash_deficit,
+            'cash_status' => $order->cash_status_meta['label'] ?? 'Aman',
         ];
     }
 

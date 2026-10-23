@@ -18,9 +18,25 @@ class OrderController extends Controller
     public function index(Request $request)
     {
         $status = $request->query('status');
+        $cashStatus = $request->query('cash_status');
 
-        $orders = Order::with(['customer', 'items'])
+        $deficitCount = 0;
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasTable('order_costs')) {
+                $deficitCount = Order::where('status', 'active')
+                    ->where('payment_status', '!=', 'paid')
+                    ->whereRaw('(SELECT COALESCE(SUM(amount), 0) FROM order_costs WHERE order_costs.order_id = orders.id) > orders.amount_paid')
+                    ->count();
+            }
+        } catch (\Throwable) {}
+
+        $orders = Order::with(['customer', 'items', 'costs'])
             ->when(in_array($status, ['active', 'completed', 'cancelled']), fn ($q) => $q->where('status', $status))
+            ->when($cashStatus === 'deficit', function ($q) {
+                $q->where('status', 'active')
+                    ->where('payment_status', '!=', 'paid')
+                    ->whereRaw('(SELECT COALESCE(SUM(amount), 0) FROM order_costs WHERE order_costs.order_id = orders.id) > orders.amount_paid');
+            })
             ->when($request->filled('q'), function ($q) use ($request) {
                 $term = '%'.$request->q.'%';
                 $q->where(fn ($w) => $w->where('order_number', 'like', $term)
@@ -31,7 +47,7 @@ class OrderController extends Controller
             ->paginate(20)
             ->withQueryString();
 
-        return view('admin.orders.index', compact('orders', 'status'));
+        return view('admin.orders.index', compact('orders', 'status', 'cashStatus', 'deficitCount'));
     }
 
     public function create(Request $request)

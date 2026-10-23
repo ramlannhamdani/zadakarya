@@ -54,12 +54,36 @@ class DashboardController extends Controller
 
         $netProfit = $grossProfit - $totalExpenses;
 
+        // Total Dana Talangan Kas yang sedang terpakai menombok pesanan aktif (HPP > Uang Masuk)
+        $totalCashAdvances = 0;
+        $deficitOrdersCount = 0;
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasTable('order_costs')) {
+                $activeUnsettled = Order::with('costs')
+                    ->where('status', 'active')
+                    ->where('payment_status', '!=', 'paid')
+                    ->get();
+
+                foreach ($activeUnsettled as $actOrder) {
+                    if ($actOrder->cash_deficit > 0) {
+                        $totalCashAdvances += $actOrder->cash_deficit;
+                        $deficitOrdersCount++;
+                    }
+                }
+            }
+        } catch (\Throwable) {
+            $totalCashAdvances = 0;
+            $deficitOrdersCount = 0;
+        }
+
         $financials = [
             'total_hpp' => $totalHpp,
             'gross_profit' => $grossProfit,
             'total_expenses' => $totalExpenses,
             'this_month_expenses' => $thisMonthExpenses,
             'net_profit' => $netProfit,
+            'total_cash_advances' => $totalCashAdvances,
+            'deficit_orders_count' => $deficitOrdersCount,
         ];
 
         // Grafik 6 bulan terakhir (pembayaran per bulan).
@@ -87,6 +111,8 @@ class DashboardController extends Controller
                 ->whereNotNull('deadline')
                 ->whereBetween('deadline', [now()->startOfDay(), now()->addDays(7)->endOfDay()])
                 ->count(),
+            'cash_deficits' => $deficitOrdersCount,
+            'cash_deficits_amount' => $totalCashAdvances,
         ];
 
         return view('admin.dashboard', [
