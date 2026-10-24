@@ -34,15 +34,15 @@
 
                     {{-- Mengubah kode di aplikasi tidak mengubah apa pun di akun Google.
                          Selisih versi inilah yang biasanya bikin sheet terlihat versi lama. --}}
-                    @if($liveScriptVersion && $appScriptVersion && $liveScriptVersion !== $appScriptVersion)
+                    @if($isConnected && $appScriptVersion && (! $liveScriptVersion || $liveScriptVersion !== $appScriptVersion))
                         <div class="mt-3 rounded-lg border border-amber-300 bg-amber-50 px-3.5 py-3">
                             <p class="text-xs font-bold text-amber-900">
-                                Skrip di Google masih versi {{ $liveScriptVersion }}, aplikasi sudah versi {{ $appScriptVersion }}.
+                                Skrip di Google masih versi {{ $liveScriptVersion ?: 'lama (belum terpasang v'.$appScriptVersion.')' }}, aplikasi sudah versi {{ $appScriptVersion }}.
                             </p>
                             <p class="mt-1 text-xs text-amber-800">
-                                Tampilan dan perbaikan terbaru belum aktif. Salin ulang kode di bawah ke Apps Script,
-                                tekan <strong>Deploy &rarr; Manage deployments &rarr; Edit &rarr; Version: New version</strong>,
-                                lalu jalankan <strong>Tata Ulang Dashboard</strong>.
+                                Tampilan dan perbaikan terbaru (pemisahan HPP vs Ops. Konveksi vs Ops. Pribadi) belum aktif di Google Sheets. Salin ulang kode di bawah ke Apps Script,
+                                tekan <strong>Deploy &rarr; Manage deployments &rarr; Edit (ikon pensil) &rarr; Version: New version &rarr; Deploy</strong>,
+                                lalu jalankan <strong>Tata Ulang Dashboard</strong> dan <strong>Sinkronkan Semua Data Sekarang</strong>.
                             </p>
                         </div>
                     @endif
@@ -120,7 +120,7 @@
         </div>
 
         {{-- Data summary chips --}}
-        <div class="mt-4 grid grid-cols-3 gap-3 border-t border-line pt-4">
+        <div class="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-3 border-t border-line pt-4">
             <div class="rounded-lg bg-cream/60 p-3 text-center">
                 <p class="text-[11px] font-semibold text-neutral-500">Data Pesanan</p>
                 <p class="mt-0.5 text-lg font-extrabold text-ink">{{ number_format($orderCount) }}</p>
@@ -128,6 +128,10 @@
             <div class="rounded-lg bg-cream/60 p-3 text-center">
                 <p class="text-[11px] font-semibold text-neutral-500">Pengeluaran HPP</p>
                 <p class="mt-0.5 text-lg font-extrabold text-ink">{{ number_format($costCount) }}</p>
+            </div>
+            <div class="rounded-lg bg-cream/60 p-3 text-center">
+                <p class="text-[11px] font-semibold text-neutral-500">Beban Operasional</p>
+                <p class="mt-0.5 text-lg font-extrabold text-ink">{{ number_format($expenseCount ?? 0) }}</p>
             </div>
             <div class="rounded-lg bg-cream/60 p-3 text-center">
                 <p class="text-[11px] font-semibold text-neutral-500">Data Pembayaran</p>

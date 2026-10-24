@@ -31,6 +31,7 @@ class SpreadsheetController extends Controller
             'sheetName' => Setting::get('google_sheet_name') ?: null,
             'orderCount' => Order::count(),
             'costCount' => OrderCost::count(),
+            'expenseCount' => \App\Models\OperationalExpense::count(),
             'paymentCount' => Payment::count(),
             'scriptCode' => GoogleAppsScriptCode::getScript(),
             'isConnected' => $sheetService->isEnabled(),
