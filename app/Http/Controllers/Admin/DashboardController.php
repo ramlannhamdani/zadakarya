@@ -29,13 +29,21 @@ class DashboardController extends Controller
         ];
 
         // Laba Kotor, Beban Operasional, dan Laba Bersih Perusahaan (Fail-safe bila belum migrasi)
+        $nowStart = now()->startOfMonth();
+        $nowEnd = now()->endOfMonth();
+
         $totalHpp = 0;
+        $thisMonthHpp = 0;
         try {
             if (\Illuminate\Support\Facades\Schema::hasTable('order_costs')) {
                 $totalHpp = (int) \App\Models\OrderCost::whereHas('order', fn ($o) => $o->where('status', '!=', 'cancelled'))->sum('amount');
+                $thisMonthHpp = (int) \App\Models\OrderCost::whereHas('order', fn ($o) => $o->where('status', '!=', 'cancelled'))
+                    ->whereBetween('spent_at', [$nowStart, $nowEnd])
+                    ->sum('amount');
             }
         } catch (\Throwable) {
             $totalHpp = 0;
+            $thisMonthHpp = 0;
         }
 
         $grossProfit = max(0, $revenue['order_value'] - $totalHpp);
@@ -49,9 +57,6 @@ class DashboardController extends Controller
 
         try {
             if (\Illuminate\Support\Facades\Schema::hasTable('operational_expenses')) {
-                $nowStart = now()->startOfMonth();
-                $nowEnd = now()->endOfMonth();
-
                 $totalExpenses = (int) \App\Models\OperationalExpense::sum('amount');
                 $thisMonthExpenses = (int) \App\Models\OperationalExpense::whereBetween('expense_date', [$nowStart, $nowEnd])->sum('amount');
 
@@ -69,6 +74,15 @@ class DashboardController extends Controller
             $personalExpensesTotal = 0;
             $personalExpensesThisMonth = 0;
         }
+
+        // Total Pengeluaran Kas Global (HPP + Ops. Konveksi + Ops. Pribadi/Prive)
+        $totalGlobalOutflow = $totalHpp + $totalExpenses;
+        $thisMonthGlobalOutflow = $thisMonthHpp + $thisMonthExpenses;
+
+        // Persentase porsi pengeluaran global
+        $hppShare = $totalGlobalOutflow > 0 ? round(($totalHpp / $totalGlobalOutflow) * 100, 1) : 0;
+        $convectionShare = $totalGlobalOutflow > 0 ? round(($convectionExpensesTotal / $totalGlobalOutflow) * 100, 1) : 0;
+        $personalShare = $totalGlobalOutflow > 0 ? round(($personalExpensesTotal / $totalGlobalOutflow) * 100, 1) : 0;
 
         // Laba bersih operasional konveksi (Laba Kotor - Beban Konveksi)
         $netProfit = $grossProfit - $convectionExpensesTotal;
@@ -97,6 +111,7 @@ class DashboardController extends Controller
 
         $financials = [
             'total_hpp' => $totalHpp,
+            'this_month_hpp' => $thisMonthHpp,
             'gross_profit' => $grossProfit,
             'total_expenses' => $totalExpenses,
             'this_month_expenses' => $thisMonthExpenses,
@@ -104,6 +119,11 @@ class DashboardController extends Controller
             'convection_expenses_this_month' => $convectionExpensesThisMonth,
             'personal_expenses_total' => $personalExpensesTotal,
             'personal_expenses_this_month' => $personalExpensesThisMonth,
+            'total_global_outflow' => $totalGlobalOutflow,
+            'this_month_global_outflow' => $thisMonthGlobalOutflow,
+            'hpp_share' => $hppShare,
+            'convection_share' => $convectionShare,
+            'personal_share' => $personalShare,
             'net_profit' => $netProfit,
             'total_cash_advances' => $totalCashAdvances,
             'deficit_orders_count' => $deficitOrdersCount,

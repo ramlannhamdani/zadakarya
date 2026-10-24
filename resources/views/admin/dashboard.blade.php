@@ -77,7 +77,9 @@
         <div class="admin-card border-l-4 !border-l-blue-500">
             <p class="text-xs font-bold uppercase tracking-wider text-neutral-500">Total HPP Produksi</p>
             <p class="mt-2 text-2xl font-extrabold text-blue-600">{{ rupiah($financials['total_hpp']) }}</p>
-            <p class="mt-1 text-xs text-neutral-500">Kain, trims, makloon &amp; CMT</p>
+            <div class="mt-1 text-xs text-neutral-500">
+                <span>Bulan Ini: <strong class="text-ink font-semibold">{{ rupiah($financials['this_month_hpp']) }}</strong></span>
+            </div>
         </div>
 
         <div class="admin-card border-l-4 !border-l-emerald-500">
@@ -141,6 +143,108 @@
                     Semua belanja tertutup DP
                 @endif
             </p>
+        </div>
+    </div>
+
+    {{-- Struktur & Rincian Pengeluaran Kas (Outflow Breakdown: HPP vs Ops. Konveksi vs Ops. Pribadi/Prive) --}}
+    <div class="mt-4 rounded-xl border border-neutral-200 bg-white p-5 shadow-sm">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-4 border-b border-neutral-100">
+            <div>
+                <div class="flex items-center gap-2">
+                    <span class="inline-flex h-2.5 w-2.5 rounded-full bg-rose-500"></span>
+                    <h3 class="text-sm font-extrabold text-ink uppercase tracking-wider">Struktur Pengeluaran Kas (Outflow Breakdown)</h3>
+                </div>
+                <p class="text-xs text-neutral-500 mt-0.5">Pemetaan seluruh uang kas yang keluar berdasarkan HPP produksi, operasional konveksi, dan prive pribadi.</p>
+            </div>
+            <div class="flex items-center gap-4 bg-neutral-50 px-4 py-2 rounded-lg border border-neutral-200/70">
+                <div>
+                    <p class="text-[10px] font-bold uppercase tracking-wider text-neutral-500">Total Pengeluaran Kas</p>
+                    <p class="text-base font-extrabold text-rose-700">{{ rupiah($financials['total_global_outflow']) }}</p>
+                </div>
+                <div class="h-8 w-px bg-neutral-200"></div>
+                <div>
+                    <p class="text-[10px] font-bold uppercase tracking-wider text-neutral-500">Keluar Bulan Ini</p>
+                    <p class="text-base font-extrabold text-ink">{{ rupiah($financials['this_month_global_outflow']) }}</p>
+                </div>
+            </div>
+        </div>
+
+        {{-- Share / Progress bar --}}
+        @if($financials['total_global_outflow'] > 0)
+        <div class="mt-4">
+            <div class="flex items-center justify-between text-[11px] font-bold text-neutral-600 mb-1.5">
+                <span>Porsi Pengeluaran dari Total Kas Keluar:</span>
+                <span class="text-neutral-500">100% Kas Keluar Global</span>
+            </div>
+            <div class="h-3 w-full bg-neutral-100 rounded-full overflow-hidden flex shadow-inner">
+                <div class="bg-blue-500 h-full transition-all duration-500" style="width: {{ $financials['hpp_share'] }}%" title="HPP Produksi: {{ $financials['hpp_share'] }}%"></div>
+                <div class="bg-indigo-600 h-full transition-all duration-500" style="width: {{ $financials['convection_share'] }}%" title="Ops. Konveksi: {{ $financials['convection_share'] }}%"></div>
+                <div class="bg-rose-500 h-full transition-all duration-500" style="width: {{ $financials['personal_share'] }}%" title="Ops. Pribadi / Prive: {{ $financials['personal_share'] }}%"></div>
+            </div>
+        </div>
+        @endif
+
+        {{-- 3 Pillars Grid --}}
+        <div class="mt-4 grid gap-3 sm:grid-cols-3">
+            {{-- 1. HPP Produksi --}}
+            <div class="p-3.5 rounded-lg border border-blue-100 bg-blue-50/30 flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="inline-flex items-center gap-1.5 text-xs font-bold text-blue-900">
+                            <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+                            1. Biaya Produksi (HPP)
+                        </span>
+                        <span class="text-[11px] font-extrabold px-1.5 py-0.5 rounded bg-blue-100 text-blue-700">
+                            {{ $financials['hpp_share'] }}% Kas
+                        </span>
+                    </div>
+                    <p class="text-lg font-black text-blue-700 mt-1">{{ rupiah($financials['total_hpp']) }}</p>
+                    <p class="text-xs text-neutral-600 mt-0.5">Bulan Ini: <strong class="text-ink font-semibold">{{ rupiah($financials['this_month_hpp']) }}</strong></p>
+                </div>
+                <div class="mt-2.5 pt-2 border-t border-blue-100/70 text-[11px] text-neutral-500 leading-snug">
+                    Biaya belanja kain, makloon, CMT, sablon &amp; bordir pesanan. Mengurangi laba kotor pesanan.
+                </div>
+            </div>
+
+            {{-- 2. Ops. Konveksi --}}
+            <div class="p-3.5 rounded-lg border border-indigo-100 bg-indigo-50/30 flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-900">
+                            <span class="w-2 h-2 rounded-full bg-indigo-600"></span>
+                            2. Beban Ops. Konveksi
+                        </span>
+                        <span class="text-[11px] font-extrabold px-1.5 py-0.5 rounded bg-indigo-100 text-indigo-700">
+                            {{ $financials['convection_share'] }}% Kas
+                        </span>
+                    </div>
+                    <p class="text-lg font-black text-indigo-700 mt-1">{{ rupiah($financials['convection_expenses_total']) }}</p>
+                    <p class="text-xs text-neutral-600 mt-0.5">Bulan Ini: <strong class="text-ink font-semibold">{{ rupiah($financials['convection_expenses_this_month']) }}</strong></p>
+                </div>
+                <div class="mt-2.5 pt-2 border-t border-indigo-100/70 text-[11px] text-neutral-500 leading-snug">
+                    Overhead workshop konveksi (listrik, sewa, gaji tim, servis mesin, alat). Mengurangi laba bersih bisnis.
+                </div>
+            </div>
+
+            {{-- 3. Ops. Pribadi / Prive --}}
+            <div class="p-3.5 rounded-lg border border-rose-100 bg-rose-50/30 flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="inline-flex items-center gap-1.5 text-xs font-bold text-rose-900">
+                            <span class="w-2 h-2 rounded-full bg-rose-500"></span>
+                            3. Beban Pribadi (Prive)
+                        </span>
+                        <span class="text-[11px] font-extrabold px-1.5 py-0.5 rounded bg-rose-100 text-rose-700">
+                            {{ $financials['personal_share'] }}% Kas
+                        </span>
+                    </div>
+                    <p class="text-lg font-black text-rose-600 mt-1">{{ rupiah($financials['personal_expenses_total']) }}</p>
+                    <p class="text-xs text-neutral-600 mt-0.5">Bulan Ini: <strong class="text-ink font-semibold">{{ rupiah($financials['personal_expenses_this_month']) }}</strong></p>
+                </div>
+                <div class="mt-2.5 pt-2 border-t border-rose-100/70 text-[11px] text-neutral-500 leading-snug">
+                    Penarikan uang kas untuk keperluan pribadi atau keluarga owner. Mengurangi saldo kas riil, bukan laba konveksi.
+                </div>
+            </div>
         </div>
     </div>
 </div>
