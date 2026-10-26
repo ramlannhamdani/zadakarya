@@ -8,10 +8,39 @@ use Illuminate\Http\Request;
 
 class ReviewController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        $query = Review::query();
+
+        if ($request->filled('q')) {
+            $query->where(function ($w) use ($request) {
+                $w->where('author_name', 'like', '%'.$request->q.'%')
+                  ->orWhere('content', 'like', '%'.$request->q.'%');
+            });
+        }
+
+        if ($request->status === 'published') {
+            $query->where('is_published', true);
+        } elseif ($request->status === 'hidden') {
+            $query->where('is_published', false);
+        }
+
+        if ($request->filled('rating') && is_numeric($request->rating)) {
+            $query->where('rating', (int)$request->rating);
+        }
+
+        $reviews = $query->orderBy('sort_order')->latest('review_date')->paginate(20)->withQueryString();
+
+        $stats = [
+            'total' => Review::count(),
+            'avg_rating' => round(Review::avg('rating') ?: 5.0, 1),
+            'published' => Review::where('is_published', true)->count(),
+            'hidden' => Review::where('is_published', false)->count(),
+        ];
+
         return view('admin.reviews.index', [
-            'reviews' => Review::orderBy('sort_order')->latest('review_date')->paginate(20),
+            'reviews' => $reviews,
+            'stats' => $stats,
         ]);
     }
 

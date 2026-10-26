@@ -14,20 +14,41 @@ class InvoiceController extends Controller
 {
     public function index(Request $request)
     {
+        $tab = $request->query('tab');
+
         // order.invoices & order.payments dipakai tombol "Kirim ke WA" untuk
         // menghitung sisa tagihan per invoice tanpa query tambahan tiap baris.
         $invoices = Invoice::with(['order.customer', 'order.invoices', 'order.payments'])
+            ->when($tab === 'unpaid', fn ($q) => $q->whereHas('order', fn ($o) => $o->where('payment_status', 'unpaid')))
+            ->when($tab === 'dp', fn ($q) => $q->whereHas('order', fn ($o) => $o->where('payment_status', 'dp')))
+            ->when($tab === 'paid', fn ($q) => $q->whereHas('order', fn ($o) => $o->where('payment_status', 'paid')))
             ->when($request->filled('q'), function ($q) use ($request) {
                 $term = '%'.$request->q.'%';
                 $q->where(fn ($w) => $w->where('invoice_number', 'like', $term)
-                    ->orWhereHas('order', fn ($o) => $o->where('order_number', 'like', $term)));
+                    ->orWhereHas('order', fn ($o) => $o->where('order_number', 'like', $term)
+                        ->orWhereHas('customer', fn ($c) => $c->where('name', 'like', $term))));
             })
             ->latest('date')
             ->latest('id')
             ->paginate(20)
             ->withQueryString();
 
-        return view('admin.invoices.index', compact('invoices'));
+        $totalInvoice = Invoice::sum('grand_total');
+        $totalPaid = \App\Models\Payment::sum('amount');
+        $totalReceivable = max(0, \App\Models\Order::where('status', '!=', 'cancelled')->sum('grand_total') - $totalPaid);
+        $unpaidCount = Invoice::whereHas('order', fn ($o) => $o->where('payment_status', 'unpaid'))->count();
+
+        $stats = [
+            'total_amount' => $totalInvoice,
+            'total_count' => Invoice::count(),
+            'paid_amount' => $totalPaid,
+            'receivable_amount' => $totalReceivable,
+            'unpaid_count' => $unpaidCount,
+            'dp_count' => Invoice::whereHas('order', fn ($o) => $o->where('payment_status', 'dp'))->count(),
+            'paid_count' => Invoice::whereHas('order', fn ($o) => $o->where('payment_status', 'paid'))->count(),
+        ];
+
+        return view('admin.invoices.index', compact('invoices', 'stats', 'tab'));
     }
 
     public function create(Request $request)

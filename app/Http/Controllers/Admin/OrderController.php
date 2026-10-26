@@ -47,7 +47,14 @@ class OrderController extends Controller
             ->paginate(20)
             ->withQueryString();
 
-        return view('admin.orders.index', compact('orders', 'status', 'cashStatus', 'deficitCount'));
+        $stats = [
+            'total' => Order::count(),
+            'active' => Order::where('status', 'active')->count(),
+            'completed' => Order::where('status', 'completed')->count(),
+            'unpaid' => Order::where('payment_status', '!=', 'paid')->where('status', '!=', 'cancelled')->count(),
+        ];
+
+        return view('admin.orders.index', compact('orders', 'status', 'cashStatus', 'deficitCount', 'stats'));
     }
 
     public function create(Request $request)

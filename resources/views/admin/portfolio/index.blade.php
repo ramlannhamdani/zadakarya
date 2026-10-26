@@ -1,122 +1,307 @@
 @extends('layouts.admin')
 
-@section('title', 'Portfolio')
+@section('title', 'Katalog Portfolio Hasil Produksi')
+
+@section('header-actions')
+<a href="{{ route('admin.portfolio.create') }}" class="inline-flex items-center justify-center gap-2 px-3.5 py-1.5 sm:px-4 sm:py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-semibold transition-all shadow-xs active:scale-95">
+    <i class="fa-solid fa-plus text-[10px]"></i>
+    <span>Tambah Karya</span>
+</a>
+@endsection
 
 @section('content')
-<div class="grid gap-5 lg:grid-cols-[minmax(0,1fr)_15rem] xl:grid-cols-4">
-    <div class="min-w-0 xl:col-span-3">
-        <div class="flex flex-wrap items-center justify-between gap-3">
-            <form method="GET" class="flex min-w-0 flex-1 gap-2 sm:flex-none">
-                <input type="search" name="q" value="{{ request('q') }}" placeholder="Cari judul..." class="form-input min-w-0 flex-1 sm:!w-56">
-                <button type="submit" class="btn-outline !px-4 !py-2.5">Cari</button>
-            </form>
-            <a href="{{ route('admin.portfolio.create') }}" class="btn-primary">+ Portfolio Baru</a>
-        </div>
+<div class="space-y-6">
 
-        {{-- Mobile: kartu (tabel di md+) --}}
-<div class="mt-5 space-y-3 md:hidden">
-    @forelse($portfolios as $portfolio)
-        <div class="admin-card !p-4">
-            <div class="flex gap-3">
-                @if($portfolio->cover_image)
-                    <img src="{{ asset('storage/'.$portfolio->cover_image) }}" alt="" class="h-16 w-16 shrink-0 rounded-lg object-cover">
-                @else
-                    <span class="flex h-16 w-16 shrink-0 items-center justify-center rounded-lg bg-cream text-lg font-bold text-warm-600">{{ mb_substr($portfolio->title, 0, 1) }}</span>
-                @endif
-                <div class="min-w-0 flex-1">
-                    <p class="font-semibold leading-snug text-ink">{{ $portfolio->title }}</p>
-                    <p class="mt-1 text-xs text-neutral-500">{{ $portfolio->category?->name ?? 'Tanpa kategori' }} &bull; {{ $portfolio->production_year ?? '—' }}</p>
-                    <div class="mt-1.5 flex flex-wrap gap-1.5">
-                        <span class="rounded-full px-2 py-0.5 text-[11px] font-bold {{ $portfolio->is_published ? 'bg-green-100 text-green-700' : 'bg-neutral-100 text-neutral-500' }}">{{ $portfolio->is_published ? 'Publish' : 'Draft' }}</span>
-                        @if($portfolio->is_featured)<span class="rounded-full bg-brand-100 px-2 py-0.5 text-[11px] font-bold text-brand-600">Featured</span>@endif
-                    </div>
+    <!-- 1. SUMMARY METRICS TILES -->
+    <section class="bg-white rounded-2xl p-6 shadow-sm">
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-6 divide-y sm:divide-y-0 sm:divide-x divide-slate-100">
+            <!-- Total Karya -->
+            <div class="pt-4 sm:pt-0 sm:px-4 first:pt-0 first:pl-0">
+                <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Total Karya</p>
+                <div class="flex items-baseline gap-2 mt-1">
+                    <span class="text-2xl sm:text-3xl font-bold text-slate-900">{{ number_format($stats['total']) }}</span>
+                    <span class="text-[11px] text-slate-400">karya foto</span>
                 </div>
+                <p class="text-[11px] text-slate-400 mt-0.5">Semua dokumentasi produksi</p>
             </div>
-            <div class="mt-3 flex items-center gap-4 border-t border-line pt-3 text-xs font-semibold">
-                <a href="{{ route('portfolio.show', $portfolio) }}" target="_blank" class="text-neutral-500">Lihat</a>
-                <a href="{{ route('admin.portfolio.edit', $portfolio) }}" class="text-brand-600">Edit</a>
-                <form method="POST" action="{{ route('admin.portfolio.destroy', $portfolio) }}" onsubmit="return confirm('Hapus portfolio ini beserta semua gambarnya?')" class="ml-auto">
-                    @csrf @method('DELETE')
-                    <button type="submit" class="text-red-500">Hapus</button>
+
+            <!-- Tayang (Published) -->
+            <div class="pt-4 sm:pt-0 sm:px-4">
+                <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Tayang (Published)</p>
+                <div class="flex items-baseline gap-2 mt-1">
+                    <span class="text-2xl sm:text-3xl font-bold text-emerald-600">{{ number_format($stats['published']) }}</span>
+                    <span class="text-[11px] text-emerald-600/80 font-medium">live di website</span>
+                </div>
+                <p class="text-[11px] text-slate-400 mt-0.5">Dapat dilihat publik & calon klien</p>
+            </div>
+
+            <!-- Draft / Arsip -->
+            <div class="pt-4 sm:pt-0 sm:px-4">
+                <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Draft / Belum Tayang</p>
+                <div class="flex items-baseline gap-2 mt-1">
+                    <span class="text-2xl sm:text-3xl font-bold text-amber-600">{{ number_format($stats['draft']) }}</span>
+                    <span class="text-[11px] text-amber-600/80 font-medium">pending rilis</span>
+                </div>
+                <p class="text-[11px] text-slate-400 mt-0.5">Menunggu approval foto final</p>
+            </div>
+
+            <!-- Kategori Pakaian -->
+            <div class="pt-4 sm:pt-0 sm:px-4">
+                <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Kategori Pakaian</p>
+                <div class="flex items-baseline gap-2 mt-1">
+                    <span class="text-2xl sm:text-3xl font-bold text-slate-900">{{ number_format($stats['categories_count']) }}</span>
+                    <span class="text-[11px] text-slate-400">kategori</span>
+                </div>
+                <p class="text-[11px] text-slate-400 mt-0.5">Kaos, PDH, Jaket, Almet, dsb</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- 2. MAIN 2-COLUMN MODULAR LAYOUT -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        
+        <!-- SIDEBAR SAMPING: KATEGORI & JUMLAH PER KATEGORI -->
+        <div class="lg:col-span-4 xl:col-span-3 space-y-4">
+            
+            <section class="bg-white rounded-2xl p-5 shadow-sm space-y-3">
+                <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                    <div>
+                        <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400">Kategori Portofolio</h4>
+                        <p class="text-[11px] text-slate-500 mt-0.5">Filter berdasarkan segmen produk</p>
+                    </div>
+                    @if(request('category_id'))
+                        <a href="{{ route('admin.portfolio.index', request()->except('category_id')) }}" class="text-[11px] text-brand-700 hover:text-brand-900 font-semibold transition-colors">
+                            Reset
+                        </a>
+                    @endif
+                </div>
+
+                <!-- List Kategori Interaktif -->
+                <div class="space-y-1 text-xs">
+                    @php
+                        $isAllActive = !request('category_id');
+                    @endphp
+                    <a href="{{ route('admin.portfolio.index', request()->except('category_id')) }}" class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-medium transition-colors {{ $isAllActive ? 'bg-slate-900 text-white font-semibold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
+                        <span class="flex items-center gap-2">
+                            <i class="fa-solid fa-shapes text-xs {{ $isAllActive ? 'text-slate-300' : 'text-slate-400' }}"></i>
+                            <span>Semua Kategori</span>
+                        </span>
+                        <span class="text-[10px] px-2 py-0.5 rounded-full {{ $isAllActive ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-600' }} font-semibold">
+                            {{ $stats['total'] }}
+                        </span>
+                    </a>
+
+                    @foreach($categories as $category)
+                        @php
+                            $isActive = (string)request('category_id') === (string)$category->id;
+                            $catIcon = 'fa-tag';
+                            $cName = strtolower($category->name);
+                            if (str_contains($cName, 'kaos')) $catIcon = 'fa-shirt';
+                            elseif (str_contains($cName, 'jas') || str_contains($cName, 'almet')) $catIcon = 'fa-user-tie';
+                            elseif (str_contains($cName, 'kemeja') || str_contains($cName, 'pdh')) $catIcon = 'fa-clipboard-user';
+                            elseif (str_contains($cName, 'jaket') || str_contains($cName, 'hoodie')) $catIcon = 'fa-vest-patches';
+                            elseif (str_contains($cName, 'polo')) $catIcon = 'fa-vest';
+                            elseif (str_contains($cName, 'rompi')) $catIcon = 'fa-shield';
+                        @endphp
+                        <div class="flex items-center group">
+                            <a href="{{ route('admin.portfolio.index', array_merge(request()->query(), ['category_id' => $category->id])) }}" class="flex-1 flex items-center justify-between px-3 py-2 rounded-xl font-medium transition-colors {{ $isActive ? 'bg-slate-900 text-white font-semibold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
+                                <span class="flex items-center gap-2 truncate pr-2">
+                                    <i class="fa-solid {{ $catIcon }} text-xs {{ $isActive ? 'text-slate-300' : 'text-slate-400' }}"></i>
+                                    <span class="truncate">{{ $category->name }}</span>
+                                </span>
+                                <span class="text-[10px] px-2 py-0.5 rounded-full {{ $isActive ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-600' }} font-semibold shrink-0">
+                                    {{ $category->portfolios_count }}
+                                </span>
+                            </a>
+                            <form method="POST" action="{{ route('admin.portfolio-categories.destroy', $category) }}" onsubmit="return confirm('Hapus kategori {{ $category->name }}?')" class="opacity-0 group-hover:opacity-100 transition-opacity ml-1">
+                                @csrf @method('DELETE')
+                                <button type="submit" class="p-1.5 text-slate-400 hover:text-rose-600 text-xs" title="Hapus Kategori">
+                                    <i class="fa-solid fa-xmark"></i>
+                                </button>
+                            </form>
+                        </div>
+                    @endforeach
+                </div>
+
+                <!-- Quick Info Card -->
+                <div class="pt-3 border-t border-slate-100 text-[11px] text-slate-400 leading-relaxed">
+                    <i class="fa-solid fa-circle-info text-slate-300 mr-1"></i>
+                    Klik kategori di atas untuk menyaring katalog karya secara instan.
+                </div>
+            </section>
+
+            <!-- Quick Add Category Form -->
+            <div class="p-4 rounded-2xl bg-white border border-slate-100 shadow-sm space-y-2">
+                <div>
+                    <span class="font-bold text-xs text-slate-800 block">Kategori Baru?</span>
+                    <span class="text-[11px] text-slate-400">Tambahkan segmen produk baru</span>
+                </div>
+                <form method="POST" action="{{ route('admin.portfolio-categories.store') }}" class="flex gap-2 pt-1">
+                    @csrf
+                    <input type="text" name="name" placeholder="Nama kategori..." required class="flex-1 bg-slate-50 text-xs rounded-xl px-3 py-2 text-slate-700 placeholder-slate-400 border border-slate-200/60 focus:outline-none focus:ring-1 focus:ring-slate-300">
+                    <button type="submit" class="px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs transition-colors shrink-0">
+                        <i class="fa-solid fa-plus text-[10px]"></i>
+                    </button>
                 </form>
             </div>
+
         </div>
-    @empty
-        <div class="admin-card py-8 text-center text-neutral-500">Belum ada portfolio.</div>
-    @endforelse
-</div>
-<div class="admin-card mt-5 hidden overflow-x-auto !p-0 md:block">
-            <table class="w-full min-w-[600px] text-sm">
-                <thead>
-                    <tr class="border-b border-line bg-cream/60 text-left text-xs font-bold uppercase tracking-wider text-neutral-500">
-                        <th class="px-5 py-3">Judul</th>
-                        <th class="px-5 py-3">Kategori</th>
-                        <th class="px-5 py-3">Tahun</th>
-                        <th class="px-5 py-3">Status</th>
-                        <th class="px-5 py-3"></th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-line">
-                    @forelse($portfolios as $portfolio)
-                        <tr class="hover:bg-cream/40">
-                            <td class="px-5 py-3.5">
-                                <div class="flex items-center gap-3">
-                                    @if($portfolio->cover_image)
-                                        <img src="{{ asset('storage/'.$portfolio->cover_image) }}" alt="" class="h-10 w-10 rounded-lg object-cover">
-                                    @else
-                                        <span class="flex h-10 w-10 items-center justify-center rounded-lg bg-cream text-xs font-bold text-warm-600">{{ mb_substr($portfolio->title, 0, 1) }}</span>
-                                    @endif
-                                    <div>
-                                        <span class="font-semibold text-ink">{{ $portfolio->title }}</span>
-                                        @if($portfolio->is_featured)<span class="ml-1.5 rounded-full bg-brand-100 px-2 py-0.5 text-[10px] font-bold text-brand-600">Featured</span>@endif
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="px-5 py-3.5 text-neutral-600">{{ $portfolio->category?->name ?? '—' }}</td>
-                            <td class="px-5 py-3.5 text-neutral-600">{{ $portfolio->production_year ?? '—' }}</td>
-                            <td class="px-5 py-3.5">
-                                <span class="rounded-full px-2.5 py-0.5 text-xs font-bold {{ $portfolio->is_published ? 'bg-green-100 text-green-700' : 'bg-neutral-100 text-neutral-500' }}">
-                                    {{ $portfolio->is_published ? 'Publish' : 'Draft' }}
-                                </span>
-                            </td>
-                            <td class="px-5 py-3.5 text-right">
-                                <div class="flex items-center justify-end gap-3">
-                                    <a href="{{ route('portfolio.show', $portfolio) }}" target="_blank" class="text-xs font-semibold text-neutral-500 hover:text-brand-600">Lihat</a>
-                                    <a href="{{ route('admin.portfolio.edit', $portfolio) }}" class="text-xs font-semibold text-brand-600 hover:underline">Edit</a>
-                                    <form method="POST" action="{{ route('admin.portfolio.destroy', $portfolio) }}" onsubmit="return confirm('Hapus portfolio ini beserta semua gambarnya?')">
-                                        @csrf @method('DELETE')
-                                        <button type="submit" class="text-xs font-semibold text-red-500 hover:underline">Hapus</button>
-                                    </form>
-                                </div>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr><td colspan="5" class="px-5 py-8 text-center text-neutral-500">Belum ada portfolio.</td></tr>
-                    @endforelse
-                </tbody>
-            </table>
+
+        <!-- AREA UTAMA: TOOLBAR & DATA TABLE PORTOFOLIO -->
+        <div class="lg:col-span-8 xl:col-span-9 space-y-4">
+            
+            <!-- Toolbar Search & Filter -->
+            <section class="bg-white rounded-2xl p-4 sm:p-5 shadow-sm space-y-4">
+                <form method="GET" action="{{ route('admin.portfolio.index') }}" class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    @if(request('category_id'))
+                        <input type="hidden" name="category_id" value="{{ request('category_id') }}">
+                    @endif
+
+                    <!-- Status Tab Pills -->
+                    <div class="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 text-xs">
+                        <a href="{{ route('admin.portfolio.index', array_merge(request()->except('status'), [])) }}" class="px-3 py-1.5 rounded-xl font-semibold transition-all whitespace-nowrap {{ !request('status') ? 'bg-slate-900 text-white' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' }}">
+                            Semua ({{ $stats['total'] }})
+                        </a>
+                        <a href="{{ route('admin.portfolio.index', array_merge(request()->query(), ['status' => 'published'])) }}" class="px-3 py-1.5 rounded-xl font-medium transition-all whitespace-nowrap {{ request('status') === 'published' ? 'bg-slate-900 text-white font-semibold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' }}">
+                            Published ({{ $stats['published'] }})
+                        </a>
+                        <a href="{{ route('admin.portfolio.index', array_merge(request()->query(), ['status' => 'draft'])) }}" class="px-3 py-1.5 rounded-xl font-medium transition-all whitespace-nowrap {{ request('status') === 'draft' ? 'bg-slate-900 text-white font-semibold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' }}">
+                            Draft ({{ $stats['draft'] }})
+                        </a>
+                    </div>
+
+                    <!-- Right Search & Year Filter -->
+                    <div class="flex flex-wrap sm:flex-nowrap items-center gap-2.5">
+                        <div class="relative w-full sm:w-56">
+                            <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                            <input type="text" name="q" value="{{ request('q') }}" placeholder="Cari judul / klien..." class="w-full bg-slate-50 text-xs rounded-xl pl-9 pr-4 py-2 text-slate-700 placeholder-slate-400 border border-slate-200/60 focus:outline-none focus:ring-1 focus:ring-slate-300">
+                        </div>
+
+                        <select name="year" onchange="this.form.submit()" class="bg-slate-50 text-xs font-semibold text-slate-700 rounded-xl px-3 py-2 border border-slate-200/60 focus:outline-none focus:ring-1 focus:ring-slate-300 cursor-pointer">
+                            <option value="">Semua Tahun</option>
+                            @foreach($years as $yr)
+                                <option value="{{ $yr }}" @selected(request('year') == $yr)>{{ $yr }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </form>
+            </section>
+
+            <!-- 3. DATA TABLE PORTOFOLIO -->
+            <section class="bg-white rounded-2xl shadow-sm overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs whitespace-nowrap">
+                        <thead>
+                            <tr class="text-[11px] font-semibold text-slate-400 border-b border-slate-100 bg-slate-50/50">
+                                <th class="py-3.5 px-5 font-normal uppercase tracking-wider">JUDUL KARYA</th>
+                                <th class="py-3.5 px-5 font-normal uppercase tracking-wider">KATEGORI</th>
+                                <th class="py-3.5 px-5 font-normal uppercase tracking-wider text-center">TAHUN</th>
+                                <th class="py-3.5 px-5 font-normal uppercase tracking-wider text-center">STATUS</th>
+                                <th class="py-3.5 px-5 font-normal uppercase tracking-wider text-center">AKSI</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-50">
+                            @forelse($portfolios as $portfolio)
+                                <tr class="hover:bg-slate-50/70 transition-colors">
+                                    <!-- 1. JUDUL KARYA -->
+                                    <td class="py-3.5 px-5">
+                                        <div class="flex items-center gap-3">
+                                            @if($portfolio->cover_image)
+                                                <img src="{{ asset('storage/'.$portfolio->cover_image) }}" alt="{{ $portfolio->title }}" class="w-10 h-10 rounded-xl object-cover bg-slate-100 shrink-0 border border-slate-100">
+                                            @else
+                                                <div class="w-10 h-10 rounded-xl bg-brand-50 text-brand-700 flex items-center justify-center font-bold text-sm shrink-0 border border-brand-100">
+                                                    {{ mb_substr($portfolio->title, 0, 1) }}
+                                                </div>
+                                            @endif
+                                            <div class="space-y-0.5 min-w-0">
+                                                <div class="flex items-center gap-1.5">
+                                                    <a href="{{ route('admin.portfolio.edit', $portfolio) }}" class="font-bold text-slate-900 block hover:text-brand-700 transition-colors truncate max-w-xs sm:max-w-md">
+                                                        {{ $portfolio->title }}
+                                                    </a>
+                                                    @if($portfolio->is_featured)
+                                                        <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-50 text-amber-700 border border-amber-200/60">
+                                                            Featured
+                                                        </span>
+                                                    @endif
+                                                </div>
+                                                <span class="text-[11px] text-slate-400 block">
+                                                    Klien: <strong class="text-slate-600 font-medium">{{ $portfolio->client_name ?: '—' }}</strong>
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </td>
+
+                                    <!-- 2. KATEGORI -->
+                                    <td class="py-3.5 px-5">
+                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-slate-100 text-slate-700 font-semibold text-[11px]">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+                                            {{ $portfolio->category?->name ?? 'Tanpa Kategori' }}
+                                        </span>
+                                    </td>
+
+                                    <!-- 3. TAHUN -->
+                                    <td class="py-3.5 px-5 text-center font-mono font-medium text-slate-700">
+                                        {{ $portfolio->production_year ?: '—' }}
+                                    </td>
+
+                                    <!-- 4. STATUS -->
+                                    <td class="py-3.5 px-5 text-center">
+                                        @if($portfolio->is_published)
+                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-bold text-[10px]">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                                Published
+                                            </span>
+                                        @else
+                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-700 font-semibold text-[10px]">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                                                Draft
+                                            </span>
+                                        @endif
+                                    </td>
+
+                                    <!-- 5. AKSI -->
+                                    <td class="py-3.5 px-5 text-center">
+                                        <div class="inline-flex items-center gap-1.5">
+                                            <a href="{{ route('portfolio.show', $portfolio) }}" target="_blank" title="Lihat di Web" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition-colors">
+                                                <i class="fa-regular fa-eye text-xs"></i>
+                                            </a>
+
+                                            <a href="{{ route('admin.portfolio.edit', $portfolio) }}" title="Edit Portofolio" class="p-1.5 rounded-lg text-slate-400 hover:text-brand-700 hover:bg-brand-50 transition-colors">
+                                                <i class="fa-solid fa-pen text-xs"></i>
+                                            </a>
+
+                                            <form method="POST" action="{{ route('admin.portfolio.destroy', $portfolio) }}" onsubmit="return confirm('Hapus portofolio ini beserta semua gambarnya?')" class="inline-block">
+                                                @csrf @method('DELETE')
+                                                <button type="submit" title="Hapus Portofolio" class="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors">
+                                                    <i class="fa-regular fa-trash-can text-xs"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="5" class="py-12 text-center text-slate-400">
+                                        <i class="fa-regular fa-images text-3xl mb-2 block text-slate-300"></i>
+                                        Belum ada portofolio yang cocok dengan kriteria pencarian.
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Table Footer Pagination -->
+                @if($portfolios->hasPages())
+                    <div class="p-4 sm:px-6 border-t border-slate-50 bg-white">
+                        {{ $portfolios->links() }}
+                    </div>
+                @endif
+            </section>
+
         </div>
-        <div class="mt-5">{{ $portfolios->links() }}</div>
+
     </div>
 
-    <div class="admin-card h-fit">
-        <h2 class="font-extrabold text-ink">Kategori</h2>
-        <form method="POST" action="{{ route('admin.portfolio-categories.store') }}" class="mt-3 flex gap-2">
-            @csrf
-            <input class="form-input" type="text" name="name" placeholder="Kategori baru..." required>
-            <button type="submit" class="btn-primary !px-4">+</button>
-        </form>
-        <ul class="mt-4 divide-y divide-line text-sm">
-            @foreach($categories as $category)
-                <li class="flex items-center justify-between py-2">
-                    <span>{{ $category->name }} <span class="text-xs text-neutral-400">({{ $category->portfolios_count }})</span></span>
-                    <form method="POST" action="{{ route('admin.portfolio-categories.destroy', $category) }}" onsubmit="return confirm('Hapus kategori {{ $category->name }}?')">
-                        @csrf @method('DELETE')
-                        <button type="submit" class="text-xs text-red-500 hover:underline">Hapus</button>
-                    </form>
-                </li>
-            @endforeach
-        </ul>
-    </div>
 </div>
 @endsection

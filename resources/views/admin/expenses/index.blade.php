@@ -1,279 +1,240 @@
 @extends('layouts.admin')
 
-@section('title', 'Beban Operasional')
+@section('title', 'Beban Operasional & Pengeluaran Kas')
+
+@section('header-actions')
+<a href="{{ route('admin.expenses.create') }}" class="inline-flex items-center justify-center gap-2 px-3.5 py-1.5 sm:px-4 sm:py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-semibold transition-all shadow-xs active:scale-95">
+    <i class="fa-solid fa-plus text-[10px]"></i>
+    <span>Catat Pengeluaran</span>
+</a>
+@endsection
 
 @section('content')
-{{-- Financial Position: 5 Core Metrics --}}
-<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-    <div class="admin-card border-l-4 !border-l-green-500">
-        <p class="text-xs font-bold uppercase tracking-wider text-neutral-500">Total Pemasukan (Kas Masuk)</p>
-        <p class="mt-2 text-2xl font-extrabold text-green-600">{{ rupiah($periodIncome) }}</p>
-        <p class="mt-1 text-xs text-neutral-500">Pembayaran masuk {{ $isAllPeriod ? 'seluruhnya' : $periodLabel }}</p>
-    </div>
-
-    <div class="admin-card border-l-4 !border-l-blue-500">
-        <p class="text-xs font-bold uppercase tracking-wider text-neutral-500">Biaya HPP (Produksi)</p>
-        <p class="mt-2 text-2xl font-extrabold text-blue-600">{{ rupiah($periodHpp) }}</p>
-        <p class="mt-1 text-xs text-neutral-500">Kain, trims, makloon &amp; CMT</p>
-    </div>
-
-    <div class="admin-card border-l-4 !border-l-indigo-600 bg-indigo-50/10">
-        <div class="flex items-center justify-between">
-            <p class="text-xs font-bold uppercase tracking-wider text-neutral-500">Ops. Konveksi</p>
-            <span class="text-[10px] font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded">Bisnis</span>
-        </div>
-        <p class="mt-2 text-2xl font-extrabold text-indigo-700">{{ rupiah($periodConvectionExpense) }}</p>
-        <p class="mt-1 text-xs text-neutral-500">Total semua: <strong class="text-ink font-semibold">{{ rupiah($totalAllConvectionExpense) }}</strong></p>
-    </div>
-
-    <div class="admin-card border-l-4 !border-l-rose-500 bg-rose-50/10">
-        <div class="flex items-center justify-between">
-            <p class="text-xs font-bold uppercase tracking-wider text-neutral-500">Ops. Pribadi</p>
-            <span class="text-[10px] font-bold text-rose-700 bg-rose-50 px-2 py-0.5 rounded">Prive Owner</span>
-        </div>
-        <p class="mt-2 text-2xl font-extrabold text-rose-600">{{ rupiah($periodPersonalExpense) }}</p>
-        <p class="mt-1 text-xs text-neutral-500">Total semua: <strong class="text-ink font-semibold">{{ rupiah($totalAllPersonalExpense) }}</strong></p>
-    </div>
-
-    <div class="admin-card border-l-4 {{ $totalCurrentBalance >= 0 ? '!border-l-emerald-500 bg-emerald-50/20' : '!border-l-red-500 bg-red-50/20' }}">
-        <p class="text-xs font-bold uppercase tracking-wider text-neutral-500">Saldo Kas Riil Saat Ini</p>
-        <p class="mt-2 text-2xl font-extrabold {{ $totalCurrentBalance >= 0 ? 'text-emerald-700' : 'text-red-600' }}">
-            {{ rupiah($totalCurrentBalance) }}
-        </p>
-        <p class="mt-1 text-xs text-neutral-500">Total Kas Masuk − Seluruh Pengeluaran</p>
-    </div>
-</div>
-
-{{-- Comprehensive Financial Statement Panels --}}
-<div class="mt-4 grid gap-4 lg:grid-cols-2">
-    {{-- Panel 1: Arus Kas & Posisi Saldo Riil --}}
-    <div class="admin-card">
-        <div class="flex items-center justify-between pb-2.5 border-b border-line">
-            <div class="flex items-center gap-2">
-                <span class="inline-flex h-2 w-2 rounded-full bg-green-500"></span>
-                <span class="text-xs font-extrabold uppercase tracking-wider text-neutral-700">Laporan Arus Kas ({{ $isAllPeriod ? 'Semua Waktu' : $periodLabel }})</span>
-            </div>
-            <span class="text-xs font-medium text-neutral-500">
-                Sisa Kas Periode Ini: <strong class="font-bold {{ $periodNetBalance >= 0 ? 'text-emerald-700' : 'text-red-600' }}">{{ rupiah($periodNetBalance) }}</strong>
-            </span>
-        </div>
-        <div class="mt-3 space-y-2 text-sm">
+<!-- 1. SUMMARY METRICS TILES DINAMIS (5 CARDS) -->
+<section class="bg-white rounded-2xl p-6 shadow-sm">
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 divide-y md:divide-y-0 md:divide-x divide-slate-100">
+        <!-- 1. Uang Masuk -->
+        <div class="pt-4 md:pt-0 md:px-4 first:pt-0 first:pl-0">
             <div class="flex items-center justify-between">
-                <span class="text-neutral-600">Total Kas Masuk (Pembayaran Customer)</span>
-                <span class="font-bold text-green-600">{{ rupiah($periodIncome) }}</span>
+                <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Uang Masuk</p>
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
             </div>
+            <div class="flex items-baseline gap-2 mt-1">
+                <span class="text-xl sm:text-2xl font-bold text-emerald-600">{{ rupiah($periodIncome) }}</span>
+            </div>
+            <p class="text-[11px] text-slate-400 mt-0.5">Total kas masuk diterima</p>
+        </div>
+
+        <!-- 2. HPP (Belanja Pesanan) -->
+        <div class="pt-4 md:pt-0 md:px-4">
             <div class="flex items-center justify-between">
-                <span class="text-neutral-600">Total Pengeluaran Kas (HPP + Semua Beban)</span>
-                <span class="font-bold text-red-600">- {{ rupiah($periodTotalOutflow) }}</span>
+                <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">HPP (Bahan & CMT)</p>
+                @php
+                    $totalOut = $periodTotalOutflow > 0 ? $periodTotalOutflow : 1;
+                    $hppPct = round(($periodHpp / $totalOut) * 100, 1);
+                    $convectionPct = round(($periodConvectionExpense / $totalOut) * 100, 1);
+                    $personalPct = round(($periodPersonalExpense / $totalOut) * 100, 1);
+                @endphp
+                <span class="text-[10px] font-bold text-rose-700 bg-rose-50 px-2 py-0.5 rounded-full">{{ $hppPct }}%</span>
             </div>
-            <div class="flex flex-col gap-1 text-xs text-neutral-500 pl-3">
-                <div class="flex justify-between">
-                    <span>↳ Biaya Produksi (HPP Pesanan):</span>
-                    <span class="font-medium text-neutral-700">{{ rupiah($periodHpp) }}</span>
-                </div>
-                <div class="flex justify-between">
-                    <span>↳ Ops. Konveksi (Workshop & Bisnis):</span>
-                    <span class="font-medium text-indigo-700">{{ rupiah($periodConvectionExpense) }}</span>
-                </div>
-                <div class="flex justify-between">
-                    <span>↳ Ops. Pribadi (Prive / Keluarga):</span>
-                    <span class="font-medium text-rose-700">{{ rupiah($periodPersonalExpense) }}</span>
-                </div>
+            <div class="flex items-baseline gap-2 mt-1">
+                <span class="text-xl sm:text-2xl font-bold text-rose-600">{{ rupiah($periodHpp) }}</span>
             </div>
-            <div class="flex items-center justify-between pt-2 border-t border-line text-sm">
-                <span class="font-extrabold text-ink">Saldo Kas Berjalan Kumulatif</span>
-                <span class="font-extrabold text-base {{ $totalCurrentBalance >= 0 ? 'text-emerald-700' : 'text-red-600' }}">
+            <p class="text-[11px] text-slate-400 mt-0.5">Kain, sablon, bordir & makloon</p>
+        </div>
+
+        <!-- 3. Ops Konveksi -->
+        <div class="pt-4 md:pt-0 md:px-4">
+            <div class="flex items-center justify-between">
+                <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Ops. Konveksi</p>
+                <span class="text-[10px] font-bold text-rose-700 bg-rose-50 px-2 py-0.5 rounded-full">{{ $convectionPct }}%</span>
+            </div>
+            <div class="flex items-baseline gap-2 mt-1">
+                <span class="text-xl sm:text-2xl font-bold text-rose-600">{{ rupiah($periodConvectionExpense) }}</span>
+            </div>
+            <p class="text-[11px] text-slate-400 mt-0.5">Listrik, sewa, upah & servis</p>
+        </div>
+
+        <!-- 4. Ops Pribadi (Prive) -->
+        <div class="pt-4 md:pt-0 md:px-4">
+            <div class="flex items-center justify-between">
+                <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Ops. Pribadi (Prive)</p>
+                <span class="text-[10px] font-bold text-rose-700 bg-rose-50 px-2 py-0.5 rounded-full">{{ $personalPct }}%</span>
+            </div>
+            <div class="flex items-baseline gap-2 mt-1">
+                <span class="text-xl sm:text-2xl font-bold text-rose-600">{{ rupiah($periodPersonalExpense) }}</span>
+            </div>
+            <p class="text-[11px] text-slate-400 mt-0.5">Penarikan kebutuhan owner</p>
+        </div>
+
+        <!-- 5. Saldo Kas Riil -->
+        <div class="pt-4 md:pt-0 md:px-4">
+            <div class="flex items-center justify-between">
+                <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Saldo Kas Riil</p>
+                <span class="text-[10px] font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-full">Kas Bersih</span>
+            </div>
+            <div class="flex items-baseline gap-2 mt-1">
+                <span class="text-xl sm:text-2xl font-bold {{ $totalCurrentBalance >= 0 ? 'text-slate-900' : 'text-rose-600' }}">
                     {{ rupiah($totalCurrentBalance) }}
                 </span>
             </div>
-            @if(isset($activeAdvances) && $activeAdvances > 0)
-                <div class="mt-2.5 rounded-lg border border-amber-200 bg-amber-50/80 p-2.5 text-xs text-amber-900 flex flex-wrap items-center justify-between gap-2">
-                    <span class="flex items-center gap-1.5">
-                        <span>⚠️</span>
-                        <span>Kas Sedang Menalangi HPP Pesanan (DP Kurang): <strong>{{ rupiah($activeAdvances) }}</strong> ({{ $activeDeficitCount }} pesanan)</span>
-                    </span>
-                    <a href="{{ route('admin.orders.index', ['cash_status' => 'deficit']) }}" class="font-bold text-amber-900 hover:underline">Lihat Pesanan &rarr;</a>
-                </div>
+            <p class="text-[11px] text-slate-400 mt-0.5">Uang Masuk - Semua Beban</p>
+        </div>
+    </div>
+</section>
+
+<!-- 2. FILTER & ACTION TOOLBAR -->
+<section class="bg-white rounded-2xl p-4 sm:p-5 shadow-sm space-y-4">
+    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        
+        <!-- Filter Tabs Berdasarkan Jenis Beban -->
+        <div class="flex items-center gap-1.5 overflow-x-auto pb-1 lg:pb-0 text-xs">
+            <a href="{{ route('admin.expenses.index', array_merge(request()->except('expense_type'), ['expense_type' => ''])) }}"
+               class="px-3 py-1.5 rounded-xl font-semibold transition-all whitespace-nowrap {{ !request('expense_type') ? 'bg-slate-900 text-white' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' }}">
+                Semua Beban
+            </a>
+            <a href="{{ route('admin.expenses.index', array_merge(request()->except('expense_type'), ['expense_type' => 'convection'])) }}"
+               class="px-3 py-1.5 rounded-xl font-semibold transition-all whitespace-nowrap {{ request('expense_type') === 'convection' ? 'bg-slate-900 text-white' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' }}">
+                Ops. Konveksi (Bisnis)
+            </a>
+            <a href="{{ route('admin.expenses.index', array_merge(request()->except('expense_type'), ['expense_type' => 'personal'])) }}"
+               class="px-3 py-1.5 rounded-xl font-semibold transition-all whitespace-nowrap {{ request('expense_type') === 'personal' ? 'bg-slate-900 text-white' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' }}">
+                Ops. Pribadi (Prive)
+            </a>
+        </div>
+
+        <!-- Search & Filter Options -->
+        <form method="GET" action="{{ route('admin.expenses.index') }}" class="flex flex-wrap sm:flex-nowrap items-center gap-2.5">
+            @if(request('expense_type'))<input type="hidden" name="expense_type" value="{{ request('expense_type') }}">@endif
+
+            <!-- Search Input -->
+            <div class="relative w-full sm:w-56">
+                <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                <input type="text" name="q" value="{{ request('q') }}" placeholder="Cari Ref / Keterangan..."
+                       class="w-full bg-slate-50 text-xs rounded-xl pl-9 pr-4 py-2 text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-300">
+            </div>
+
+            <!-- Bulan & Tahun Filter Dropdown -->
+            <select name="month" class="bg-slate-50 text-xs text-slate-700 rounded-xl px-3 py-2 focus:outline-none focus:ring-1 focus:ring-slate-300">
+                @foreach(range(1, 12) as $m)
+                    <option value="{{ $m }}" @selected($month == $m)>{{ \Carbon\Carbon::create(null, $m)->translatedFormat('F') }}</option>
+                @endforeach
+            </select>
+
+            <select name="year" class="bg-slate-50 text-xs text-slate-700 rounded-xl px-3 py-2 focus:outline-none focus:ring-1 focus:ring-slate-300">
+                @foreach($years as $y)
+                    <option value="{{ $y }}" @selected($year == $y)>{{ $y }}</option>
+                @endforeach
+            </select>
+
+            <button type="submit" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-colors">
+                Filter
+            </button>
+            @if(request()->anyFilled(['q', 'expense_type', 'category']) || request('period') === 'all')
+                <a href="{{ route('admin.expenses.index') }}" class="px-3 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-500 text-xs transition-colors">
+                    Reset
+                </a>
             @endif
-        </div>
+        </form>
+
     </div>
+</section>
 
-    {{-- Panel 2: Kinerja Laba Bisnis Konveksi --}}
-    <div class="admin-card">
-        <div class="flex items-center justify-between pb-2.5 border-b border-line">
-            <div class="flex items-center gap-2">
-                <span class="inline-flex h-2 w-2 rounded-full bg-brand-600"></span>
-                <span class="text-xs font-extrabold uppercase tracking-wider text-neutral-700">Laba Bisnis Konveksi ({{ $isAllPeriod ? 'Semua Waktu' : $periodLabel }})</span>
-            </div>
-            @if($topCategory)
-                <span class="text-xs text-neutral-500 truncate" title="{{ $topCategory['name'] }}: {{ rupiah($topCategory['amount']) }}">
-                    Beban Terbesar: <strong class="text-ink">{{ $topCategory['name'] }}</strong>
-                </span>
-            @endif
-        </div>
-        <div class="mt-3 space-y-2 text-sm">
-            <div class="flex items-center justify-between">
-                <span class="text-neutral-600">Total Nilai Pesanan (Omset Periode)</span>
-                <span class="font-bold text-ink">{{ rupiah($periodOrderValue) }}</span>
-            </div>
-            <div class="flex items-center justify-between">
-                <span class="text-neutral-600">Laba Kotor Pesanan (Omset − HPP)</span>
-                <span class="font-bold text-indigo-600">{{ rupiah($periodGrossProfit) }}</span>
-            </div>
-            <div class="flex items-center justify-between">
-                <span class="text-neutral-600">Beban Ops. Konveksi (Pengurang Laba Bisnis)</span>
-                <span class="font-bold text-rose-600">- {{ rupiah($periodConvectionExpense) }}</span>
-            </div>
-            <div class="flex items-center justify-between pt-2 border-t border-line text-sm">
-                <span class="font-extrabold text-ink">Laba Bersih Konveksi</span>
-                <span class="font-extrabold text-base {{ $periodNetProfit >= 0 ? 'text-emerald-700' : 'text-red-600' }}">
-                    {{ rupiah($periodNetProfit) }}
-                </span>
-            </div>
-            <div class="mt-2 rounded bg-neutral-50 px-3 py-2 text-xs text-neutral-600">
-                💡 <strong>Catatan Prive:</strong> Ops. Pribadi ({{ rupiah($periodPersonalExpense) }}) tidak mengurangi laba operasional konveksi, tetapi dicatat sebagai penarikan kas pemilik.
-            </div>
-        </div>
-    </div>
-</div>
-
-{{-- Filter and Action bar --}}
-<div class="mt-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-    <form method="GET" class="flex flex-wrap items-center gap-2">
-        <input type="search" name="q" value="{{ request('q') }}" placeholder="Cari keterangan / no. ref..." class="form-input min-w-0 !py-2 text-sm sm:!w-60">
-
-        <select name="expense_type" class="form-input !py-2 text-sm !w-auto">
-            <option value="">— Semua Jenis —</option>
-            @foreach(\App\Models\OperationalExpense::TYPES as $key => $label)
-                <option value="{{ $key }}" @selected(request('expense_type') === $key)>{{ $label }}</option>
-            @endforeach
-        </select>
-
-        <select name="category" class="form-input !py-2 text-sm !w-auto">
-            <option value="">— Semua Kategori —</option>
-            @foreach(\App\Models\OperationalExpense::CATEGORIES as $key => $label)
-                <option value="{{ $key }}" @selected(request('category') === $key)>{{ $label }}</option>
-            @endforeach
-        </select>
-
-        <select name="month" class="form-input !py-2 text-sm !w-auto">
-            @foreach(range(1, 12) as $m)
-                <option value="{{ $m }}" @selected($month == $m)>{{ \Carbon\Carbon::create(null, $m)->translatedFormat('F') }}</option>
-            @endforeach
-        </select>
-
-        <select name="year" class="form-input !py-2 text-sm !w-auto">
-            @foreach($years as $y)
-                <option value="{{ $y }}" @selected($year == $y)>{{ $y }}</option>
-            @endforeach
-        </select>
-
-        @if(request('period') === 'all')
-            <input type="hidden" name="period" value="all">
-        @endif
-
-        <button type="submit" class="btn-outline !px-3 !py-2 text-sm">Filter</button>
-        @if(request()->anyFilled(['q', 'expense_type', 'category']) || request('period') === 'all')
-            <a href="{{ route('admin.expenses.index') }}" class="text-xs text-neutral-500 hover:text-red-600">Reset</a>
-        @endif
-    </form>
-
-    <div class="flex items-center gap-2">
-        @if(request('period') === 'all')
-            <a href="{{ route('admin.expenses.index') }}" class="btn-outline !px-3 !py-2 text-sm">Lihat Per Bulan</a>
-        @else
-            <a href="{{ route('admin.expenses.index', ['period' => 'all'] + request()->except('period')) }}" class="btn-outline !px-3 !py-2 text-sm">Lihat Semua Periode</a>
-        @endif
-
-        <a href="{{ route('admin.expenses.create') }}" class="btn-primary !px-4 !py-2 text-sm inline-flex items-center gap-1.5">
-            <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
-            <span>Catat Beban Baru</span>
-        </a>
-    </div>
-</div>
-
-{{-- Data Table --}}
-<div class="admin-card mt-5 overflow-x-auto !p-0">
-    <table class="w-full min-w-[900px] text-sm">
-        <thead>
-            <tr class="border-b border-line bg-cream/60 text-left text-xs font-bold uppercase tracking-wider text-neutral-500">
-                <th class="px-5 py-3">Tanggal</th>
-                <th class="px-5 py-3">No. Ref</th>
-                <th class="px-5 py-3">Jenis</th>
-                <th class="px-5 py-3">Kategori</th>
-                <th class="px-5 py-3">Keterangan</th>
-                <th class="px-5 py-3 text-right">Nominal</th>
-                <th class="px-5 py-3">Metode</th>
-                <th class="px-5 py-3 text-center">Bukti</th>
-                <th class="px-5 py-3 text-right">Aksi</th>
-            </tr>
-        </thead>
-        <tbody class="divide-y divide-line">
-            @forelse($expenses as $expense)
-                <tr class="hover:bg-cream/40 transition">
-                    <td class="whitespace-nowrap px-5 py-3.5 font-medium text-neutral-700">
+<!-- 3. DATA TABLE BEBAN -->
+<section class="bg-white rounded-2xl shadow-sm overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs whitespace-nowrap">
+            <thead>
+                <tr class="text-[11px] font-semibold text-slate-400 border-b border-slate-100">
+                    <th class="py-3.5 px-5 font-normal uppercase tracking-wider">TANGGAL</th>
+                    <th class="py-3.5 px-5 font-normal uppercase tracking-wider">NO. REF</th>
+                    <th class="py-3.5 px-5 font-normal uppercase tracking-wider">JENIS</th>
+                    <th class="py-3.5 px-5 font-normal uppercase tracking-wider">KATEGORI</th>
+                    <th class="py-3.5 px-5 font-normal uppercase tracking-wider">KETERANGAN</th>
+                    <th class="py-3.5 px-5 font-normal uppercase tracking-wider text-right">NOMINAL</th>
+                    <th class="py-3.5 px-5 font-normal uppercase tracking-wider text-center">METODE</th>
+                    <th class="py-3.5 px-5 font-normal uppercase tracking-wider text-center">BUKTI</th>
+                    <th class="py-3.5 px-5 font-normal uppercase tracking-wider text-center">AKSI</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-50">
+                @forelse($expenses as $expense)
+                <tr class="hover:bg-slate-50/70 transition-colors">
+                    <td class="py-3.5 px-5 text-slate-500">
                         {{ $expense->expense_date->format('d/m/Y') }}
                     </td>
-                    <td class="whitespace-nowrap px-5 py-3.5 font-mono text-xs font-semibold text-neutral-600">
+                    <td class="py-3.5 px-5 font-mono text-slate-600 font-medium">
                         {{ $expense->reference_no }}
                     </td>
-                    <td class="whitespace-nowrap px-5 py-3.5">
-                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold border {{ $expense->type_color }}">
+                    <td class="py-3.5 px-5">
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold {{ $expense->type_color }}">
                             {{ $expense->type_label }}
                         </span>
                     </td>
-                    <td class="whitespace-nowrap px-5 py-3.5">
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border {{ $expense->category_color }}">
+                    <td class="py-3.5 px-5">
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-slate-100 text-slate-700">
                             {{ $expense->category_label }}
                         </span>
                     </td>
-                    <td class="px-5 py-3.5">
-                        <p class="font-bold text-ink">{{ $expense->title }}</p>
+                    <td class="py-3.5 px-5">
+                        <span class="font-bold text-slate-900 block">{{ $expense->title }}</span>
                         @if($expense->notes)
-                            <p class="text-xs text-neutral-500 mt-0.5">{{ $expense->notes }}</p>
+                            <span class="text-[11px] text-slate-400 block">{{ $expense->notes }}</span>
                         @endif
                     </td>
-                    <td class="whitespace-nowrap px-5 py-3.5 text-right font-extrabold text-red-600">
+                    <td class="py-3.5 px-5 font-bold text-rose-600 text-right">
                         {{ rupiah($expense->amount) }}
                     </td>
-                    <td class="whitespace-nowrap px-5 py-3.5 text-neutral-600">
+                    <td class="py-3.5 px-5 text-center text-slate-600">
                         {{ $expense->method_label }}
                     </td>
-                    <td class="whitespace-nowrap px-5 py-3.5 text-center">
+                    <td class="py-3.5 px-5 text-center">
                         @if($expense->receipt_path)
-                            <a href="{{ route('admin.expenses.receipt', $expense) }}" target="_blank" class="inline-flex items-center gap-1 text-xs font-semibold text-brand-600 hover:underline" title="Lihat Bukti Struk">
-                                <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg>
-                                <span>Lihat</span>
+                            <a href="{{ route('admin.expenses.receipt', $expense) }}" target="_blank" title="Lihat Bukti Struk"
+                               class="p-1.5 rounded-lg text-brand-600 hover:bg-brand-50 inline-block transition-colors">
+                                <i class="fa-solid fa-paperclip text-xs"></i>
                             </a>
                         @else
-                            <span class="text-xs text-neutral-400">—</span>
+                            <span class="text-slate-300">—</span>
                         @endif
                     </td>
-                    <td class="whitespace-nowrap px-5 py-3.5 text-right text-xs">
-                        <div class="inline-flex items-center gap-2">
-                            <a href="{{ route('admin.expenses.edit', $expense) }}" class="font-semibold text-brand-600 hover:text-brand-800">Edit</a>
-                            <form method="POST" action="{{ route('admin.expenses.destroy', $expense) }}" onsubmit="return confirm('Yakin ingin menghapus beban operasional {{ $expense->reference_no }} ({{ $expense->title }})?')" class="inline">
+                    <td class="py-3.5 px-5 text-center">
+                        <div class="flex items-center justify-center gap-1.5">
+                            <a href="{{ route('admin.expenses.edit', $expense) }}" title="Edit Beban"
+                               class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors">
+                                <i class="fa-solid fa-pen text-xs"></i>
+                            </a>
+                            <form method="POST" action="{{ route('admin.expenses.destroy', $expense) }}"
+                                  onsubmit="return confirm('Hapus beban {{ $expense->reference_no }} ({{ $expense->title }})?')" class="inline">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="font-semibold text-red-600 hover:text-red-800">Hapus</button>
+                                <button type="submit" title="Hapus Beban" class="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors">
+                                    <i class="fa-regular fa-trash-can text-xs"></i>
+                                </button>
                             </form>
                         </div>
                     </td>
                 </tr>
-            @empty
+                @empty
                 <tr>
-                    <td colspan="9" class="px-5 py-12 text-center text-neutral-500">
-                        <div class="flex flex-col items-center justify-center">
-                            <svg class="h-10 w-10 text-neutral-300 mb-2" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                            <p class="font-medium">Belum ada beban operasional tercatat pada periode ini.</p>
-                            <a href="{{ route('admin.expenses.create') }}" class="btn-primary !px-3.5 !py-1.5 text-xs mt-3">Catat Beban Baru</a>
-                        </div>
+                    <td colspan="9" class="py-12 text-center text-slate-400">
+                        <i class="fa-regular fa-folder-open text-3xl mb-2 block text-slate-300"></i>
+                        Belum ada beban operasional tercatat pada periode ini.
                     </td>
                 </tr>
-            @endforelse
-        </tbody>
-    </table>
-</div>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
 
-<div class="mt-5">{{ $expenses->links() }}</div>
+    <!-- Table Footer Pagination -->
+    @if($expenses->hasPages() || $expenses->total() > 0)
+    <div class="p-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-400 border-t border-slate-50">
+        <span>Menampilkan {{ $expenses->count() }} dari {{ $expenses->total() }} catatan pengeluaran</span>
+        <div>
+            {{ $expenses->links() }}
+        </div>
+    </div>
+    @endif
+</section>
 @endsection

@@ -9,10 +9,35 @@ use Illuminate\Http\Request;
 
 class ClientController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        $query = Client::query();
+
+        if ($request->filled('q')) {
+            $query->where(function ($w) use ($request) {
+                $w->where('name', 'like', '%'.$request->q.'%')
+                  ->orWhere('website_url', 'like', '%'.$request->q.'%');
+            });
+        }
+
+        if ($request->status === 'live') {
+            $query->where('is_active', true);
+        } elseif ($request->status === 'hidden') {
+            $query->where('is_active', false);
+        }
+
+        $clients = $query->orderBy('sort_order')->orderBy('name')->get();
+
+        $stats = [
+            'total' => Client::count(),
+            'live' => Client::where('is_active', true)->count(),
+            'hidden' => Client::where('is_active', false)->count(),
+            'linked' => Client::whereNotNull('website_url')->where('website_url', '!=', '')->count(),
+        ];
+
         return view('admin.clients.index', [
-            'clients' => Client::orderBy('sort_order')->orderBy('name')->get(),
+            'clients' => $clients,
+            'stats' => $stats,
         ]);
     }
 

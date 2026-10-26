@@ -1,110 +1,226 @@
 @extends('layouts.admin')
 
-@section('title', 'Pesanan')
+@section('title', 'Daftar Pesanan')
+
+@section('header-actions')
+<a href="{{ route('admin.orders.create') }}" class="inline-flex items-center justify-center gap-2 px-3.5 py-1.5 sm:px-4 sm:py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-semibold transition-all shadow-xs active:scale-95">
+    <i class="fa-solid fa-plus text-[10px]"></i>
+    <span>Buat Pesanan Baru</span>
+</a>
+@endsection
 
 @section('content')
-<div class="flex flex-wrap items-center justify-between gap-3">
-    <div class="flex flex-wrap gap-1.5 items-center">
-        @foreach([null => 'Semua', 'active' => 'Aktif', 'completed' => 'Selesai', 'cancelled' => 'Dibatalkan'] as $key => $label)
-            <a href="{{ route('admin.orders.index', $key ? ['status' => $key] : []) }}"
-               class="rounded-full px-3.5 py-1.5 text-sm font-semibold {{ (!$cashStatus && ($status === $key || (!$status && !$key))) ? 'bg-brand-600 text-white' : 'border border-line bg-white text-neutral-600' }}">{{ $label }}</a>
-        @endforeach
-        @if(($deficitCount ?? 0) > 0)
-            <a href="{{ route('admin.orders.index', ['cash_status' => 'deficit']) }}"
-               class="rounded-full px-3.5 py-1.5 text-sm font-semibold border transition inline-flex items-center gap-1.5 {{ $cashStatus === 'deficit' ? 'bg-amber-600 text-white border-amber-600' : 'bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100' }}"
-               title="Pesanan aktif dengan belanja HPP melebihi DP masuk">
-                <span>⚠️ Nombok Kas</span>
-                <span class="rounded-full px-1.5 py-0.5 text-xs {{ $cashStatus === 'deficit' ? 'bg-white text-amber-700' : 'bg-amber-200 text-amber-900' }} font-bold">{{ $deficitCount }}</span>
-            </a>
-        @endif
+<!-- 1. SUMMARY METRICS TILES (Sleek Flat Container) -->
+<section class="bg-white rounded-2xl p-6 shadow-sm">
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-6 divide-y sm:divide-y-0 sm:divide-x divide-slate-100">
+        <!-- Total Pesanan -->
+        <div class="pt-4 sm:pt-0 sm:px-4 first:pt-0 first:pl-0">
+            <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Total Semua Order</p>
+            <div class="flex items-baseline gap-2 mt-1">
+                <span class="text-3xl font-bold text-slate-900">{{ $stats['total'] }}</span>
+                <span class="text-[11px] text-slate-400">transaksi</span>
+            </div>
+        </div>
+
+        <!-- Pesanan Dalam Produksi -->
+        <div class="pt-4 sm:pt-0 sm:px-4">
+            <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Sedang Berjalan</p>
+            <div class="flex items-baseline gap-2 mt-1">
+                <span class="text-3xl font-bold text-amber-600">{{ $stats['active'] }}</span>
+                <span class="text-[11px] text-amber-600/80 font-medium">proses konveksi</span>
+            </div>
+        </div>
+
+        <!-- Pesanan Selesai -->
+        <div class="pt-4 sm:pt-0 sm:px-4">
+            <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Pesanan Selesai</p>
+            <div class="flex items-baseline gap-2 mt-1">
+                <span class="text-3xl font-bold text-emerald-600">{{ $stats['completed'] }}</span>
+                <span class="text-[11px] text-emerald-600/80 font-medium">terkirim / lunas</span>
+            </div>
+        </div>
+
+        <!-- Menunggu Pelunasan -->
+        <div class="pt-4 sm:pt-0 sm:px-4">
+            <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Belum Lunas</p>
+            <div class="flex items-baseline gap-2 mt-1">
+                <span class="text-3xl font-bold text-slate-700">{{ $stats['unpaid'] }}</span>
+                <span class="text-[11px] text-slate-400 font-medium">DP / Belum bayar</span>
+            </div>
+        </div>
     </div>
-    <div class="flex w-full flex-wrap items-center gap-2 sm:w-auto">
-        <form method="GET" class="flex min-w-0 flex-1 gap-2">
+</section>
+
+<!-- 2. FILTER & ACTION TOOLBAR -->
+<section class="bg-white rounded-2xl p-4 sm:p-5 shadow-sm space-y-4">
+    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        
+        <!-- Filter Tabs -->
+        <div class="flex items-center gap-1.5 overflow-x-auto pb-1 lg:pb-0 text-xs">
+            <a href="{{ route('admin.orders.index') }}"
+               class="px-3 py-1.5 rounded-xl font-semibold transition-all whitespace-nowrap {{ (!$cashStatus && !$status) ? 'bg-slate-900 text-white' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' }}">
+                Semua ({{ $stats['total'] }})
+            </a>
+            <a href="{{ route('admin.orders.index', ['status' => 'active']) }}"
+               class="px-3 py-1.5 rounded-xl font-semibold transition-all whitespace-nowrap {{ (!$cashStatus && $status === 'active') ? 'bg-slate-900 text-white' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' }}">
+                Aktif ({{ $stats['active'] }})
+            </a>
+            <a href="{{ route('admin.orders.index', ['status' => 'completed']) }}"
+               class="px-3 py-1.5 rounded-xl font-semibold transition-all whitespace-nowrap {{ (!$cashStatus && $status === 'completed') ? 'bg-slate-900 text-white' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' }}">
+                Selesai ({{ $stats['completed'] }})
+            </a>
+            <a href="{{ route('admin.orders.index', ['status' => 'cancelled']) }}"
+               class="px-3 py-1.5 rounded-xl font-semibold transition-all whitespace-nowrap {{ (!$cashStatus && $status === 'cancelled') ? 'bg-slate-900 text-white' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' }}">
+                Dibatalkan
+            </a>
+            @if(($deficitCount ?? 0) > 0)
+            <a href="{{ route('admin.orders.index', ['cash_status' => 'deficit']) }}"
+               class="px-3 py-1.5 rounded-xl font-semibold transition-all whitespace-nowrap inline-flex items-center gap-1.5 {{ $cashStatus === 'deficit' ? 'bg-rose-600 text-white' : 'bg-rose-50 text-rose-700 hover:bg-rose-100' }}">
+                <span>⚠️ Nombok Kas</span>
+                <span class="rounded-full px-1.5 py-0.2 text-[10px] {{ $cashStatus === 'deficit' ? 'bg-white text-rose-700' : 'bg-rose-200 text-rose-900' }} font-bold">{{ $deficitCount }}</span>
+            </a>
+            @endif
+        </div>
+
+        <!-- Search & Filter Options -->
+        <form method="GET" action="{{ route('admin.orders.index') }}" class="flex flex-wrap sm:flex-nowrap items-center gap-2.5">
             @if($status)<input type="hidden" name="status" value="{{ $status }}">@endif
             @if($cashStatus)<input type="hidden" name="cash_status" value="{{ $cashStatus }}">@endif
-            <input type="search" name="q" value="{{ request('q') }}" placeholder="No. order / customer..." class="form-input min-w-0 flex-1 sm:!w-52">
-            <button type="submit" class="btn-outline !px-4 !py-2.5">Cari</button>
-        </form>
-        <a href="{{ route('admin.orders.create') }}" class="btn-primary">+ Buat Pesanan</a>
-    </div>
-</div>
 
-{{-- Mobile & tablet portrait: kartu (2 kolom di md); tabel di lg+ --}}
-<div class="mt-5 grid gap-3 md:grid-cols-2 lg:hidden">
-    @forelse($orders as $order)
-        <a href="{{ route('admin.orders.show', $order) }}" class="admin-card block !p-4">
-            <div class="flex items-start justify-between gap-3">
-                <span class="font-mono text-sm font-bold text-brand-600">{{ $order->order_number }}</span>
-                <x-order-status-badge :status="$order->status" />
+            <!-- Search Input -->
+            <div class="relative w-full sm:w-64">
+                <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                <input type="text" name="q" value="{{ request('q') }}" placeholder="Cari No. Order / Customer..."
+                       class="w-full bg-slate-50 text-xs rounded-xl pl-9 pr-4 py-2 text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-300">
             </div>
-            <p class="mt-1.5 font-semibold text-ink">{{ $order->customer->name }}@if($order->customer->company)<span class="font-normal text-neutral-500"> &bull; {{ $order->customer->company }}</span>@endif</p>
-            <p class="text-xs text-neutral-500">{{ $order->items->first()?->product_name }}{{ $order->items->count() > 1 ? ' +'.($order->items->count()-1).' item' : '' }}</p>
-            <div class="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-line pt-3 text-xs">
-                <div>
-                    <span class="font-bold text-ink">{{ rupiah($order->grand_total) }}</span>
-                    @if($order->is_cash_deficit)
-                        <span class="block mt-0.5 rounded bg-rose-50 px-1.5 py-0.5 text-[10px] font-bold text-rose-700 border border-rose-200 w-fit">
-                            ⚠️ Nombok {{ rupiah($order->cash_deficit) }}
-                        </span>
-                    @endif
-                </div>
-                <x-payment-badge :status="$order->payment_status" />
-                <span class="text-neutral-500">{{ $order->current_stage }}/7 &bull; {{ $order->current_stage_name }}</span>
-            </div>
-            @if($order->deadline)<p class="mt-2 text-xs text-neutral-500">Deadline {{ $order->deadline->format('d/m/Y') }}</p>@endif
-        </a>
-    @empty
-        <div class="admin-card py-8 text-center text-neutral-500 md:col-span-2">Tidak ada pesanan.</div>
-    @endforelse
-</div>
-<div class="admin-card mt-5 hidden overflow-x-auto !p-0 lg:block">
-    <table class="w-full min-w-[860px] text-sm">
-        <thead>
-            <tr class="border-b border-line bg-cream/60 text-left text-xs font-bold uppercase tracking-wider text-neutral-500">
-                <th class="whitespace-nowrap px-5 py-3">No. Order</th>
-                <th class="px-5 py-3">Customer</th>
-                <th class="px-5 py-3">Produk</th>
-                <th class="px-5 py-3">Total</th>
-                <th class="px-5 py-3">Pembayaran</th>
-                <th class="px-5 py-3">Tahap</th>
-                <th class="px-5 py-3">Deadline</th>
-                <th class="px-5 py-3">Status</th>
-            </tr>
-        </thead>
-        <tbody class="divide-y divide-line">
-            @forelse($orders as $order)
-                <tr class="hover:bg-cream/40">
-                    <td class="px-5 py-3.5"><a href="{{ route('admin.orders.show', $order) }}" class="whitespace-nowrap font-mono font-bold text-brand-600 hover:underline">{{ $order->order_number }}</a></td>
-                    <td class="px-5 py-3.5">
-                        <span class="block font-medium text-ink">{{ $order->customer->name }}</span>
-                        @if($order->customer->company)<span class="block text-xs text-neutral-500">{{ $order->customer->company }}</span>@endif
+
+            <!-- Submit Button -->
+            <button type="submit" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-colors">
+                Cari
+            </button>
+            @if(request()->hasAny(['q', 'status', 'cash_status']))
+            <a href="{{ route('admin.orders.index') }}" class="px-3 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-500 text-xs transition-colors">
+                Reset
+            </a>
+            @endif
+        </form>
+
+    </div>
+</section>
+
+<!-- 3. DATA TABLE PESANAN -->
+<section class="bg-white rounded-2xl shadow-sm overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs whitespace-nowrap">
+            <thead>
+                <tr class="text-[11px] font-semibold text-slate-400 border-b border-slate-100">
+                    <th class="py-3.5 px-5 font-normal">NO. ORDER</th>
+                    <th class="py-3.5 px-5 font-normal">CUSTOMER</th>
+                    <th class="py-3.5 px-5 font-normal">PRODUK</th>
+                    <th class="py-3.5 px-5 font-normal text-right">TOTAL</th>
+                    <th class="py-3.5 px-5 font-normal text-center">PEMBAYARAN</th>
+                    <th class="py-3.5 px-5 font-normal">TAHAP</th>
+                    <th class="py-3.5 px-5 font-normal text-center">DEADLINE</th>
+                    <th class="py-3.5 px-5 font-normal text-center">STATUS</th>
+                    <th class="py-3.5 px-5 font-normal text-center">AKSI</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-50">
+                @forelse($orders as $order)
+                <tr class="hover:bg-slate-50/70 transition-colors">
+                    <td class="py-3.5 px-5 font-medium text-brand-700 font-mono">
+                        <a href="{{ route('admin.orders.show', $order) }}" class="hover:underline">{{ $order->order_number }}</a>
                     </td>
-                    <td class="px-5 py-3.5 text-neutral-600">{{ $order->items->first()?->product_name }}{{ $order->items->count() > 1 ? ' +'.($order->items->count()-1).' item' : '' }}</td>
-                    <td class="whitespace-nowrap px-5 py-3.5 font-semibold">{{ rupiah($order->grand_total) }}</td>
-                    <td class="px-5 py-3.5">
-                        <div class="flex flex-col gap-1 items-start">
-                            <x-payment-badge :status="$order->payment_status" />
+                    <td class="py-3.5 px-5">
+                        <span class="font-bold text-slate-900 block">{{ $order->customer->name }}</span>
+                        @if($order->customer->company)
+                            <span class="text-[11px] text-slate-400">{{ $order->customer->company }}</span>
+                        @endif
+                    </td>
+                    <td class="py-3.5 px-5">
+                        <span class="text-slate-600 block">{{ $order->items->first()?->product_name ?? '—' }}</span>
+                        @if($order->items->count() > 1)
+                            <span class="text-[11px] text-slate-400">+{{ $order->items->count() - 1 }} item lainnya</span>
+                        @endif
+                    </td>
+                    <td class="py-3.5 px-5 font-semibold text-slate-900 text-right">
+                        {{ rupiah($order->grand_total) }}
+                    </td>
+                    <td class="py-3.5 px-5 text-center">
+                        <div class="inline-flex flex-col items-center gap-1">
+                            @if($order->payment_status === 'paid')
+                                <span class="inline-block px-2.5 py-0.5 rounded-md bg-emerald-50 text-emerald-700 font-semibold text-[11px]">Lunas</span>
+                            @elseif($order->payment_status === 'dp')
+                                <span class="inline-block px-2.5 py-0.5 rounded-md bg-amber-50 text-amber-700 font-semibold text-[11px]">DP</span>
+                            @else
+                                <span class="inline-block px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 font-medium text-[11px]">Belum Dibayar</span>
+                            @endif
+
                             @if($order->is_cash_deficit)
-                                <span class="inline-flex items-center gap-1 rounded bg-rose-50 px-1.5 py-0.5 text-[11px] font-bold text-rose-700 border border-rose-200" title="HPP Belanja ({{ rupiah($order->total_cost) }}) > DP Masuk ({{ rupiah($order->amount_paid) }})">
-                                    <span>⚠️ Nombok</span>
-                                    <span>{{ rupiah($order->cash_deficit) }}</span>
-                                </span>
-                            @elseif($order->amount_paid > 0 && $order->payment_status !== 'paid' && $order->total_cost > 0)
-                                <span class="inline-flex items-center gap-1 rounded bg-blue-50 px-1.5 py-0.5 text-[11px] font-medium text-blue-700 border border-blue-200" title="DP masih mencukupi belanja HPP">
-                                    <span>Sisa DP {{ rupiah($order->cash_surplus) }}</span>
+                                <span class="inline-block px-2 py-0.5 rounded-md bg-rose-50 text-rose-700 text-[10px] font-bold" title="HPP Belanja > DP Masuk">
+                                    ⚠️ Nombok {{ rupiah($order->cash_deficit) }}
                                 </span>
                             @endif
                         </div>
                     </td>
-                    <td class="px-5 py-3.5 text-neutral-600">{{ $order->current_stage }}/7 — {{ $order->current_stage_name }}</td>
-                    <td class="whitespace-nowrap px-5 py-3.5 text-neutral-600">{{ $order->deadline?->format('d/m/Y') ?? '—' }}</td>
-                    <td class="px-5 py-3.5"><x-order-status-badge :status="$order->status" /></td>
+                    <td class="py-3.5 px-5 text-slate-600">
+                        <span class="block">{{ $order->current_stage_name }}</span>
+                        <span class="text-[10px] text-slate-400">Tahap {{ $order->current_stage }}/7</span>
+                    </td>
+                    <td class="py-3.5 px-5 text-center {{ $order->deadline && $order->deadline->isPast() ? 'text-rose-500 font-semibold' : 'text-slate-500' }}">
+                        {{ $order->deadline?->format('d/m/Y') ?? '—' }}
+                    </td>
+                    <td class="py-3.5 px-5 text-center">
+                        @if($order->status === 'active')
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 font-medium text-[11px]">
+                                <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                                Aktif
+                            </span>
+                        @elseif($order->status === 'completed')
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-medium text-[11px]">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                Selesai
+                            </span>
+                        @else
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 font-medium text-[11px]">
+                                <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+                                {{ ucfirst($order->status) }}
+                            </span>
+                        @endif
+                    </td>
+                    <td class="py-3.5 px-5 text-center">
+                        <div class="flex items-center justify-center gap-1.5">
+                            <a href="{{ route('admin.orders.show', $order) }}" title="Lihat Detail"
+                               class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors">
+                                <i class="fa-regular fa-eye text-xs"></i>
+                            </a>
+                            <a href="{{ route('admin.orders.edit', $order) }}" title="Edit Pesanan"
+                               class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors">
+                                <i class="fa-solid fa-pen text-xs"></i>
+                            </a>
+                        </div>
+                    </td>
                 </tr>
-            @empty
-                <tr><td colspan="8" class="px-5 py-8 text-center text-neutral-500">Tidak ada pesanan.</td></tr>
-            @endforelse
-        </tbody>
-    </table>
-</div>
-<div class="mt-5">{{ $orders->links() }}</div>
+                @empty
+                <tr>
+                    <td colspan="9" class="py-12 text-center text-slate-400">
+                        <i class="fa-regular fa-folder-open text-3xl mb-2 block text-slate-300"></i>
+                        Tidak ada data pesanan yang cocok.
+                    </td>
+                </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Table Footer Pagination -->
+    @if($orders->hasPages() || $orders->total() > 0)
+    <div class="p-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-400 border-t border-slate-50">
+        <span>Menampilkan {{ $orders->count() }} dari {{ $orders->total() }} data pesanan</span>
+        <div>
+            {{ $orders->links() }}
+        </div>
+    </div>
+    @endif
+</section>
 @endsection

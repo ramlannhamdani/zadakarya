@@ -15,257 +15,247 @@
     }
 }">
 
-    {{-- Top Summary KPI Cards --}}
-    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {{-- Card 1: Total Sisa Hutang Aktif --}}
-        <div class="admin-card border-l-4 !border-l-rose-500 bg-rose-50/10">
-            <div class="flex items-center justify-between">
-                <p class="text-xs font-bold uppercase tracking-wider text-neutral-500">Total Sisa Hutang Aktif</p>
-                <span class="rounded bg-rose-100 px-1.5 py-0.5 text-[10px] font-bold text-rose-700">Kewajiban</span>
+    <!-- 1. SUMMARY METRICS TILES (Sleek Flat Container) -->
+    <section class="bg-white rounded-2xl p-6 shadow-sm">
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-6 divide-y sm:divide-y-0 sm:divide-x divide-slate-100">
+            <!-- Total Sisa Hutang Aktif -->
+            <div class="pt-4 sm:pt-0 sm:px-4 first:pt-0 first:pl-0">
+                <div class="flex items-center justify-between">
+                    <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Sisa Hutang Aktif</p>
+                    <span class="rounded-full bg-rose-50 px-2 py-0.5 text-[10px] font-bold text-rose-700">Kewajiban</span>
+                </div>
+                <div class="flex items-baseline gap-2 mt-1">
+                    <span class="text-2xl sm:text-3xl font-bold text-rose-600">{{ rupiah($totalActiveDebt) }}</span>
+                </div>
+                <p class="text-[11px] text-slate-400 mt-0.5">Total pinjaman: {{ rupiah($totalDebtRecorded) }}</p>
             </div>
-            <p class="mt-2 text-2xl font-extrabold text-rose-600">{{ rupiah($totalActiveDebt) }}</p>
-            <p class="mt-1 text-xs text-neutral-500">
-                Dari total pinjaman tercatat <strong class="font-semibold text-ink">{{ rupiah($totalDebtRecorded) }}</strong>
-            </p>
-        </div>
 
-        {{-- Card 2: Pinjaman Diterima Bulan Ini --}}
-        <div class="admin-card border-l-4 !border-l-indigo-600 bg-indigo-50/10">
-            <div class="flex items-center justify-between">
-                <p class="text-xs font-bold uppercase tracking-wider text-neutral-500">Pinjaman Masuk (Bulan Ini)</p>
-                <span class="rounded bg-indigo-100 px-1.5 py-0.5 text-[10px] font-bold text-indigo-700">Dana Talangan</span>
+            <!-- Pinjaman Masuk Bulan Ini -->
+            <div class="pt-4 sm:pt-0 sm:px-4">
+                <div class="flex items-center justify-between">
+                    <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Pinjaman Masuk</p>
+                    <span class="rounded-full bg-indigo-50 px-2 py-0.5 text-[10px] font-bold text-indigo-700">Bulan Ini</span>
+                </div>
+                <div class="flex items-baseline gap-2 mt-1">
+                    <span class="text-2xl sm:text-3xl font-bold text-indigo-700">{{ rupiah($loansThisMonth) }}</span>
+                </div>
+                <p class="text-[11px] text-slate-400 mt-0.5">Dana talangan diterima</p>
             </div>
-            <p class="mt-2 text-2xl font-extrabold text-indigo-700">{{ rupiah($loansThisMonth) }}</p>
-            <p class="mt-1 text-xs text-neutral-500">Total uang pinjaman diterima bulan ini</p>
-        </div>
 
-        {{-- Card 3: Pelunasan / Cicilan Bulan Ini --}}
-        <div class="admin-card border-l-4 !border-l-emerald-600 bg-emerald-50/10">
-            <div class="flex items-center justify-between">
-                <p class="text-xs font-bold uppercase tracking-wider text-neutral-500">Pelunasan (Bulan Ini)</p>
-                <span class="rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-bold text-emerald-700">Kas Keluar</span>
+            <!-- Pelunasan Bulan Ini -->
+            <div class="pt-4 sm:pt-0 sm:px-4">
+                <div class="flex items-center justify-between">
+                    <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Pelunasan</p>
+                    <span class="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700">Bulan Ini</span>
+                </div>
+                <div class="flex items-baseline gap-2 mt-1">
+                    <span class="text-2xl sm:text-3xl font-bold text-emerald-600">{{ rupiah($repaymentsThisMonth) }}</span>
+                </div>
+                <p class="text-[11px] text-slate-400 mt-0.5">Total terbayar: {{ rupiah($totalRepaidAllTime) }}</p>
             </div>
-            <p class="mt-2 text-2xl font-extrabold text-emerald-700">{{ rupiah($repaymentsThisMonth) }}</p>
-            <p class="mt-1 text-xs text-neutral-500">
-                Total lunas sepanjang waktu: <strong class="font-semibold text-ink">{{ rupiah($totalRepaidAllTime) }}</strong>
-            </p>
-        </div>
 
-        {{-- Card 4: Jatuh Tempo Mendekat --}}
-        <div class="admin-card border-l-4 {{ $dueSoonCount > 0 ? '!border-l-amber-500 bg-amber-50/20' : '!border-l-neutral-300' }}">
-            <div class="flex items-center justify-between">
-                <p class="text-xs font-bold uppercase tracking-wider text-neutral-500">Jatuh Tempo Mendekat</p>
-                <span class="rounded {{ $dueSoonCount > 0 ? 'bg-amber-100 text-amber-800' : 'bg-neutral-100 text-neutral-600' }} px-1.5 py-0.5 text-[10px] font-bold">
-                    ≤ 7 Hari
-                </span>
+            <!-- Jatuh Tempo Mendekat -->
+            <div class="pt-4 sm:pt-0 sm:px-4">
+                <div class="flex items-center justify-between">
+                    <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Jatuh Tempo</p>
+                    <span class="rounded-full {{ $dueSoonCount > 0 ? 'bg-amber-50 text-amber-700' : 'bg-slate-100 text-slate-600' }} px-2 py-0.5 text-[10px] font-bold">≤ 7 Hari</span>
+                </div>
+                <div class="flex items-baseline gap-2 mt-1">
+                    <span class="text-2xl sm:text-3xl font-bold {{ $dueSoonCount > 0 ? 'text-amber-600' : 'text-slate-900' }}">{{ $dueSoonCount }}</span>
+                    <span class="text-[11px] text-slate-400 font-medium">pinjaman</span>
+                </div>
+                <p class="text-[11px] text-slate-400 mt-0.5">Target pelunasan segera</p>
             </div>
-            <p class="mt-2 text-2xl font-extrabold {{ $dueSoonCount > 0 ? 'text-amber-700' : 'text-neutral-700' }}">
-                {{ $dueSoonCount }} <span class="text-sm font-medium">Pinjaman</span>
-            </p>
-            <p class="mt-1 text-xs text-neutral-500">Target pelunasan dalam waktu dekat</p>
         </div>
-    </div>
+    </section>
 
-    {{-- Filter, Search, & Actions --}}
-    <div class="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        {{-- Status Filter Tabs --}}
-        <div class="flex flex-wrap items-center gap-1.5 rounded-xl border border-line bg-white p-1.5 text-xs font-semibold shadow-xs">
-            <a href="{{ route('admin.loans.index', array_merge(request()->query(), ['status' => 'all'])) }}"
-               class="rounded-lg px-3 py-1.5 transition {{ $status === 'all' ? 'bg-brand-600 text-white shadow-xs' : 'text-neutral-600 hover:bg-cream hover:text-ink' }}">
-                Semua
-            </a>
-            <a href="{{ route('admin.loans.index', array_merge(request()->query(), ['status' => 'active'])) }}"
-               class="rounded-lg px-3 py-1.5 transition {{ $status === 'active' ? 'bg-rose-600 text-white shadow-xs' : 'text-neutral-600 hover:bg-cream hover:text-ink' }}">
-                Hutang Aktif
-            </a>
-            <a href="{{ route('admin.loans.index', array_merge(request()->query(), ['status' => 'unpaid'])) }}"
-               class="rounded-lg px-3 py-1.5 transition {{ $status === 'unpaid' ? 'bg-brand-600 text-white shadow-xs' : 'text-neutral-600 hover:bg-cream hover:text-ink' }}">
-                Belum Dicicil
-            </a>
-            <a href="{{ route('admin.loans.index', array_merge(request()->query(), ['status' => 'partial'])) }}"
-               class="rounded-lg px-3 py-1.5 transition {{ $status === 'partial' ? 'bg-brand-600 text-white shadow-xs' : 'text-neutral-600 hover:bg-cream hover:text-ink' }}">
-                Dicicil Sebagian
-            </a>
-            <a href="{{ route('admin.loans.index', array_merge(request()->query(), ['status' => 'paid'])) }}"
-               class="rounded-lg px-3 py-1.5 transition {{ $status === 'paid' ? 'bg-emerald-600 text-white shadow-xs' : 'text-neutral-600 hover:bg-cream hover:text-ink' }}">
-                Lunas
-            </a>
-        </div>
+    <!-- 2. FILTER & ACTION TOOLBAR -->
+    <section class="bg-white rounded-2xl p-4 sm:p-5 shadow-sm space-y-4">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            
+            <!-- Status Filter Tabs -->
+            <div class="flex items-center gap-1.5 overflow-x-auto pb-1 lg:pb-0 text-xs">
+                <a href="{{ route('admin.loans.index', array_merge(request()->query(), ['status' => 'all'])) }}"
+                   class="px-3 py-1.5 rounded-xl font-semibold transition-all whitespace-nowrap {{ $status === 'all' ? 'bg-slate-900 text-white' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' }}">
+                    Semua
+                </a>
+                <a href="{{ route('admin.loans.index', array_merge(request()->query(), ['status' => 'active'])) }}"
+                   class="px-3 py-1.5 rounded-xl font-semibold transition-all whitespace-nowrap {{ $status === 'active' ? 'bg-rose-600 text-white' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' }}">
+                    Hutang Aktif
+                </a>
+                <a href="{{ route('admin.loans.index', array_merge(request()->query(), ['status' => 'unpaid'])) }}"
+                   class="px-3 py-1.5 rounded-xl font-semibold transition-all whitespace-nowrap {{ $status === 'unpaid' ? 'bg-slate-900 text-white' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' }}">
+                    Belum Dicicil
+                </a>
+                <a href="{{ route('admin.loans.index', array_merge(request()->query(), ['status' => 'partial'])) }}"
+                   class="px-3 py-1.5 rounded-xl font-semibold transition-all whitespace-nowrap {{ $status === 'partial' ? 'bg-slate-900 text-white' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' }}">
+                    Dicicil Sebagian
+                </a>
+                <a href="{{ route('admin.loans.index', array_merge(request()->query(), ['status' => 'paid'])) }}"
+                   class="px-3 py-1.5 rounded-xl font-semibold transition-all whitespace-nowrap {{ $status === 'paid' ? 'bg-emerald-600 text-white' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' }}">
+                    Lunas
+                </a>
+            </div>
 
-        {{-- Search & New Button --}}
-        <div class="flex items-center gap-2">
-            <form method="GET" action="{{ route('admin.loans.index') }}" class="flex items-center gap-1.5">
-                @if(request('status'))
-                    <input type="hidden" name="status" value="{{ request('status') }}">
-                @endif
-                <div class="relative">
-                    <input type="search" name="q" value="{{ request('q') }}"
-                           placeholder="Cari pinjaman / pihak lain..."
-                           class="form-input !py-2 !text-xs !pr-8 sm:w-64">
-                    @if(request('q'))
-                        <a href="{{ route('admin.loans.index', ['status' => request('status')]) }}"
-                           class="absolute right-2.5 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600">
-                            ✕
+            <!-- Search & Actions -->
+            <div class="flex flex-wrap sm:flex-nowrap items-center gap-2.5">
+                <form method="GET" action="{{ route('admin.loans.index') }}" class="flex items-center gap-2">
+                    @if(request('status'))
+                        <input type="hidden" name="status" value="{{ request('status') }}">
+                    @endif
+                    <div class="relative w-full sm:w-60">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                        <input type="text" name="q" value="{{ request('q') }}" placeholder="Cari pinjaman / pihak lain..."
+                               class="w-full bg-slate-50 text-xs rounded-xl pl-9 pr-4 py-2 text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-300">
+                    </div>
+                    <button type="submit" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-colors">
+                        Cari
+                    </button>
+                    @if(request()->anyFilled(['q', 'status']))
+                        <a href="{{ route('admin.loans.index') }}" class="px-3 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-500 text-xs transition-colors">
+                            Reset
                         </a>
                     @endif
-                </div>
-                <button type="submit" class="btn-outline !py-2 !px-3 !text-xs font-semibold">Cari</button>
-            </form>
+                </form>
 
-            <button type="button" @click="createModal = true"
-                    class="btn-primary flex items-center gap-1.5 !py-2 !px-3.5 !text-xs font-bold whitespace-nowrap shadow-xs">
-                <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
-                </svg>
-                <span>Catat Pinjaman Baru</span>
-            </button>
+                <button type="button" @click="createModal = true"
+                        class="inline-flex items-center justify-center gap-2 px-3.5 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-semibold transition-all shadow-xs active:scale-95 whitespace-nowrap">
+                    <i class="fa-solid fa-plus text-[10px]"></i>
+                    <span>Catat Pinjaman Baru</span>
+                </button>
+            </div>
+
         </div>
-    </div>
+    </section>
 
-    {{-- Loans Table --}}
-    <div class="admin-card mt-4 overflow-x-auto !p-0">
-        <table class="w-full min-w-[900px] text-sm">
-            <thead>
-                <tr class="border-b border-line bg-cream/60 text-left text-xs font-bold uppercase tracking-wider text-neutral-500">
-                    <th class="px-5 py-3">No. Ref &amp; Tanggal</th>
-                    <th class="px-5 py-3">Pemberi Pinjaman</th>
-                    <th class="px-5 py-3">Keperluan / Terkait Piutang</th>
-                    <th class="px-5 py-3 text-right">Total Pinjaman</th>
-                    <th class="px-5 py-3 text-right">Sudah Dibayar</th>
-                    <th class="px-5 py-3 text-right">Sisa Hutang</th>
-                    <th class="px-5 py-3 text-center">Jatuh Tempo</th>
-                    <th class="px-5 py-3 text-center">Status</th>
-                    <th class="px-5 py-3 text-center">Aksi</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-line">
-                @forelse($loans as $loan)
-                    <tr class="hover:bg-cream/40 transition">
-                        {{-- Ref & Date --}}
-                        <td class="px-5 py-3.5">
-                            <a href="{{ route('admin.loans.show', $loan) }}" class="font-mono font-bold text-brand-600 hover:underline">
-                                {{ $loan->reference_no }}
-                            </a>
-                            <p class="text-xs text-neutral-500">{{ $loan->loan_date->translatedFormat('d M Y') }}</p>
-                        </td>
-
-                        {{-- Lender --}}
-                        <td class="px-5 py-3.5">
-                            <span class="font-bold text-ink">{{ $loan->lender_name }}</span>
-                            @if($loan->recorder)
-                                <p class="text-[11px] text-neutral-400">Dicatat: {{ $loan->recorder->name }}</p>
-                            @endif
-                        </td>
-
-                        {{-- Purpose & Linked Order --}}
-                        <td class="px-5 py-3.5">
-                            <p class="font-medium text-neutral-700">{{ $loan->purpose ?: 'Dana Talangan Operasional' }}</p>
-                            @if($loan->order)
-                                <div class="mt-1 flex items-center gap-1.5 text-xs text-indigo-700">
-                                    <svg class="h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244"/></svg>
-                                    <a href="{{ route('admin.orders.show', $loan->order) }}" class="font-semibold hover:underline">
-                                        {{ $loan->order->order_number }}
-                                    </a>
-                                    <span class="text-neutral-400">({{ $loan->order->customer->name }})</span>
-                                    @if($loan->order->remaining > 0)
-                                        <span class="rounded bg-amber-50 px-1 py-0.2 text-[10px] font-bold text-amber-700 border border-amber-200">
-                                            Piutang {{ rupiah($loan->order->remaining) }}
-                                        </span>
-                                    @else
-                                        <span class="rounded bg-emerald-50 px-1 py-0.2 text-[10px] font-bold text-emerald-700 border border-emerald-200">
-                                            Order Lunas
-                                        </span>
-                                    @endif
-                                </div>
-                            @endif
-                        </td>
-
-                        {{-- Total Amount --}}
-                        <td class="whitespace-nowrap px-5 py-3.5 text-right font-bold text-ink">
-                            {{ rupiah($loan->amount) }}
-                        </td>
-
-                        {{-- Paid Amount --}}
-                        <td class="whitespace-nowrap px-5 py-3.5 text-right text-emerald-700 font-semibold">
-                            {{ rupiah($loan->amount_paid) }}
-                            <div class="mt-1 w-24 ml-auto h-1.5 rounded-full bg-neutral-200 overflow-hidden">
-                                <div class="h-full bg-emerald-500 rounded-full" style="width: {{ $loan->repaid_percentage }}%"></div>
-                            </div>
-                        </td>
-
-                        {{-- Remaining Debt --}}
-                        <td class="whitespace-nowrap px-5 py-3.5 text-right font-extrabold {{ $loan->remaining_amount > 0 ? 'text-rose-600' : 'text-neutral-400' }}">
-                            {{ rupiah($loan->remaining_amount) }}
-                        </td>
-
-                        {{-- Due Date --}}
-                        <td class="px-5 py-3.5 text-center text-xs">
-                            @if($loan->due_date)
-                                <span class="{{ $loan->is_overdue ? 'font-bold text-rose-600' : 'text-neutral-600' }}">
-                                    {{ $loan->due_date->translatedFormat('d M Y') }}
-                                </span>
-                                @if($loan->is_overdue)
-                                    <span class="block text-[10px] font-bold text-rose-600 uppercase">Jatuh Tempo!</span>
-                                @endif
-                            @else
-                                <span class="text-neutral-400">—</span>
-                            @endif
-                        </td>
-
-                        {{-- Status Badge --}}
-                        <td class="px-5 py-3.5 text-center">
-                            <span class="inline-flex rounded-full border px-2.5 py-0.5 text-xs font-bold {{ $loan->status_color }}">
-                                {{ $loan->status_label }}
-                            </span>
-                        </td>
-
-                        {{-- Actions --}}
-                        <td class="px-5 py-3.5 text-center whitespace-nowrap">
-                            <div class="flex items-center justify-center gap-1.5">
-                                @if($loan->status !== \App\Models\Loan::STATUS_PAID)
-                                    <button type="button"
-                                            @click="openPayModal({{ json_encode([
-                                                'id' => $loan->id,
-                                                'reference_no' => $loan->reference_no,
-                                                'lender_name' => $loan->lender_name,
-                                                'amount' => $loan->amount,
-                                                'amount_paid' => $loan->amount_paid,
-                                                'remaining_amount' => $loan->remaining_amount,
-                                                'remaining_formatted' => rupiah($loan->remaining_amount),
-                                            ]) }})"
-                                            class="rounded-md border border-emerald-300 bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-800 hover:bg-emerald-100 transition shadow-xs"
-                                            title="Bayar / Cicil Pinjaman">
-                                        Bayar
-                                    </button>
-                                @endif
-
-                                <a href="{{ route('admin.loans.show', $loan) }}"
-                                   class="rounded-md border border-neutral-300 bg-white px-2.5 py-1 text-xs font-semibold text-neutral-700 hover:bg-cream transition"
-                                   title="Lihat Detail & Riwayat Cicilan">
-                                    Detail
+    <!-- 3. DATA TABLE PINJAMAN -->
+    <section class="bg-white rounded-2xl shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs whitespace-nowrap">
+                <thead>
+                    <tr class="text-[11px] font-semibold text-slate-400 border-b border-slate-100">
+                        <th class="py-3.5 px-5 font-normal uppercase tracking-wider">NO. REF &amp; TANGGAL</th>
+                        <th class="py-3.5 px-5 font-normal uppercase tracking-wider">PEMBERI PINJAMAN</th>
+                        <th class="py-3.5 px-5 font-normal uppercase tracking-wider">KEPERLUAN / TERKAIT PIUTANG</th>
+                        <th class="py-3.5 px-5 font-normal uppercase tracking-wider text-right">TOTAL PINJAMAN</th>
+                        <th class="py-3.5 px-5 font-normal uppercase tracking-wider text-right">SUDAH DIBAYAR</th>
+                        <th class="py-3.5 px-5 font-normal uppercase tracking-wider text-right">SISA HUTANG</th>
+                        <th class="py-3.5 px-5 font-normal uppercase tracking-wider text-center">JATUH TEMPO</th>
+                        <th class="py-3.5 px-5 font-normal uppercase tracking-wider text-center">STATUS</th>
+                        <th class="py-3.5 px-5 font-normal uppercase tracking-wider text-center">AKSI</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-50">
+                    @forelse($loans as $loan)
+                        <tr class="hover:bg-slate-50/70 transition-colors">
+                            <!-- Ref & Date -->
+                            <td class="py-3.5 px-5 font-mono text-xs">
+                                <a href="{{ route('admin.loans.show', $loan) }}" class="font-bold text-brand-700 hover:underline">
+                                    {{ $loan->reference_no }}
                                 </a>
-                            </div>
-                        </td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="9" class="px-5 py-12 text-center text-neutral-500">
-                            <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-cream text-neutral-400">
-                                <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z"/></svg>
-                            </div>
-                            <p class="mt-3 font-semibold text-neutral-700">Belum ada catatan pinjaman</p>
-                            <p class="text-xs text-neutral-500">Klik tombol "Catat Pinjaman Baru" di atas untuk mencatat dana talangan yang diterima.</p>
-                        </td>
-                    </tr>
-                @endforelse
-            </tbody>
-        </table>
-    </div>
+                                <p class="text-[11px] text-slate-400">{{ $loan->loan_date->translatedFormat('d M Y') }}</p>
+                            </td>
 
-    {{-- Pagination --}}
-    <div class="mt-4">
-        {{ $loans->links() }}
-    </div>
+                            <!-- Lender -->
+                            <td class="py-3.5 px-5">
+                                <span class="font-bold text-slate-900 block">{{ $loan->lender_name }}</span>
+                                @if($loan->recorder)
+                                    <p class="text-[10px] text-slate-400">Dicatat: {{ $loan->recorder->name }}</p>
+                                @endif
+                            </td>
+
+                            <!-- Purpose & Linked Order -->
+                            <td class="py-3.5 px-5 max-w-xs truncate">
+                                <span class="font-medium text-slate-800 block">{{ $loan->title }}</span>
+                                @if($loan->order)
+                                    <p class="text-[11px] text-amber-600 font-semibold mt-0.5">
+                                        <i class="fa-solid fa-link text-[10px]"></i> Menalangi:
+                                        <a href="{{ route('admin.orders.show', $loan->order) }}" class="underline hover:text-amber-800">
+                                            {{ $loan->order->order_number }}
+                                        </a>
+                                        (Piutang: {{ rupiah($loan->order->remaining) }})
+                                    </p>
+                                @endif
+                            </td>
+
+                            <!-- Amounts -->
+                            <td class="py-3.5 px-5 text-right font-bold text-slate-900">
+                                {{ rupiah($loan->amount) }}
+                            </td>
+                            <td class="py-3.5 px-5 text-right font-semibold text-emerald-600">
+                                {{ rupiah($loan->amount_paid) }}
+                            </td>
+                            <td class="py-3.5 px-5 text-right font-bold {{ $loan->remaining_amount > 0 ? 'text-rose-600' : 'text-slate-400' }}">
+                                {{ rupiah($loan->remaining_amount) }}
+                            </td>
+
+                            <!-- Due Date -->
+                            <td class="py-3.5 px-5 text-center">
+                                @if($loan->due_date)
+                                    <span class="{{ $loan->is_due_soon ? 'font-bold text-rose-600' : 'text-slate-600' }}">
+                                        {{ $loan->due_date->translatedFormat('d M Y') }}
+                                    </span>
+                                @else
+                                    <span class="text-slate-300">—</span>
+                                @endif
+                            </td>
+
+                            <!-- Status Badge -->
+                            <td class="py-3.5 px-5 text-center">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold {{ $loan->status_color }}">
+                                    {{ $loan->status_label }}
+                                </span>
+                            </td>
+
+                            <!-- Actions -->
+                            <td class="py-3.5 px-5 text-center whitespace-nowrap">
+                                <div class="flex items-center justify-center gap-1.5">
+                                    @if($loan->status !== \App\Models\Loan::STATUS_PAID)
+                                        <button type="button"
+                                                @click="openPayModal({{ json_encode([
+                                                    'id' => $loan->id,
+                                                    'reference_no' => $loan->reference_no,
+                                                    'lender_name' => $loan->lender_name,
+                                                    'amount' => $loan->amount,
+                                                    'amount_paid' => $loan->amount_paid,
+                                                    'remaining_amount' => $loan->remaining_amount,
+                                                    'remaining_formatted' => rupiah($loan->remaining_amount),
+                                                ]) }})"
+                                                class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-colors"
+                                                title="Bayar / Cicil Pinjaman">
+                                            Cicil
+                                        </button>
+                                    @endif
+
+                                    <a href="{{ route('admin.loans.show', $loan) }}"
+                                       class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+                                       title="Lihat Detail & Riwayat Cicilan">
+                                        <i class="fa-regular fa-eye text-xs"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="9" class="py-12 text-center text-slate-400">
+                                <i class="fa-regular fa-folder-open text-3xl mb-2 block text-slate-300"></i>
+                                Belum ada catatan pinjaman.
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+
+        @if($loans->hasPages() || $loans->total() > 0)
+        <div class="p-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-400 border-t border-slate-50">
+            <span>Menampilkan {{ $loans->count() }} dari {{ $loans->total() }} catatan pinjaman</span>
+            <div>
+                {{ $loans->links() }}
+            </div>
+        </div>
+        @endif
+    </section>
 
     {{-- MODAL 1: CATAT PINJAMAN BARU --}}
     <div x-show="createModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">

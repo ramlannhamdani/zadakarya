@@ -16,14 +16,41 @@ class PortfolioController extends Controller
     public function index(Request $request)
     {
         $portfolios = Portfolio::with('category')
-            ->when($request->filled('q'), fn ($q) => $q->where('title', 'like', '%'.$request->q.'%'))
+            ->when($request->filled('q'), fn ($q) => $q->where(function ($w) use ($request) {
+                $w->where('title', 'like', '%'.$request->q.'%')
+                  ->orWhere('client_name', 'like', '%'.$request->q.'%');
+            }))
+            ->when($request->filled('category_id'), fn ($q) => $q->where('portfolio_category_id', $request->category_id))
+            ->when($request->filled('status'), function ($q) use ($request) {
+                if ($request->status === 'published') {
+                    $q->where('is_published', true);
+                } elseif ($request->status === 'draft') {
+                    $q->where('is_published', false);
+                }
+            })
+            ->when($request->filled('year'), fn ($q) => $q->where('production_year', $request->year))
             ->latest()
             ->paginate(20)
             ->withQueryString();
 
+        $stats = [
+            'total' => Portfolio::count(),
+            'published' => Portfolio::where('is_published', true)->count(),
+            'draft' => Portfolio::where('is_published', false)->count(),
+            'categories_count' => PortfolioCategory::count(),
+        ];
+
+        $years = Portfolio::whereNotNull('production_year')
+            ->select('production_year')
+            ->distinct()
+            ->orderByDesc('production_year')
+            ->pluck('production_year');
+
         return view('admin.portfolio.index', [
             'portfolios' => $portfolios,
-            'categories' => PortfolioCategory::withCount('portfolios')->get(),
+            'categories' => PortfolioCategory::withCount('portfolios')->orderBy('name')->get(),
+            'stats' => $stats,
+            'years' => $years,
         ]);
     }
 

@@ -9,10 +9,27 @@ use Illuminate\Http\Request;
 
 class GalleryController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        $query = GalleryItem::query();
+
+        if ($request->status === 'public') {
+            $query->where('is_public', true);
+        } elseif ($request->status === 'hidden') {
+            $query->where('is_public', false);
+        }
+
+        $items = $query->latest()->paginate(40)->withQueryString();
+
+        $stats = [
+            'total' => GalleryItem::count(),
+            'public' => GalleryItem::where('is_public', true)->count(),
+            'hidden' => GalleryItem::where('is_public', false)->count(),
+        ];
+
         return view('admin.gallery.index', [
-            'items' => GalleryItem::latest()->paginate(40),
+            'items' => $items,
+            'stats' => $stats,
         ]);
     }
 

@@ -12,10 +12,35 @@ use Illuminate\Validation\Rule;
 
 class ServiceController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        $query = Service::query();
+
+        if ($request->filled('q')) {
+            $query->where(function ($w) use ($request) {
+                $w->where('name', 'like', '%'.$request->q.'%')
+                  ->orWhere('slug', 'like', '%'.$request->q.'%');
+            });
+        }
+
+        if ($request->status === 'active') {
+            $query->where('is_published', true);
+        } elseif ($request->status === 'inactive') {
+            $query->where('is_published', false);
+        }
+
+        $services = $query->orderBy('sort_order')->paginate(20)->withQueryString();
+
+        $stats = [
+            'total' => Service::count(),
+            'active' => Service::where('is_published', true)->count(),
+            'inactive' => Service::where('is_published', false)->count(),
+            'avg_min_order' => round(Service::avg('min_order') ?: 24),
+        ];
+
         return view('admin.services.index', [
-            'services' => Service::orderBy('sort_order')->paginate(20),
+            'services' => $services,
+            'stats' => $stats,
         ]);
     }
 

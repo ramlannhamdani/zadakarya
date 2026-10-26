@@ -13,17 +13,41 @@ class PaymentController extends Controller
 {
     public function index(Request $request)
     {
+        $tab = $request->query('tab');
+
         $payments = Payment::with(['order.customer', 'invoice'])
+            ->when($tab === 'transfer', fn ($q) => $q->where('method', 'transfer'))
+            ->when($tab === 'cash', fn ($q) => $q->where('method', 'cash'))
+            ->when($tab === 'qris', fn ($q) => $q->where('method', 'qris'))
             ->when($request->filled('q'), function ($q) use ($request) {
                 $term = '%'.$request->q.'%';
-                $q->whereHas('order', fn ($o) => $o->where('order_number', 'like', $term));
+                $q->where(fn ($w) => $w
+                    ->where('reference', 'like', $term)
+                    ->orWhere('note', 'like', $term)
+                    ->orWhereHas('order', fn ($o) => $o->where('order_number', 'like', $term)
+                        ->orWhereHas('customer', fn ($c) => $c->where('name', 'like', $term))));
             })
             ->latest('payment_date')
             ->latest('id')
             ->paginate(20)
             ->withQueryString();
 
-        return view('admin.payments.index', compact('payments'));
+        $totalInflow = Payment::sum('amount');
+        $thisMonthInflow = Payment::whereYear('payment_date', now()->year)->whereMonth('payment_date', now()->month)->sum('amount');
+        $transferInflow = Payment::where('method', 'transfer')->sum('amount');
+        $cashInflow = Payment::where('method', 'cash')->sum('amount');
+
+        $stats = [
+            'total' => $totalInflow,
+            'this_month' => $thisMonthInflow,
+            'transfer' => $transferInflow,
+            'cash' => $cashInflow,
+            'count' => Payment::count(),
+            'transfer_count' => Payment::where('method', 'transfer')->count(),
+            'cash_count' => Payment::where('method', 'cash')->count(),
+        ];
+
+        return view('admin.payments.index', compact('payments', 'stats', 'tab'));
     }
 
     public function store(Request $request, Order $order)
