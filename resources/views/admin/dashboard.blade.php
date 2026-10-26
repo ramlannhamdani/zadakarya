@@ -88,12 +88,140 @@
     <div class="bg-white rounded-2xl p-5 shadow-sm flex flex-col justify-between">
         <div>
             <div class="flex items-center justify-between">
-                <span class="text-[11px] font-semibold uppercase tracking-wider text-amber-600">Piutang (Sisa Tagihan)</span>
+                <span class="text-[11px] font-semibold uppercase tracking-wider text-amber-600">Total Piutang Tagihan</span>
                 <span class="w-2 h-2 rounded-full bg-amber-400"></span>
             </div>
             <h3 class="text-2xl font-bold text-amber-600 mt-2">{{ rupiah($revenue['receivable']) }}</h3>
         </div>
-        <p class="text-xs text-slate-400 mt-4">Belum dibayar dari pesanan non-batal</p>
+        <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px]">
+            <a href="{{ route('admin.orders.index', ['filter' => 'ready_to_bill']) }}" class="text-rose-600 font-semibold hover:underline flex items-center gap-1" title="Pesanan selesai tapi belum lunas">
+                <span>Siap Tagih:</span>
+                <span>{{ rupiah($revenue['completed_receivable']) }}</span>
+            </a>
+            <span class="text-slate-400 font-medium" title="Pesanan aktif dalam produksi">WIP: {{ rupiah($revenue['active_receivable']) }}</span>
+        </div>
+    </div>
+</section>
+
+<!-- 2B. PETA ALOKASI DANA (DI MANA POSISI UANG SAAT INI?) -->
+<section class="bg-white rounded-2xl p-6 sm:p-7 shadow-sm space-y-5">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-100">
+        <div>
+            <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-brand-600"></span>
+                <h3 class="text-base font-bold text-slate-900 tracking-tight">Peta Alokasi Dana (Di Mana Uang Berada?)</h3>
+            </div>
+            <p class="text-xs text-slate-400 mt-1">Pemetaan transparan posisi kas riil, uang tertahan menombok produksi, dan tagihan yang siap ditarik.</p>
+        </div>
+        <div class="flex items-center gap-3 self-start md:self-auto text-xs">
+            <span class="text-slate-400">Total Piutang:</span>
+            <span class="font-bold text-slate-800">{{ rupiah($revenue['receivable']) }}</span>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        <!-- 1. Kas Bebas Likuid -->
+        <div class="bg-slate-50/80 hover:bg-slate-50 rounded-2xl p-5 flex flex-col justify-between transition-colors border border-transparent hover:border-slate-100">
+            <div>
+                <div class="flex items-center justify-between gap-2 mb-3">
+                    <span class="text-[11px] font-bold uppercase tracking-wider text-slate-600">1. Kas Bebas Likuid</span>
+                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-md {{ $financials['current_cash_balance'] >= 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700' }}">
+                        {{ $financials['current_cash_balance'] >= 0 ? 'Tersedia' : 'Defisit Kas' }}
+                    </span>
+                </div>
+                <div class="text-xl sm:text-2xl font-bold {{ $financials['current_cash_balance'] >= 0 ? 'text-slate-900' : 'text-rose-600' }} tracking-tight">
+                    {{ rupiah($financials['current_cash_balance']) }}
+                </div>
+                <div class="text-[11px] text-slate-400 mt-1">Saldo Kas di Rekening / Laci</div>
+            </div>
+            <p class="text-[11px] text-slate-500 mt-4 leading-relaxed">
+                Uang tunai &amp; bank yang siap dipakai tanpa terikat beban produksi yang belum dibayar.
+            </p>
+        </div>
+
+        <!-- 2. Uang Tertahan di Produksi (Dana Talangan HPP) -->
+        <div class="bg-amber-50/50 hover:bg-amber-50/80 rounded-2xl p-5 flex flex-col justify-between transition-colors border border-amber-100/50">
+            <div>
+                <div class="flex items-center justify-between gap-2 mb-3">
+                    <span class="text-[11px] font-bold uppercase tracking-wider text-amber-800">2. Talangan Kas HPP</span>
+                    @if(($financials['deficit_orders_count'] ?? 0) > 0)
+                        <a href="{{ route('admin.orders.index', ['cash_status' => 'deficit']) }}" class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-100 text-amber-800 hover:bg-amber-200 transition-colors">
+                            {{ $financials['deficit_orders_count'] }} Order &rarr;
+                        </a>
+                    @else
+                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800">Rp0 Aman</span>
+                    @endif
+                </div>
+                <div class="text-xl sm:text-2xl font-bold {{ ($financials['total_cash_advances'] ?? 0) > 0 ? 'text-amber-600' : 'text-slate-900' }} tracking-tight">
+                    {{ rupiah($financials['total_cash_advances'] ?? 0) }}
+                </div>
+                <div class="text-[11px] text-amber-700/80 mt-1">Nombok Belanja Produksi</div>
+            </div>
+            <p class="text-[11px] text-amber-900/70 mt-4 leading-relaxed">
+                Uang kas yang menalangi belanja kain/makloon (HPP &gt; DP). Cair kembali saat customer bayar.
+            </p>
+        </div>
+
+        <!-- 3. Piutang Siap Tagih (Pesanan Selesai) -->
+        <div class="bg-rose-50/50 hover:bg-rose-50/80 rounded-2xl p-5 flex flex-col justify-between transition-colors border border-rose-100/60">
+            <div>
+                <div class="flex items-center justify-between gap-2 mb-3">
+                    <span class="text-[11px] font-bold uppercase tracking-wider text-rose-800">3. Siap Ditagih</span>
+                    @if(($financials['completed_unpaid_count'] ?? 0) > 0)
+                        <a href="{{ route('admin.orders.index', ['filter' => 'ready_to_bill']) }}" class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-rose-200 text-rose-900 hover:bg-rose-300 transition-colors">
+                            🚨 {{ $financials['completed_unpaid_count'] }} Order
+                        </a>
+                    @else
+                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800">Lunas Semua</span>
+                    @endif
+                </div>
+                <div class="text-xl sm:text-2xl font-bold text-rose-600 tracking-tight">
+                    {{ rupiah($financials['completed_receivable'] ?? 0) }}
+                </div>
+                <div class="text-[11px] text-rose-700/80 mt-1">Pesanan Selesai Belum Lunas</div>
+            </div>
+            <p class="text-[11px] text-rose-900/70 mt-4 leading-relaxed">
+                Barang sudah tuntas 100% &amp; siap kirim. Prioritas tagih utama via WA / Invoice pelunasan.
+            </p>
+        </div>
+
+        <!-- 4. Piutang Pesanan Berjalan (WIP) -->
+        <div class="bg-blue-50/40 hover:bg-blue-50/70 rounded-2xl p-5 flex flex-col justify-between transition-colors border border-blue-100/50">
+            <div>
+                <div class="flex items-center justify-between gap-2 mb-3">
+                    <span class="text-[11px] font-bold uppercase tracking-wider text-blue-800">4. Piutang Berjalan</span>
+                    <a href="{{ route('admin.orders.index', ['status' => 'active']) }}" class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-blue-100 text-blue-800 hover:bg-blue-200 transition-colors">
+                        {{ $financials['active_unpaid_count'] ?? 0 }} Order
+                    </a>
+                </div>
+                <div class="text-xl sm:text-2xl font-bold text-blue-600 tracking-tight">
+                    {{ rupiah($financials['active_receivable'] ?? 0) }}
+                </div>
+                <div class="text-[11px] text-blue-700/80 mt-1">Masih Dalam Pengerjaan</div>
+            </div>
+            <p class="text-[11px] text-blue-900/70 mt-4 leading-relaxed">
+                Sisa tagihan pesanan aktif di workshop (potong/jahit/finishing). Ditagih saat barang selesai.
+            </p>
+        </div>
+
+        <!-- 5. Kewajiban Pinjaman Pihak Luar -->
+        <div class="bg-purple-50/40 hover:bg-purple-50/70 rounded-2xl p-5 flex flex-col justify-between transition-colors border border-purple-100/50">
+            <div>
+                <div class="flex items-center justify-between gap-2 mb-3">
+                    <span class="text-[11px] font-bold uppercase tracking-wider text-purple-800">5. Utang Luar</span>
+                    <a href="{{ route('admin.loans.index') }}" class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-purple-100 text-purple-800 hover:bg-purple-200 transition-colors">
+                        Kelola &rarr;
+                    </a>
+                </div>
+                <div class="text-xl sm:text-2xl font-bold {{ ($financials['total_active_debt'] ?? 0) > 0 ? 'text-purple-700' : 'text-slate-900' }} tracking-tight">
+                    {{ rupiah($financials['total_active_debt'] ?? 0) }}
+                </div>
+                <div class="text-[11px] text-purple-700/80 mt-1">Sisa Pokok Pinjaman Luar</div>
+            </div>
+            <p class="text-[11px] text-purple-900/70 mt-4 leading-relaxed">
+                Pinjaman eksternal yang menambah saldo kas dan harus diangsur ke kreditur.
+            </p>
+        </div>
     </div>
 </section>
 
@@ -312,6 +440,19 @@
                 </a>
                 @endif
 
+                @if(($actionRequired['completed_unpaid'] ?? 0) > 0)
+                <a href="{{ route('admin.orders.index', ['filter' => 'ready_to_bill']) }}" class="p-3.5 rounded-xl bg-rose-50/80 hover:bg-rose-100/80 transition-colors block text-xs">
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="font-bold text-rose-800 flex items-center gap-1.5">
+                            <span class="w-1.5 h-1.5 rounded-full bg-rose-600"></span>
+                            {{ $actionRequired['completed_unpaid'] }} pesanan selesai siap ditagih!
+                        </span>
+                        <span class="font-bold text-rose-700">{{ rupiah($actionRequired['completed_receivable'] ?? 0) }}</span>
+                    </div>
+                    <p class="text-[11px] text-rose-600/90">Produksi tuntas tapi belum lunas • Segera push penagihan</p>
+                </a>
+                @endif
+
                 @if($actionRequired['new_inquiries'] > 0)
                 <a href="{{ route('admin.inquiries.index', ['status' => 'new']) }}" class="p-3.5 rounded-xl bg-slate-50 hover:bg-slate-100/80 transition-colors flex items-center justify-between text-xs">
                     <div class="flex items-center gap-2.5">
@@ -322,7 +463,7 @@
                 </a>
                 @endif
 
-                @if(array_sum(array_filter($actionRequired, fn ($k) => $k !== 'cash_deficits_amount', ARRAY_FILTER_USE_KEY)) === 0)
+                @if(array_sum(array_filter($actionRequired, fn ($k) => !in_array($k, ['cash_deficits_amount', 'completed_receivable']), ARRAY_FILTER_USE_KEY)) === 0)
                 <div class="p-3.5 rounded-xl bg-slate-50 text-slate-500 text-xs flex items-center gap-2">
                     <i class="fa-solid fa-check text-emerald-500"></i>
                     <span>Semua beres — tidak ada tindakan mendesak.</span>

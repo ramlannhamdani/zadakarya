@@ -398,10 +398,12 @@ class GoogleSheetService
         $qty = (int) $order->total_quantity;
         $unitPrice = $qty > 0 ? (int) round($order->grand_total / $qty) : (int) $order->grand_total;
 
-        $statusText = $order->status_label.' ('.$order->current_stage_name.')';
-        if ($order->is_cash_deficit) {
-            $statusText .= ' [⚠️ Nombok Kas: Rp '.number_format($order->cash_deficit, 0, ',', '.').']';
-        }
+        // Status murni (Aktif / Selesai / Dibatalkan), label nombok kas dipisah ke kolom Dana Talangan
+        $statusText = match ($order->status) {
+            'completed' => 'Selesai',
+            'cancelled' => 'Dibatalkan',
+            default => 'Aktif ('.$order->current_stage_name.')',
+        };
 
         return [
             'id' => 'ORD-'.$order->id,
@@ -415,6 +417,7 @@ class GoogleSheetService
             'dp' => $dp,
             'settlement' => $settlement,
             'total_cost' => (int) $order->total_cost,
+            'cash_advance' => (int) $order->cash_deficit, // Kolom Khusus: Dana Talangan / Nombok Kas
             'estimated_profit' => (int) $order->gross_profit,
             'remaining' => (int) $order->remaining,
             'status' => $statusText,
@@ -422,6 +425,8 @@ class GoogleSheetService
             'cash_position' => (int) $order->net_cash_flow,
             'cash_deficit' => (int) $order->cash_deficit,
             'cash_status' => $order->cash_status_meta['label'] ?? 'Aman',
+            'is_completed' => $order->status === 'completed',
+            'receivable_type' => $order->status === 'completed' ? 'Siap Ditagih' : ($order->status === 'active' ? 'Order Berjalan' : '-'),
         ];
     }
 

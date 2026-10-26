@@ -45,8 +45,14 @@
             <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Belum Lunas</p>
             <div class="flex items-baseline gap-2 mt-1">
                 <span class="text-3xl font-bold text-slate-700">{{ $stats['unpaid'] }}</span>
-                <span class="text-[11px] text-slate-400 font-medium">DP / Belum bayar</span>
+                <span class="text-[11px] text-slate-400 font-medium">order</span>
             </div>
+            @if(($readyToBillCount ?? 0) > 0)
+            <div class="mt-2 text-[11px] text-rose-600 font-semibold flex items-center gap-1">
+                <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                <span>{{ $readyToBillCount }} Siap Ditagih ({{ rupiah($readyToBillReceivable ?? 0) }})</span>
+            </div>
+            @endif
         </div>
     </div>
 </section>
@@ -58,34 +64,42 @@
         <!-- Filter Tabs -->
         <div class="flex items-center gap-1.5 overflow-x-auto pb-1 lg:pb-0 text-xs">
             <a href="{{ route('admin.orders.index') }}"
-               class="px-3 py-1.5 rounded-xl font-semibold transition-all whitespace-nowrap {{ (!$cashStatus && !$status) ? 'bg-slate-900 text-white' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' }}">
+               class="px-3 py-1.5 rounded-xl font-semibold transition-all whitespace-nowrap {{ (!$cashStatus && !$status && !$filter) ? 'bg-slate-900 text-white' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' }}">
                 Semua ({{ $stats['total'] }})
             </a>
             <a href="{{ route('admin.orders.index', ['status' => 'active']) }}"
-               class="px-3 py-1.5 rounded-xl font-semibold transition-all whitespace-nowrap {{ (!$cashStatus && $status === 'active') ? 'bg-slate-900 text-white' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' }}">
+               class="px-3 py-1.5 rounded-xl font-semibold transition-all whitespace-nowrap {{ (!$cashStatus && !$filter && $status === 'active') ? 'bg-slate-900 text-white' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' }}">
                 Aktif ({{ $stats['active'] }})
             </a>
             <a href="{{ route('admin.orders.index', ['status' => 'completed']) }}"
-               class="px-3 py-1.5 rounded-xl font-semibold transition-all whitespace-nowrap {{ (!$cashStatus && $status === 'completed') ? 'bg-slate-900 text-white' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' }}">
+               class="px-3 py-1.5 rounded-xl font-semibold transition-all whitespace-nowrap {{ (!$cashStatus && !$filter && $status === 'completed') ? 'bg-slate-900 text-white' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' }}">
                 Selesai ({{ $stats['completed'] }})
             </a>
-            <a href="{{ route('admin.orders.index', ['status' => 'cancelled']) }}"
-               class="px-3 py-1.5 rounded-xl font-semibold transition-all whitespace-nowrap {{ (!$cashStatus && $status === 'cancelled') ? 'bg-slate-900 text-white' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' }}">
-                Dibatalkan
-            </a>
-            @if(($deficitCount ?? 0) > 0)
-            <a href="{{ route('admin.orders.index', ['cash_status' => 'deficit']) }}"
-               class="px-3 py-1.5 rounded-xl font-semibold transition-all whitespace-nowrap inline-flex items-center gap-1.5 {{ $cashStatus === 'deficit' ? 'bg-rose-600 text-white' : 'bg-rose-50 text-rose-700 hover:bg-rose-100' }}">
-                <span>⚠️ Nombok Kas</span>
-                <span class="rounded-full px-1.5 py-0.2 text-[10px] {{ $cashStatus === 'deficit' ? 'bg-white text-rose-700' : 'bg-rose-200 text-rose-900' }} font-bold">{{ $deficitCount }}</span>
+            @if(($readyToBillCount ?? 0) > 0)
+            <a href="{{ route('admin.orders.index', ['filter' => 'ready_to_bill']) }}"
+               class="px-3 py-1.5 rounded-xl font-semibold transition-all whitespace-nowrap inline-flex items-center gap-1.5 {{ $filter === 'ready_to_bill' ? 'bg-rose-600 text-white' : 'bg-rose-50 text-rose-700 hover:bg-rose-100' }}">
+                <span>🚨 Siap Ditagih</span>
+                <span class="rounded-full px-1.5 py-0.2 text-[10px] {{ $filter === 'ready_to_bill' ? 'bg-white text-rose-700' : 'bg-rose-200 text-rose-900' }} font-bold">{{ $readyToBillCount }}</span>
             </a>
             @endif
+            @if(($deficitCount ?? 0) > 0)
+            <a href="{{ route('admin.orders.index', ['cash_status' => 'deficit']) }}"
+               class="px-3 py-1.5 rounded-xl font-semibold transition-all whitespace-nowrap inline-flex items-center gap-1.5 {{ $cashStatus === 'deficit' ? 'bg-amber-600 text-white' : 'bg-amber-50 text-amber-700 hover:bg-amber-100' }}">
+                <span>⚠️ Nombok Kas</span>
+                <span class="rounded-full px-1.5 py-0.2 text-[10px] {{ $cashStatus === 'deficit' ? 'bg-white text-amber-700' : 'bg-amber-200 text-amber-900' }} font-bold">{{ $deficitCount }}</span>
+            </a>
+            @endif
+            <a href="{{ route('admin.orders.index', ['status' => 'cancelled']) }}"
+               class="px-3 py-1.5 rounded-xl font-semibold transition-all whitespace-nowrap {{ (!$cashStatus && !$filter && $status === 'cancelled') ? 'bg-slate-900 text-white' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' }}">
+                Dibatalkan
+            </a>
         </div>
 
         <!-- Search & Filter Options -->
         <form method="GET" action="{{ route('admin.orders.index') }}" class="flex flex-wrap sm:flex-nowrap items-center gap-2.5">
             @if($status)<input type="hidden" name="status" value="{{ $status }}">@endif
             @if($cashStatus)<input type="hidden" name="cash_status" value="{{ $cashStatus }}">@endif
+            @if($filter)<input type="hidden" name="filter" value="{{ $filter }}">@endif
 
             <!-- Search Input -->
             <div class="relative w-full sm:w-64">
@@ -98,7 +112,7 @@
             <button type="submit" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-colors">
                 Cari
             </button>
-            @if(request()->hasAny(['q', 'status', 'cash_status']))
+            @if(request()->hasAny(['q', 'status', 'cash_status', 'filter']))
             <a href="{{ route('admin.orders.index') }}" class="px-3 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-500 text-xs transition-colors">
                 Reset
             </a>
@@ -119,6 +133,7 @@
                     <th class="py-3.5 px-5 font-normal">PRODUK</th>
                     <th class="py-3.5 px-5 font-normal text-right">TOTAL</th>
                     <th class="py-3.5 px-5 font-normal text-center">PEMBAYARAN</th>
+                    <th class="py-3.5 px-5 font-normal text-center">TALANGAN KAS</th>
                     <th class="py-3.5 px-5 font-normal">TAHAP</th>
                     <th class="py-3.5 px-5 font-normal text-center">DEADLINE</th>
                     <th class="py-3.5 px-5 font-normal text-center">STATUS</th>
@@ -148,20 +163,35 @@
                     </td>
                     <td class="py-3.5 px-5 text-center">
                         <div class="inline-flex flex-col items-center gap-1">
-                            @if($order->payment_status === 'paid')
+                            @if($order->status === 'completed' && $order->payment_status !== 'paid')
+                                <span class="inline-block px-2.5 py-0.5 rounded-md bg-rose-50 text-rose-700 font-bold text-[11px]">
+                                    🚨 Siap Ditagih
+                                </span>
+                                <span class="text-[10px] text-rose-600 font-semibold">Sisa {{ rupiah($order->remaining) }}</span>
+                            @elseif($order->payment_status === 'paid')
                                 <span class="inline-block px-2.5 py-0.5 rounded-md bg-emerald-50 text-emerald-700 font-semibold text-[11px]">Lunas</span>
                             @elseif($order->payment_status === 'dp')
-                                <span class="inline-block px-2.5 py-0.5 rounded-md bg-amber-50 text-amber-700 font-semibold text-[11px]">DP</span>
+                                <span class="inline-block px-2.5 py-0.5 rounded-md bg-amber-50 text-amber-700 font-semibold text-[11px]">DP Terbayar</span>
+                                <span class="text-[10px] text-slate-400">Sisa {{ rupiah($order->remaining) }}</span>
                             @else
                                 <span class="inline-block px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 font-medium text-[11px]">Belum Dibayar</span>
                             @endif
-
-                            @if($order->is_cash_deficit)
-                                <span class="inline-block px-2 py-0.5 rounded-md bg-rose-50 text-rose-700 text-[10px] font-bold" title="HPP Belanja > DP Masuk">
-                                    ⚠️ Nombok {{ rupiah($order->cash_deficit) }}
-                                </span>
-                            @endif
                         </div>
+                    </td>
+                    <td class="py-3.5 px-5 text-center">
+                        @if($order->is_cash_deficit)
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 text-[10px] font-bold" title="HPP Belanja {{ rupiah($order->total_cost) }} > Uang Masuk {{ rupiah($order->amount_paid) }}">
+                                <i class="fa-solid fa-triangle-exclamation text-[9px]"></i>
+                                <span>Nombok {{ rupiah($order->cash_deficit) }}</span>
+                            </span>
+                        @elseif($order->total_cost > 0)
+                            <span class="inline-flex items-center gap-1 text-[11px] text-emerald-700 font-medium">
+                                <i class="fa-solid fa-check text-[9px]"></i>
+                                <span>Aman (Tertutup DP)</span>
+                            </span>
+                        @else
+                            <span class="text-[11px] text-slate-400">—</span>
+                        @endif
                     </td>
                     <td class="py-3.5 px-5 text-slate-600">
                         <span class="block">{{ $order->current_stage_name }}</span>
@@ -203,7 +233,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="9" class="py-12 text-center text-slate-400">
+                    <td colspan="10" class="py-12 text-center text-slate-400">
                         <i class="fa-regular fa-folder-open text-3xl mb-2 block text-slate-300"></i>
                         Tidak ada data pesanan yang cocok.
                     </td>

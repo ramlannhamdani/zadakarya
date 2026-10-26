@@ -180,7 +180,7 @@ class SpreadsheetScriptTest extends TestCase
 
     public function test_every_data_tab_has_a_hidden_id_column_for_deletions(): void
     {
-        foreach ([15, 10, 9] as $col) {
+        foreach ([16, 11, 10, 9] as $col) {
             $this->assertStringContainsString('setupIdColumn(sheet, '.$col.')', $this->script);
         }
 

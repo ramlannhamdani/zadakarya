@@ -19,6 +19,7 @@ class OrderController extends Controller
     {
         $status = $request->query('status');
         $cashStatus = $request->query('cash_status');
+        $filter = $request->query('filter');
 
         $deficitCount = 0;
         try {
@@ -30,8 +31,13 @@ class OrderController extends Controller
             }
         } catch (\Throwable) {}
 
+        $completedUnpaid = Order::where('status', 'completed')->where('payment_status', '!=', 'paid');
+        $readyToBillCount = (clone $completedUnpaid)->count();
+        $readyToBillReceivable = (int) (clone $completedUnpaid)->get(['grand_total', 'amount_paid'])->sum(fn ($o) => max(0, $o->grand_total - $o->amount_paid));
+
         $orders = Order::with(['customer', 'items', 'costs'])
-            ->when(in_array($status, ['active', 'completed', 'cancelled']), fn ($q) => $q->where('status', $status))
+            ->when($filter === 'ready_to_bill', fn ($q) => $q->where('status', 'completed')->where('payment_status', '!=', 'paid'))
+            ->when(! $filter && in_array($status, ['active', 'completed', 'cancelled']), fn ($q) => $q->where('status', $status))
             ->when($cashStatus === 'deficit', function ($q) {
                 $q->where('status', 'active')
                     ->where('payment_status', '!=', 'paid')
@@ -54,7 +60,7 @@ class OrderController extends Controller
             'unpaid' => Order::where('payment_status', '!=', 'paid')->where('status', '!=', 'cancelled')->count(),
         ];
 
-        return view('admin.orders.index', compact('orders', 'status', 'cashStatus', 'deficitCount', 'stats'));
+        return view('admin.orders.index', compact('orders', 'status', 'cashStatus', 'filter', 'deficitCount', 'readyToBillCount', 'readyToBillReceivable', 'stats'));
     }
 
     public function create(Request $request)

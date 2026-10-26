@@ -20,11 +20,21 @@ class DashboardController extends Controller
         ];
 
         // Revenue: uang yang benar-benar masuk (tabel payments), piutang, dan nilai pesanan.
-        $nonCancelled = Order::where('status', '!=', 'cancelled')->get(['grand_total', 'amount_paid']);
+        $nonCancelled = Order::where('status', '!=', 'cancelled')->get(['id', 'status', 'grand_total', 'amount_paid', 'payment_status']);
+        $completedUnpaidOrders = $nonCancelled->filter(fn ($o) => $o->status === 'completed' && $o->payment_status !== 'paid');
+        $activeUnpaidOrders = $nonCancelled->filter(fn ($o) => $o->status === 'active' && $o->payment_status !== 'paid');
+
+        $completedReceivable = (int) $completedUnpaidOrders->sum(fn ($o) => max(0, $o->grand_total - $o->amount_paid));
+        $activeReceivable = (int) $activeUnpaidOrders->sum(fn ($o) => max(0, $o->grand_total - $o->amount_paid));
+
         $revenue = [
             'total' => (int) Payment::sum('amount'),
             'this_month' => (int) Payment::whereBetween('payment_date', [now()->startOfMonth(), now()->endOfMonth()])->sum('amount'),
             'receivable' => (int) $nonCancelled->sum(fn ($o) => max(0, $o->grand_total - $o->amount_paid)),
+            'completed_receivable' => $completedReceivable,
+            'completed_unpaid_count' => $completedUnpaidOrders->count(),
+            'active_receivable' => $activeReceivable,
+            'active_unpaid_count' => $activeUnpaidOrders->count(),
             'order_value' => (int) $nonCancelled->sum('grand_total'),
         ];
 
@@ -110,15 +120,32 @@ class DashboardController extends Controller
         }
 
         $totalActiveDebt = 0;
+        $totalLoanInflow = 0;
         try {
             if (\Illuminate\Support\Facades\Schema::hasTable('loans')) {
                 $totalActiveDebt = (int) \App\Models\Loan::whereIn('status', [\App\Models\Loan::STATUS_UNPAID, \App\Models\Loan::STATUS_PARTIAL])
                     ->get()
                     ->sum(fn ($l) => $l->remaining_amount);
+                $totalLoanInflow = (int) \App\Models\Loan::sum('amount');
             }
         } catch (\Throwable) {
             $totalActiveDebt = 0;
+            $totalLoanInflow = 0;
         }
+
+        $totalLoanPayments = 0;
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasTable('loan_payments')) {
+                $totalLoanPayments = (int) \App\Models\LoanPayment::sum('amount');
+            }
+        } catch (\Throwable) {
+            $totalLoanPayments = 0;
+        }
+
+        $totalCashInflow = $revenue['total'] + $totalLoanInflow;
+        $totalCashOutflow = $totalGlobalOutflow + $totalLoanPayments;
+        $currentCashBalance = $totalCashInflow - $totalCashOutflow;
+        $revenue['current_cash_balance'] = $currentCashBalance;
 
         $financials = [
             'total_hpp' => $totalHpp,
@@ -139,6 +166,11 @@ class DashboardController extends Controller
             'total_cash_advances' => $totalCashAdvances,
             'deficit_orders_count' => $deficitOrdersCount,
             'total_active_debt' => $totalActiveDebt,
+            'current_cash_balance' => $currentCashBalance,
+            'completed_receivable' => $completedReceivable,
+            'completed_unpaid_count' => $completedUnpaidOrders->count(),
+            'active_receivable' => $activeReceivable,
+            'active_unpaid_count' => $activeUnpaidOrders->count(),
         ];
 
         // Grafik 6 bulan terakhir (pembayaran per bulan).
@@ -168,6 +200,8 @@ class DashboardController extends Controller
                 ->count(),
             'cash_deficits' => $deficitOrdersCount,
             'cash_deficits_amount' => $totalCashAdvances,
+            'completed_unpaid' => $completedUnpaidOrders->count(),
+            'completed_receivable' => $completedReceivable,
         ];
 
         return view('admin.dashboard', [

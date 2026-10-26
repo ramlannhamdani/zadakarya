@@ -247,6 +247,74 @@ class OrderCashFlowTest extends TestCase
 
         $this->assertSame(-1000000, $formatted['cash_position']);
         $this->assertSame(1000000, $formatted['cash_deficit']);
-        $this->assertStringContainsString('Nombok Kas', $formatted['status']);
+        $this->assertSame(1000000, $formatted['cash_advance']);
+        $this->assertSame('Aktif (Pesanan Diterima)', $formatted['status']);
+        $this->assertSame('Order Berjalan', $formatted['receivable_type']);
+    }
+
+    public function test_ready_to_bill_filter_in_orders_list(): void
+    {
+        // 1. Pesanan Selesai tapi Belum Lunas (Siap Ditagih)
+        $completedUnpaid = Order::create([
+            'order_number' => 'ZK-BILL-READY',
+            'customer_id' => $this->customer->id,
+            'name' => 'Pesanan Selesai Belum Lunas',
+            'status' => 'completed',
+            'current_stage' => 7,
+            'subtotal' => 6000000,
+            'discount' => 0,
+            'grand_total' => 6000000,
+            'amount_paid' => 2000000,
+            'payment_status' => 'partial',
+        ]);
+
+        // 2. Pesanan Selesai dan Sudah Lunas
+        $completedPaid = Order::create([
+            'order_number' => 'ZK-BILL-PAID',
+            'customer_id' => $this->customer->id,
+            'name' => 'Pesanan Selesai Lunas',
+            'status' => 'completed',
+            'current_stage' => 7,
+            'subtotal' => 4000000,
+            'discount' => 0,
+            'grand_total' => 4000000,
+            'amount_paid' => 4000000,
+            'payment_status' => 'paid',
+        ]);
+
+        // 3. Pesanan Aktif Belum Lunas (Masih WIP)
+        $activeWip = Order::create([
+            'order_number' => 'ZK-WIP-ACTIVE',
+            'customer_id' => $this->customer->id,
+            'name' => 'Pesanan Aktif Berjalan',
+            'status' => 'active',
+            'current_stage' => 3,
+            'subtotal' => 8000000,
+            'discount' => 0,
+            'grand_total' => 8000000,
+            'amount_paid' => 3000000,
+            'payment_status' => 'partial',
+        ]);
+
+        $response = $this->actingAs($this->admin)->get(route('admin.orders.index', ['filter' => 'ready_to_bill']));
+
+        $response->assertOk();
+        $response->assertSee('ZK-BILL-READY');
+        $response->assertDontSee('ZK-BILL-PAID');
+        $response->assertDontSee('ZK-WIP-ACTIVE');
+        $response->assertSee('Siap Ditagih');
+    }
+
+    public function test_dashboard_peta_alokasi_dana_breakdown(): void
+    {
+        $response = $this->actingAs($this->admin)->get(route('admin.dashboard'));
+
+        $response->assertOk();
+        $response->assertSee('Peta Alokasi Dana (Di Mana Uang Berada?)');
+        $response->assertSee('1. Kas Bebas Likuid');
+        $response->assertSee('2. Talangan Kas HPP');
+        $response->assertSee('3. Siap Ditagih');
+        $response->assertSee('4. Piutang Berjalan');
+        $response->assertSee('5. Utang Luar');
     }
 }

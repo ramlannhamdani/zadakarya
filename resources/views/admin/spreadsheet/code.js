@@ -12,7 +12,7 @@
  * yang ada di aplikasi — penyebab paling sering tampilan sheet terlihat lama.
  * Naikkan setiap kali berkas ini diubah.
  */
-var SCRIPT_VERSION = '2026-10-26.03';
+var SCRIPT_VERSION = '2026-10-26.04';
 
 /**
  * Tinggi baris data di seluruh tab. Baris judul, banner, dan kartu KPI punya
@@ -479,7 +479,7 @@ function setupDashboardSheet(sheet, rekapSheet) {
     [
       '↳ Talangan Kas (Nombok DP)',
       'Kas talangi DP',
-      '=IFERROR(SUMIF(\'Data Order\'!$M$4:$M,"*Nombok Kas*",\'Data Order\'!$J$4:$J)-SUMIF(\'Data Order\'!$M$4:$M,"*Nombok Kas*",\'Data Order\'!$H$4:$H),0)',
+      '=IFERROR(SUM(\'Data Order\'!$M$4:$M),0)',
       'Kas Kantor'
     ]
   ];
@@ -605,12 +605,13 @@ function setupDataOrderSheet(sheet) {
   sheet.setColumnWidth(10, 115); // J: Total HPP
   sheet.setColumnWidth(11, 115); // K: Estimasi Laba
   sheet.setColumnWidth(12, 115); // L: Sisa Tagihan
-  sheet.setColumnWidth(13, 170); // M: Status
-  sheet.setColumnWidth(14, 200); // N: Catatan
+  sheet.setColumnWidth(13, 125); // M: Dana Talangan
+  sheet.setColumnWidth(14, 140); // N: Status
+  sheet.setColumnWidth(15, 200); // O: Catatan
 
   // ROW 1: Banner
   sheet.setRowHeight(1, 45);
-  sheet.getRange('A1:N1').merge()
+  sheet.getRange('A1:O1').merge()
     .setValue('🛒  DATA ORDER & PROFITABILITAS  ·  ZADA KARYA PRODUCTION')
     .setFontFamily('Arial').setFontSize(13).setFontWeight('bold')
     .setFontColor(CLR.white).setBackground(CLR.navy)
@@ -618,14 +619,14 @@ function setupDataOrderSheet(sheet) {
 
   // ROW 2: Decorative
   sheet.setRowHeight(2, 4);
-  sheet.getRange('A2:N2').setBackground('#F59E0B');
+  sheet.getRange('A2:O2').setBackground('#F59E0B');
 
   // ROW 3: Headers
   sheet.setRowHeight(3, 28);
   var headers = [
     'Tanggal', 'No. Order', 'Customer', 'Nama Produk / Item', 'Qty',
     'Harga / pcs', 'Nilai Order', 'DP Diterima', 'Pelunasan',
-    'Total HPP', 'Estimasi Laba', 'Sisa Tagihan', 'Status', 'Catatan'
+    'Total HPP', 'Estimasi Laba', 'Sisa Tagihan', 'Dana Talangan', 'Status', 'Catatan'
   ];
   sheet.getRange(3, 1, 1, headers.length).setValues([headers])
     .setFontSize(9).setFontWeight('bold')
@@ -633,7 +634,7 @@ function setupDataOrderSheet(sheet) {
     .setHorizontalAlignment('center').setVerticalAlignment('middle');
   sheet.setFrozenRows(3);
 
-  setupIdColumn(sheet, 15);
+  setupIdColumn(sheet, 16);
 
   // Format dipasang untuk seluruh kolom, bukan sampai baris tertentu.
   var rows = dataRowCount(sheet);
@@ -642,22 +643,31 @@ function setupDataOrderSheet(sheet) {
   sheet.getRange(4, 6, rows, 7).setNumberFormat('"Rp"#,##0');
   // Estimasi laba bisa minus kalau HPP melampaui nilai order.
   sheet.getRange(4, 11, rows, 1).setNumberFormat('"Rp"#,##0;[Red]-"Rp"#,##0');
-  sheet.getRange(4, 13, rows, 1).setHorizontalAlignment('center').setWrap(false);
-  sheet.getRange(4, 14, rows, 1).setWrap(true);
+  sheet.getRange(4, 13, rows, 1).setNumberFormat('"Rp"#,##0'); // Dana Talangan
+  sheet.getRange(4, 14, rows, 1).setHorizontalAlignment('center').setWrap(false); // Status
+  sheet.getRange(4, 15, rows, 1).setWrap(true); // Catatan
 
-  applyRowStripes(sheet, 15);
+  applyRowStripes(sheet, 16);
 
-  // Sorotan visual jika ada pesanan yang sedang nombok kas kantor (DP < HPP)
+  // Sorotan visual: Dana Talangan jika > 0, dan Status jika Selesai
   try {
-    var statusRange = sheet.getRange(4, 13, rows, 1);
-    var ruleNombok = SpreadsheetApp.newConditionalFormatRule()
-      .whenTextContains('Nombok Kas')
+    var talanganRange = sheet.getRange(4, 13, rows, 1);
+    var statusRange = sheet.getRange(4, 14, rows, 1);
+    var ruleTalangan = SpreadsheetApp.newConditionalFormatRule()
+      .whenNumberGreaterThan(0)
       .setBackground(CLR.redCard)
       .setFontColor(CLR.red)
       .setBold(true)
+      .setRanges([talanganRange])
+      .build();
+    var ruleSelesai = SpreadsheetApp.newConditionalFormatRule()
+      .whenTextContains('Selesai')
+      .setBackground(CLR.greenCard)
+      .setFontColor(CLR.green)
+      .setBold(true)
       .setRanges([statusRange])
       .build();
-    sheet.setConditionalFormatRules([ruleNombok]);
+    sheet.setConditionalFormatRules([ruleTalangan, ruleSelesai]);
   } catch (e) {}
 }
 
@@ -1068,7 +1078,9 @@ function handleSyncAll(data, ss) {
           o.date, o.order_number, o.customer,
           (o.product || '-'),   // Pastikan product string, bukan angka
           o.qty, o.price_per_unit, o.total_order, o.dp, o.settlement,
-          o.total_cost, o.estimated_profit, o.remaining, o.status, o.notes,
+          o.total_cost, o.estimated_profit, o.remaining,
+          (o.cash_advance !== undefined ? o.cash_advance : (o.cash_deficit || 0)),
+          o.status, o.notes,
           o.id || ''
         ];
       });
@@ -1284,7 +1296,9 @@ function handleUpsertOrder(orderData, ss) {
     (orderData.product || '-'),
     orderData.qty, orderData.price_per_unit, orderData.total_order,
     orderData.dp, orderData.settlement, orderData.total_cost,
-    orderData.estimated_profit, orderData.remaining, orderData.status, orderData.notes,
+    orderData.estimated_profit, orderData.remaining,
+    (orderData.cash_advance !== undefined ? orderData.cash_advance : (orderData.cash_deficit || 0)),
+    orderData.status, orderData.notes,
     orderData.id || ''
   ];
 
@@ -1518,7 +1532,7 @@ function handleDelete(data, ss) {
   var cashSheet  = ss.getSheetByName('Arus Kas');
 
   if (data.entity === 'order') {
-    deleteRowById(orderSheet, 15, data.id);
+    deleteRowById(orderSheet, 16, data.id);
 
     // Biaya dan pembayaran milik pesanan itu ikut terhapus di database,
     // jadi barisnya harus hilang juga dari Rincian HPP dan Arus Kas.
