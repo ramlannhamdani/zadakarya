@@ -16,7 +16,8 @@ use Throwable;
 
 class GoogleSheetService
 {
-    public const DEFAULT_TIMEOUT = 15;
+    public const DEFAULT_TIMEOUT = 30;
+    public const BATCH_TIMEOUT = 90;
 
     public function getWebhookUrl(): ?string
     {
@@ -56,6 +57,14 @@ class GoogleSheetService
                 ->withOptions(['allow_redirects' => true])
                 ->get($url);
 
+            // Periksa jika Google mengembalikan 404 (File tidak ditemukan / deployment belum aktif)
+            if (str_contains($response->body(), 'Halaman Tidak Ditemukan') || str_contains($response->body(), 'tidak ada')) {
+                return [
+                    'success' => false,
+                    'message' => 'URL Webhook tidak ditemukan di Google (Error 404). Pastikan Web App sudah di-deploy dengan benar, hak akses diatur ke "Anyone" (Siapa saja), dan URL berakhiran /exec.',
+                ];
+            }
+
             // Harus benar-benar JSON dari skrip kita. Kalau deployment aksesnya
             // bukan "Anyone", Google membalas HTTP 200 berisi halaman login —
             // dulu itu lolos sebagai "berhasil" padahal tidak ada yang tersambung.
@@ -93,9 +102,16 @@ class GoogleSheetService
                 'message' => 'Respon gagal dari Google Sheets (HTTP '.$response->status().').',
             ];
         } catch (Throwable $e) {
+            $msg = $e->getMessage();
+            if (str_contains($msg, 'cURL error 28') || str_contains($msg, 'timed out')) {
+                $friendly = 'Waktu koneksi habis (Timeout setelah '.self::DEFAULT_TIMEOUT.' detik). URL Webhook tidak merespons. Pastikan URL benar, deployment aktif, dan berakhiran /exec.';
+            } else {
+                $friendly = 'Koneksi gagal: '.$msg;
+            }
+
             return [
                 'success' => false,
-                'message' => 'Koneksi gagal: '.$e->getMessage(),
+                'message' => $friendly,
             ];
         }
     }
@@ -116,7 +132,7 @@ class GoogleSheetService
             ];
         }
 
-        $res = $this->sendPayload(['action' => 'setup'], $url);
+        $res = $this->sendPayload(['action' => 'setup'], $url, self::BATCH_TIMEOUT);
 
         if ($res['success']) {
             return [
@@ -201,7 +217,7 @@ class GoogleSheetService
             'synced_at' => now()->translatedFormat('d F Y H:i:s'),
         ];
 
-        $res = $this->sendPayload($payload, $url);
+        $res = $this->sendPayload($payload, $url, self::BATCH_TIMEOUT);
 
         if ($res['success']) {
             Setting::set('google_sheet_last_synced_at', now()->toIso8601String());
@@ -643,7 +659,7 @@ class GoogleSheetService
     /**
      * @return array{success: bool, data?: array, error?: string}
      */
-    protected function sendPayload(array $payload, ?string $url = null): array
+    protected function sendPayload(array $payload, ?string $url = null, ?int $timeout = null): array
     {
         $targetUrl = $url ?? $this->getWebhookUrl();
 
@@ -651,8 +667,10 @@ class GoogleSheetService
             return ['success' => false, 'error' => 'URL Webhook Google Sheets tidak tersedia.'];
         }
 
+        $effectiveTimeout = $timeout ?? (in_array($payload['action'] ?? '', ['setup', 'sync_all']) ? self::BATCH_TIMEOUT : self::DEFAULT_TIMEOUT);
+
         try {
-            $response = Http::timeout(self::DEFAULT_TIMEOUT)
+            $response = Http::timeout($effectiveTimeout)
                 ->withOptions(['allow_redirects' => true])
                 ->asJson()
                 ->post($targetUrl, $payload);
@@ -678,18 +696,33 @@ class GoogleSheetService
                 return ['success' => false, 'error' => $error];
             }
 
+            // Periksa jika Google mengembalikan 404 (File tidak ditemukan / deployment belum aktif)
+            if (str_contains($response->body(), 'Halaman Tidak Ditemukan') || str_contains($response->body(), 'tidak ada')) {
+                $error = 'URL Webhook tidak ditemukan di Google (Error 404). Pastikan Web App sudah di-deploy dengan benar dan hak akses diatur ke "Anyone" (Siapa saja).';
+                $this->rememberFailure($error);
+
+                return ['success' => false, 'error' => $error];
+            }
+
             $error = 'HTTP Error '.$response->status().': '.$response->reason();
             $this->rememberFailure($error);
             Log::warning('Google Sheet sync failed: '.$error);
 
             return ['success' => false, 'error' => $error];
         } catch (Throwable $e) {
-            Log::warning('Google Sheet Webhook Sync failed: '.$e->getMessage());
-            $this->rememberFailure('Koneksi gagal: '.$e->getMessage());
+            $msg = $e->getMessage();
+            if (str_contains($msg, 'cURL error 28') || str_contains($msg, 'timed out')) {
+                $error = 'Waktu koneksi habis (Timeout setelah '.$effectiveTimeout.' detik). Google Webhook belum selesai memproses atau URL tidak merespons. Pastikan URL webhook valid dan hak akses diatur ke "Anyone".';
+            } else {
+                $error = 'Koneksi gagal: '.$msg;
+            }
+
+            Log::warning('Google Sheet Webhook Sync failed: '.$error);
+            $this->rememberFailure($error);
 
             return [
                 'success' => false,
-                'error' => 'Koneksi gagal: '.$e->getMessage(),
+                'error' => $error,
             ];
         }
     }

@@ -59,7 +59,11 @@ class SpreadsheetController extends Controller
             if ($syncRes['success']) {
                 $counts = $syncRes['counts'] ?? [];
                 $message .= ' Dan seluruh data (' . ($counts['orders'] ?? 0) . ' pesanan, ' . ($counts['costs'] ?? 0) . ' biaya HPP, ' . ($counts['payments'] ?? 0) . ' pembayaran, ' . ($counts['loans'] ?? 0) . ' pinjaman, ' . ($counts['assets'] ?? 0) . ' aset) berhasil langsung disinkronkan ke Google Sheets!';
+
+                return redirect()->route('admin.spreadsheet.index')->with('success', $message);
             }
+
+            return redirect()->route('admin.spreadsheet.index')->with('warning', $message . ' Namun sinkronisasi awal belum berhasil: ' . ($syncRes['message'] ?? 'Periksa status deployment Webhook Anda di Google Apps Script.'));
         }
 
         return redirect()->route('admin.spreadsheet.index')->with('success', $message);
