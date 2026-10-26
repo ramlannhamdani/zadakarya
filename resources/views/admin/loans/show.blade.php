@@ -8,6 +8,7 @@
     payModal: false,
     payAmount: '{{ $loan->remaining_amount }}'
 }">
+    <div class="space-y-6">
     {{-- Back Bar & Action Buttons --}}
     <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div class="flex items-center gap-3">
@@ -261,6 +262,7 @@
             </div>
         </div>
 
+    </div>
     </div>
 
     {{-- MODAL: EDIT PINJAMAN --}}

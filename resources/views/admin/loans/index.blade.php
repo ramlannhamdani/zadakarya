@@ -15,8 +15,9 @@
     }
 }">
 
-    <!-- 1. SUMMARY METRICS TILES (Sleek Flat Container) -->
-    <section class="bg-white rounded-2xl p-6 shadow-sm">
+    <div class="space-y-6">
+        <!-- 1. SUMMARY METRICS TILES (Sleek Flat Container) -->
+        <section class="bg-white rounded-2xl p-6 shadow-sm">
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-6 divide-y sm:divide-y-0 sm:divide-x divide-slate-100">
             <!-- Total Sisa Hutang Aktif -->
             <div class="pt-4 sm:pt-0 sm:px-4 first:pt-0 first:pl-0">
@@ -256,6 +257,7 @@
         </div>
         @endif
     </section>
+    </div>
 
     {{-- MODAL 1: CATAT PINJAMAN BARU --}}
     <div x-show="createModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
