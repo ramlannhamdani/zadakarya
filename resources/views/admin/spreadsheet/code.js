@@ -12,7 +12,7 @@
  * yang ada di aplikasi — penyebab paling sering tampilan sheet terlihat lama.
  * Naikkan setiap kali berkas ini diubah.
  */
-var SCRIPT_VERSION = '2026-10-26.01';
+var SCRIPT_VERSION = '2026-10-26.02';
 
 /**
  * Tinggi baris data di seluruh tab. Baris judul, banner, dan kartu KPI punya
@@ -312,8 +312,9 @@ function setupDashboardSheet(sheet, rekapSheet) {
   sheet.clear();
 
   // Delapan kolom selebar sama supaya kartu KPI yang menggabung dua kolom
-  // selalu sama besar — lebar campur membuat kartunya terlihat miring.
   for (var c = 1; c <= 8; c++) { sheet.setColumnWidth(c, 175); }
+  sheet.setColumnWidth(5, 195);
+  sheet.setColumnWidth(6, 155);
 
   // ── ROW 1–2: BANNER ──────────────────────────────────────────────────────
   sheet.setRowHeight(1, 52);
@@ -458,7 +459,7 @@ function setupDashboardSheet(sheet, rekapSheet) {
       '=IFERROR(IF($G$15>0,G11/$G$15,0),0)'
     ],
     [
-      '2. Beban Ops. Konveksi & Kantor',
+      '2. Beban Kantor & Konveksi',
       '=IFERROR(SUMIFS(\'Beban Konveksi\'!$E$4:$E,\'Beban Konveksi\'!$A$4:$A,">="&EOMONTH(TODAY(),-1)+1,\'Beban Konveksi\'!$A$4:$A,"<="&EOMONTH(TODAY(),0)),0)',
       '=IFERROR(SUM(\'Beban Konveksi\'!$E$4:$E),0)',
       '=IFERROR(IF($G$15>0,G12/$G$15,0),0)'
