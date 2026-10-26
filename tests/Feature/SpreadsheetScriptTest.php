@@ -31,7 +31,7 @@ class SpreadsheetScriptTest extends TestCase
         // mungkin meleset lagi — dan sekaligus bisa diurutkan menurut besarnya.
         $this->assertStringNotContainsString('var cats = [', $this->script);
 
-        preg_match('/getRange\(\'A11\'\)\.setFormula\((.*?)\);/s', $this->script, $m);
+        preg_match('/getRange\(\'A17\'\)\.setFormula\((.*?)\);/s', $this->script, $m);
         $this->assertNotEmpty($m, 'Rumus komposisi HPP tidak ditemukan.');
 
         $formula = $m[1];
@@ -47,7 +47,7 @@ class SpreadsheetScriptTest extends TestCase
 
     public function test_orders_are_ranked_by_margin_from_largest(): void
     {
-        preg_match('/getRange\(\'A20\'\)\.setFormula\((.*?)\);/s', $this->script, $m);
+        preg_match('/getRange\(\'A26\'\)\.setFormula\((.*?)\);/s', $this->script, $m);
         $this->assertNotEmpty($m, 'Rumus peringkat margin tidak ditemukan.');
 
         $formula = $m[1];
@@ -222,4 +222,22 @@ class SpreadsheetScriptTest extends TestCase
         $this->assertStringContainsString('function handleAddLoanPayment(', $this->script);
         $this->assertStringContainsString('pinjamanSheet.getRange(4, 1, loanRows.length, loanRows[0].length).setValues(loanRows);', $this->script);
     }
+
+    public function test_dashboard_has_kpi_cards_for_hpp_overhead_prive_talangan_and_pinjaman(): void
+    {
+        // 5 blok metrik yang diminta di dashboard spreadsheet
+        $this->assertStringContainsString('Total Biaya HPP (Produksi)', $this->script);
+        $this->assertStringContainsString('Beban Kantor & Konveksi', $this->script);
+        $this->assertStringContainsString('Beban Pribadi (Prive Owner)', $this->script);
+        $this->assertStringContainsString('Talangan Kas (Nombok DP)', $this->script);
+        $this->assertStringContainsString('Sisa Pinjaman (Pihak Luar)', $this->script);
+
+        // Rumus-rumus metrik kartu KPI
+        $this->assertStringContainsString("=IFERROR(SUM('Rincian Biaya HPP'!\$H\$4:\$H),0)", $this->script);
+        $this->assertStringContainsString("=IFERROR(SUM('Beban Konveksi'!\$E\$4:\$E),0)", $this->script);
+        $this->assertStringContainsString("=IFERROR(SUM('Beban Pribadi'!\$E\$4:\$E),0)", $this->script);
+        $this->assertStringContainsString("=IFERROR(SUM('Data Order'!\$M\$4:\$M),0)", $this->script);
+        $this->assertStringContainsString("=IFERROR(SUM('Pinjaman'!\$F\$4:\$F),0)", $this->script);
+    }
 }
+
