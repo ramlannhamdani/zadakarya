@@ -12,7 +12,7 @@
  * yang ada di aplikasi — penyebab paling sering tampilan sheet terlihat lama.
  * Naikkan setiap kali berkas ini diubah.
  */
-var SCRIPT_VERSION = '2026-10-26.05';
+var SCRIPT_VERSION = '2026-10-26.06';
 
 /**
  * Tinggi baris data di seluruh tab. Baris judul, banner, dan kartu KPI punya
@@ -72,6 +72,8 @@ function doPost(e) {
       handleUpsertLoan(data.loan || data.row, ss);
     } else if (data.type === 'loan_payment' || data.action === 'add_loan_payment') {
       handleAddLoanPayment(data.loan_payment || data.row, ss);
+    } else if (data.type === 'asset' || data.action === 'upsert_asset') {
+      handleUpsertAsset(data.asset || data.row, ss);
     }
 
     return respondJSON({ status: 'success', message: 'Data synced successfully' });
@@ -117,6 +119,9 @@ function setupSheet() {
   } catch(e) {}
 
   var dashSheet       = getOrCreateSheet(ss, 'Dashboard');
+  var neracaSheet     = getOrCreateSheet(ss, 'Neraca');
+  var labaRugiSheet   = getOrCreateSheet(ss, 'Laba Rugi');
+  var asetSheet       = getOrCreateSheet(ss, 'Aset');
   var orderSheet      = getOrCreateSheet(ss, 'Data Order');
   var cashSheet       = getOrCreateSheet(ss, 'Arus Kas');
   var pinjamanSheet   = getOrCreateSheet(ss, 'Pinjaman');
@@ -125,6 +130,9 @@ function setupSheet() {
   var personalSheet   = getOrCreateSheet(ss, 'Beban Pribadi');
   var rekapSheet      = getOrCreateSheet(ss, 'Rekap Bulanan');
 
+  setupAsetSheet(asetSheet);
+  setupLabaRugiSheet(labaRugiSheet);
+  setupNeracaSheet(neracaSheet);
   setupArusKasSheet(cashSheet);
   setupDataOrderSheet(orderSheet);
   setupPinjamanSheet(pinjamanSheet);
@@ -145,7 +153,7 @@ function setupSheet() {
 
   // Tata urutan tab agar runut dan mudah dibaca
   var tabOrder = [
-    'Dashboard', 'Data Order', 'Arus Kas', 'Pinjaman',
+    'Dashboard', 'Neraca', 'Laba Rugi', 'Aset', 'Data Order', 'Arus Kas', 'Pinjaman',
     'Rincian Biaya HPP', 'Beban Konveksi', 'Beban Pribadi',
     'Rekap Bulanan'
   ];
@@ -1101,6 +1109,422 @@ function setupRekapBulananSheet(sheet) {
 }
 
 /* ========================================================================== */
+/* TAB: ASET & VALUASI KONVEKSI                                                */
+/* ========================================================================== */
+function setupAsetSheet(sheet) {
+  sheet.clear();
+
+  // Column widths
+  sheet.setColumnWidth(1, 95);   // A: Tanggal Beli
+  sheet.setColumnWidth(2, 110);  // B: Kode Aset
+  sheet.setColumnWidth(3, 270);  // C: Nama Aset & Spesifikasi
+  sheet.setColumnWidth(4, 210);  // D: Kategori Aset
+  sheet.setColumnWidth(5, 65);   // E: Qty
+  sheet.setColumnWidth(6, 75);   // F: Satuan
+  sheet.setColumnWidth(7, 135);  // G: Harga Beli Satuan
+  sheet.setColumnWidth(8, 135);  // H: Estimasi Nilai Satuan
+  sheet.setColumnWidth(9, 145);  // I: Total Valuasi Pasar
+  sheet.setColumnWidth(10, 115); // J: Kondisi
+  sheet.setColumnWidth(11, 150); // K: Lokasi Penempatan
+  sheet.setColumnWidth(12, 200); // L: Catatan / Keterangan
+
+  // ROW 1: Banner
+  sheet.setRowHeight(1, 45);
+  sheet.getRange('A1:L1').merge()
+    .setValue('🏷️  INVENTARIS & VALUASI ASET KONVEKSI  ·  ZADA KARYA PRODUCTION')
+    .setFontFamily('Arial').setFontSize(13).setFontWeight('bold')
+    .setFontColor(CLR.white).setBackground('#6C1005')
+    .setHorizontalAlignment('center').setVerticalAlignment('middle');
+
+  // ROW 2: Decorative Accent
+  sheet.setRowHeight(2, 4);
+  sheet.getRange('A2:L2').setBackground('#F59E0B');
+
+  // ROW 3: Headers
+  sheet.setRowHeight(3, 28);
+  var hdrs = [
+    'Tanggal Beli', 'Kode Aset', 'Nama Aset & Spesifikasi', 'Kategori',
+    'Qty', 'Satuan', 'Harga Beli (Satuan)', 'Estimasi Nilai (Satuan)',
+    'Total Valuasi Pasar', 'Kondisi', 'Lokasi Penempatan', 'Catatan / Keterangan'
+  ];
+  sheet.getRange(3, 1, 1, hdrs.length).setValues([hdrs])
+    .setFontSize(9).setFontWeight('bold')
+    .setFontColor(CLR.white).setBackground('#8A1407')
+    .setHorizontalAlignment('center').setVerticalAlignment('middle');
+  sheet.setFrozenRows(3);
+
+  setupIdColumn(sheet, 13);
+
+  var rows = dataRowCount(sheet);
+  sheet.getRange(4, 1, rows, 1).setNumberFormat('dd-mmm-yy');
+  sheet.getRange(4, 2, rows, 1).setFontWeight('bold').setFontColor(CLR.navy).setHorizontalAlignment('center');
+  sheet.getRange(4, 5, rows, 1).setHorizontalAlignment('center');
+  sheet.getRange(4, 6, rows, 1).setHorizontalAlignment('center');
+  sheet.getRange(4, 7, rows, 3).setNumberFormat('"Rp"#,##0');
+  sheet.getRange(4, 10, rows, 1).setHorizontalAlignment('center');
+
+  applyRowStripes(sheet, 13);
+}
+
+/* ========================================================================== */
+/* TAB: LAPORAN LABA RUGI OPERASIONAL                                          */
+/* ========================================================================== */
+function setupLabaRugiSheet(sheet) {
+  sheet.clear();
+
+  // Column widths
+  sheet.setColumnWidth(1, 320); // A: Komponen Laporan Keuangan
+  sheet.setColumnWidth(2, 180); // B: Rincian / Subtotal
+  sheet.setColumnWidth(3, 190); // C: Akumulasi Laba / Rugi
+  sheet.setColumnWidth(4, 110); // D: Rasio Margin
+  sheet.setColumnWidth(5, 290); // E: Sumber Data Transaksi
+
+  // ROW 1: Banner
+  sheet.setRowHeight(1, 45);
+  sheet.getRange('A1:E1').merge()
+    .setValue('📈  LAPORAN LABA RUGI OPERASIONAL  ·  ZADA KARYA PRODUCTION')
+    .setFontFamily('Arial').setFontSize(13).setFontWeight('bold')
+    .setFontColor(CLR.white).setBackground('#1F3864')
+    .setHorizontalAlignment('center').setVerticalAlignment('middle');
+
+  // ROW 2: Decorative
+  sheet.setRowHeight(2, 4);
+  sheet.getRange('A2:E2').setBackground('#10B981');
+
+  // ROW 3: Headers
+  sheet.setRowHeight(3, 26);
+  sheet.getRange(3, 1, 1, 5).setValues([['Komponen Laporan Keuangan', 'Rincian / Subtotal', 'Jumlah Total', 'Rasio %', 'Sumber Data Sheet']])
+    .setFontSize(9).setFontWeight('bold').setFontColor(CLR.white).setBackground('#2E5FAC')
+    .setHorizontalAlignment('center').setVerticalAlignment('middle');
+
+  // Row 4: SECTION 1 - PENDAPATAN
+  sheet.setRowHeight(4, 26);
+  sheet.getRange('A4:E4').setBackground('#E8F6ED');
+  sheet.getRange('A4').setValue('1. PENDAPATAN OPERASIONAL (PENJUALAN ORDER)')
+    .setFontSize(10).setFontWeight('bold').setFontColor('#1A6B36').setVerticalAlignment('middle');
+
+  // Row 5: Total Penjualan Order
+  sheet.setRowHeight(5, ROW_H);
+  sheet.getRange('A5').setValue('  • Nilai Total Pesanan / Order (Gross Revenue)').setFontSize(9).setVerticalAlignment('middle');
+  sheet.getRange('B5').setFormula('=IFERROR(SUM(\'Data Order\'!$G$4:$G),0)').setFontSize(9).setNumberFormat('"Rp"#,##0');
+  sheet.getRange('E5').setValue('Tab "Data Order" (Kolom Total Nilai)').setFontSize(8).setFontColor(CLR.gray2).setVerticalAlignment('middle');
+
+  // Row 6: Realisasi Kas Masuk dari Order
+  sheet.setRowHeight(6, ROW_H);
+  sheet.getRange('A6').setValue('    - Pembayaran Masuk (Kas Tunai & DP/Pelunasan)').setFontSize(8).setFontColor(CLR.gray2).setVerticalAlignment('middle');
+  sheet.getRange('B6').setFormula('=IFERROR(SUM(\'Data Order\'!$H$4:$H)+SUM(\'Data Order\'!$I$4:$I),0)').setFontSize(8).setFontColor(CLR.gray2).setNumberFormat('"Rp"#,##0');
+  sheet.getRange('E6').setValue('Tab "Data Order" (Kolom DP & Pelunasan)').setFontSize(8).setFontColor(CLR.gray2).setVerticalAlignment('middle');
+
+  // Row 7: Piutang Order Aktif
+  sheet.setRowHeight(7, ROW_H);
+  sheet.getRange('A7').setValue('    - Piutang Usaha (Tagihan Order Belum Lunas)').setFontSize(8).setFontColor(CLR.gray2).setVerticalAlignment('middle');
+  sheet.getRange('B7').setFormula('=IFERROR(SUM(\'Data Order\'!$L$4:$L),0)').setFontSize(8).setFontColor(CLR.gray2).setNumberFormat('"Rp"#,##0');
+  sheet.getRange('E7').setValue('Tab "Data Order" (Kolom Sisa Tagihan)').setFontSize(8).setFontColor(CLR.gray2).setVerticalAlignment('middle');
+
+  // Row 8: Total Pendapatan Penjualan
+  sheet.setRowHeight(8, 28);
+  sheet.getRange(8, 1, 1, 5).setBackground('#F0FDF4');
+  sheet.getRange('A8').setValue('TOTAL PENDAPATAN PENJUALAN').setFontSize(9).setFontWeight('bold').setFontColor('#166534').setVerticalAlignment('middle');
+  sheet.getRange('C8').setFormula('=B5').setFontSize(10).setFontWeight('bold').setFontColor('#166534').setNumberFormat('"Rp"#,##0');
+  sheet.getRange('D8').setValue('100.0%').setFontSize(9).setFontWeight('bold').setFontColor('#166534').setHorizontalAlignment('center');
+
+  // Row 9: Spacing
+  sheet.setRowHeight(9, 12);
+
+  // Row 10: SECTION 2 - HARGA POKOK PENJUALAN
+  sheet.setRowHeight(10, 26);
+  sheet.getRange('A10:E10').setBackground('#FEE2E2');
+  sheet.getRange('A10').setValue('2. HARGA POKOK PENJUALAN (HPP PRODUKSI)')
+    .setFontSize(10).setFontWeight('bold').setFontColor('#991B1B').setVerticalAlignment('middle');
+
+  // Row 11: Biaya Produksi (Kain, Sablon, Bordir, CMT)
+  sheet.setRowHeight(11, ROW_H);
+  sheet.getRange('A11').setValue('  • Bahan Baku Kain, Benang, Bordir, Sablon & CMT').setFontSize(9).setVerticalAlignment('middle');
+  sheet.getRange('B11').setFormula('=IFERROR(SUM(\'Rincian Biaya HPP\'!$H$4:$H),0)').setFontSize(9).setNumberFormat('"Rp"#,##0');
+  sheet.getRange('E11').setValue('Tab "Rincian Biaya HPP"').setFontSize(8).setFontColor(CLR.gray2).setVerticalAlignment('middle');
+
+  // Row 12: Total HPP
+  sheet.setRowHeight(12, 28);
+  sheet.getRange(12, 1, 1, 5).setBackground('#FEF2F2');
+  sheet.getRange('A12').setValue('TOTAL HARGA POKOK PENJUALAN (HPP)').setFontSize(9).setFontWeight('bold').setFontColor('#991B1B').setVerticalAlignment('middle');
+  sheet.getRange('C12').setFormula('=B11').setFontSize(10).setFontWeight('bold').setFontColor('#991B1B').setNumberFormat('"Rp"#,##0');
+  sheet.getRange('D12').setFormula('=IF(C8>0, C12/C8, 0)').setFontSize(9).setNumberFormat('0.0%').setHorizontalAlignment('center');
+
+  // Row 13: Spacing
+  sheet.setRowHeight(13, 12);
+
+  // Row 14: LABA KOTOR (GROSS PROFIT)
+  sheet.setRowHeight(14, 32);
+  sheet.getRange(14, 1, 1, 5).setBackground('#D1FAE5');
+  sheet.getRange('A14').setValue('LABA KOTOR (GROSS PROFIT)').setFontSize(10).setFontWeight('bold').setFontColor('#065F46').setVerticalAlignment('middle');
+  sheet.getRange('C14').setFormula('=C8-C12').setFontSize(11).setFontWeight('bold').setFontColor('#065F46').setNumberFormat('"Rp"#,##0');
+  sheet.getRange('D14').setFormula('=IF(C8>0, C14/C8, 0)').setFontSize(10).setFontWeight('bold').setFontColor('#065F46').setNumberFormat('0.0%').setHorizontalAlignment('center');
+  sheet.getRange('E14').setValue('Gross Profit Margin = Laba Kotor / Omzet').setFontSize(8).setFontColor('#065F46').setVerticalAlignment('middle');
+
+  // Row 15: Spacing
+  sheet.setRowHeight(15, 12);
+
+  // Row 16: SECTION 3 - BEBAN OPERASIONAL KONVEKSI
+  sheet.setRowHeight(16, 26);
+  sheet.getRange('A16:E16').setBackground('#F1F5F9');
+  sheet.getRange('A16').setValue('3. BEBAN OPERASIONAL KONVEKSI (OPEX)')
+    .setFontSize(10).setFontWeight('bold').setFontColor(CLR.navy).setVerticalAlignment('middle');
+
+  // Row 17: Pengeluaran Konveksi & Kantor
+  sheet.setRowHeight(17, ROW_H);
+  sheet.getRange('A17').setValue('  • Listrik Workshop, Maintenance Mesin, Sparepart, Packing').setFontSize(9).setVerticalAlignment('middle');
+  sheet.getRange('B17').setFormula('=IFERROR(SUM(\'Beban Konveksi\'!$E$4:$E),0)').setFontSize(9).setNumberFormat('"Rp"#,##0');
+  sheet.getRange('E17').setValue('Tab "Beban Konveksi"').setFontSize(8).setFontColor(CLR.gray2).setVerticalAlignment('middle');
+
+  // Row 18: Total Beban Konveksi
+  sheet.setRowHeight(18, 28);
+  sheet.getRange(18, 1, 1, 5).setBackground('#F8FAFC');
+  sheet.getRange('A18').setValue('TOTAL BEBAN OPERASIONAL KONVEKSI').setFontSize(9).setFontWeight('bold').setFontColor(CLR.navy).setVerticalAlignment('middle');
+  sheet.getRange('C18').setFormula('=B17').setFontSize(10).setFontWeight('bold').setFontColor(CLR.navy).setNumberFormat('"Rp"#,##0');
+  sheet.getRange('D18').setFormula('=IF(C8>0, C18/C8, 0)').setFontSize(9).setNumberFormat('0.0%').setHorizontalAlignment('center');
+
+  // Row 19: Spacing
+  sheet.setRowHeight(19, 12);
+
+  // Row 20: LABA OPERASIONAL KONVEKSI (EBIT)
+  sheet.setRowHeight(20, 32);
+  sheet.getRange(20, 1, 1, 5).setBackground('#DBEAFE');
+  sheet.getRange('A20').setValue('LABA OPERASIONAL KONVEKSI (EBIT)').setFontSize(10).setFontWeight('bold').setFontColor('#1E40AF').setVerticalAlignment('middle');
+  sheet.getRange('C20').setFormula('=C14-C18').setFontSize(11).setFontWeight('bold').setFontColor('#1E40AF').setNumberFormat('"Rp"#,##0;[Red]-"Rp"#,##0');
+  sheet.getRange('D20').setFormula('=IF(C8>0, C20/C8, 0)').setFontSize(10).setFontWeight('bold').setFontColor('#1E40AF').setNumberFormat('0.0%').setHorizontalAlignment('center');
+  sheet.getRange('E20').setValue('Operating Profit Konveksi Murni').setFontSize(8).setFontColor('#1E40AF').setVerticalAlignment('middle');
+
+  // Row 21: Spacing
+  sheet.setRowHeight(21, 12);
+
+  // Row 22: SECTION 4 - PRIVE PEMILIK
+  sheet.setRowHeight(22, 26);
+  sheet.getRange('A22:E22').setBackground('#FDF2F8');
+  sheet.getRange('A22').setValue('4. PENGELUARAN PRIBADI / PRIVE PEMILIK')
+    .setFontSize(10).setFontWeight('bold').setFontColor('#9D174D').setVerticalAlignment('middle');
+
+  // Row 23: Beban Pribadi
+  sheet.setRowHeight(23, ROW_H);
+  sheet.getRange('A23').setValue('  • Penarikan Dana Pribadi Pemilik (Prive)').setFontSize(9).setVerticalAlignment('middle');
+  sheet.getRange('B23').setFormula('=IFERROR(SUM(\'Beban Pribadi\'!$E$4:$E),0)').setFontSize(9).setNumberFormat('"Rp"#,##0');
+  sheet.getRange('E23').setValue('Tab "Beban Pribadi"').setFontSize(8).setFontColor(CLR.gray2).setVerticalAlignment('middle');
+
+  // Row 24: Total Prive
+  sheet.setRowHeight(24, 28);
+  sheet.getRange(24, 1, 1, 5).setBackground('#FDF2F8');
+  sheet.getRange('A24').setValue('TOTAL PRIVE PEMILIK').setFontSize(9).setFontWeight('bold').setFontColor('#9D174D').setVerticalAlignment('middle');
+  sheet.getRange('C24').setFormula('=B23').setFontSize(10).setFontWeight('bold').setFontColor('#9D174D').setNumberFormat('"Rp"#,##0');
+  sheet.getRange('D24').setFormula('=IF(C8>0, C24/C8, 0)').setFontSize(9).setNumberFormat('0.0%').setHorizontalAlignment('center');
+
+  // Row 25: Spacing
+  sheet.setRowHeight(25, 14);
+
+  // Row 26: LABA BERSIH AKHIR (LABA DITAHAN)
+  sheet.setRowHeight(26, 36);
+  sheet.getRange(26, 1, 1, 5).setBackground('#6C1005');
+  sheet.getRange('A26').setValue('LABA BERSIH AKHIR USAHA (LABA DITAHAN)').setFontSize(11).setFontWeight('bold').setFontColor(CLR.white).setVerticalAlignment('middle');
+  sheet.getRange('C26').setFormula('=C20-C24').setFontSize(12).setFontWeight('bold').setFontColor(CLR.white).setNumberFormat('"Rp"#,##0;[Red]-"Rp"#,##0');
+  sheet.getRange('D26').setFormula('=IF(C8>0, C26/C8, 0)').setFontSize(10).setFontWeight('bold').setFontColor(CLR.white).setNumberFormat('0.0%').setHorizontalAlignment('center');
+  sheet.getRange('E26').setValue('Akumulasi modal masuk ke Neraca Pasiva').setFontSize(8).setFontColor('#FDE8E8').setVerticalAlignment('middle');
+}
+
+/* ========================================================================== */
+/* TAB: NERACA POSISI KEUANGAN (BENTUK SKONTRO / KIRI & KANAN)                 */
+/* ========================================================================== */
+function setupNeracaSheet(sheet) {
+  sheet.clear();
+
+  // Column widths: Kolom A-D (Aktiva/Kiri), Kolom E (Separator), Kolom F-I (Pasiva/Kanan)
+  sheet.setColumnWidth(1, 35);   // A: No Aktiva
+  sheet.setColumnWidth(2, 230);  // B: Keterangan Aktiva
+  sheet.setColumnWidth(3, 115);  // C: Rincian Aktiva (Rp)
+  sheet.setColumnWidth(4, 140);  // D: Subtotal Aktiva (Rp)
+  sheet.setColumnWidth(5, 25);   // E: Divider Spasi
+  sheet.setColumnWidth(6, 35);   // F: No Pasiva
+  sheet.setColumnWidth(7, 230);  // G: Keterangan Pasiva
+  sheet.setColumnWidth(8, 115);  // H: Rincian Pasiva (Rp)
+  sheet.setColumnWidth(9, 140);  // I: Subtotal Pasiva (Rp)
+
+  // ROW 1: Banner
+  sheet.setRowHeight(1, 45);
+  sheet.getRange('A1:I1').merge()
+    .setValue('⚖️  NERACA KEUANGAN & VALUASI USAHA (BENTUK SKONTRO)  ·  ZADA KARYA PRODUCTION')
+    .setFontFamily('Arial').setFontSize(13).setFontWeight('bold')
+    .setFontColor(CLR.white).setBackground('#1F3864')
+    .setHorizontalAlignment('center').setVerticalAlignment('middle');
+
+  // ROW 2: Decorative Accent
+  sheet.setRowHeight(2, 4);
+  sheet.getRange('A2:D2').setBackground('#10B981'); // Hijau Aktiva
+  sheet.getRange('E2').setBackground('#CBD5E1');
+  sheet.getRange('F2:I2').setBackground('#6C1005'); // Marun Pasiva
+
+  // ROW 3: Column Headers (Skontro: Kiri Aktiva, Kanan Pasiva)
+  sheet.setRowHeight(3, 28);
+  sheet.getRange('A3:D3').merge().setValue('SISI KIRI: AKTIVA (ASET)')
+    .setFontSize(10).setFontWeight('bold').setFontColor(CLR.white).setBackground('#166534')
+    .setHorizontalAlignment('center').setVerticalAlignment('middle');
+  sheet.getRange('E3').setBackground('#F1F5F9');
+  sheet.getRange('F3:I3').merge().setValue('SISI KANAN: PASIVA (KEWAJIBAN & EKUITAS)')
+    .setFontSize(10).setFontWeight('bold').setFontColor(CLR.white).setBackground('#8A1407')
+    .setHorizontalAlignment('center').setVerticalAlignment('middle');
+
+  // ROW 4: Section 1 Subheaders
+  sheet.setRowHeight(4, 24);
+  sheet.getRange('A4:D4').setBackground('#E8F6ED');
+  sheet.getRange('A4:B4').merge().setValue('I. ASET LANCAR')
+    .setFontSize(9).setFontWeight('bold').setFontColor('#166534').setVerticalAlignment('middle');
+
+  sheet.getRange('E4').setBackground('#F8FAFC');
+
+  sheet.getRange('F4:I4').setBackground('#FEF3C7');
+  sheet.getRange('F4:G4').merge().setValue('I. KEWAJIBAN / UTANG (LIABILITAS)')
+    .setFontSize(9).setFontWeight('bold').setFontColor('#92400E').setVerticalAlignment('middle');
+
+  // ROW 5: Kas & Utang Pinjaman
+  sheet.setRowHeight(5, ROW_H);
+  sheet.getRange('A5').setValue('1').setFontSize(8).setHorizontalAlignment('center');
+  sheet.getRange('B5').setValue('Kas & Saldo Bank (Arus Kas)').setFontSize(8.5).setVerticalAlignment('middle');
+  sheet.getRange('C5').setFormula('=IFERROR(SUM(\'Arus Kas\'!$F$4:$F)-SUM(\'Arus Kas\'!$G$4:$G),0)').setFontSize(8.5).setNumberFormat('"Rp"#,##0');
+
+  sheet.getRange('E5').setBackground('#F8FAFC');
+
+  sheet.getRange('F5').setValue('1').setFontSize(8).setHorizontalAlignment('center');
+  sheet.getRange('G5').setValue('Utang Pinjaman & Dana Talangan').setFontSize(8.5).setVerticalAlignment('middle');
+  sheet.getRange('H5').setFormula('=IFERROR(SUM(Pinjaman!$F$4:$F),0)').setFontSize(8.5).setNumberFormat('"Rp"#,##0');
+
+  // ROW 6: Piutang & Utang Vendor
+  sheet.setRowHeight(6, ROW_H);
+  sheet.getRange('A6').setValue('2').setFontSize(8).setHorizontalAlignment('center');
+  sheet.getRange('B6').setValue('Piutang Usaha (Tagihan Customer)').setFontSize(8.5).setVerticalAlignment('middle');
+  sheet.getRange('C6').setFormula('=IFERROR(SUM(\'Data Order\'!$L$4:$L),0)').setFontSize(8.5).setNumberFormat('"Rp"#,##0');
+
+  sheet.getRange('E6').setBackground('#F8FAFC');
+
+  sheet.getRange('F6').setValue('2').setFontSize(8).setHorizontalAlignment('center');
+  sheet.getRange('G6').setValue('Utang Usaha / Vendor Bahan (Tempo)').setFontSize(8.5).setVerticalAlignment('middle');
+  sheet.getRange('H6').setValue(0).setFontSize(8.5).setNumberFormat('"Rp"#,##0');
+
+  // ROW 7: Subtotal Aset Lancar & Subtotal Kewajiban
+  sheet.setRowHeight(7, 26);
+  sheet.getRange('A7:D7').setBackground('#F0FDF4');
+  sheet.getRange('A7:B7').merge().setValue('Total Aset Lancar').setFontSize(9).setFontWeight('bold').setFontColor('#166534');
+  sheet.getRange('D7').setFormula('=SUM(C5:C6)').setFontSize(9).setFontWeight('bold').setFontColor('#166534').setNumberFormat('"Rp"#,##0');
+
+  sheet.getRange('E7').setBackground('#F8FAFC');
+
+  sheet.getRange('F7:I7').setBackground('#FFFBEB');
+  sheet.getRange('F7:G7').merge().setValue('Total Kewajiban (Utang)').setFontSize(9).setFontWeight('bold').setFontColor('#92400E');
+  sheet.getRange('I7').setFormula('=SUM(H5:H6)').setFontSize(9).setFontWeight('bold').setFontColor('#92400E').setNumberFormat('"Rp"#,##0');
+
+  // ROW 8: Spacing
+  sheet.setRowHeight(8, 10);
+  sheet.getRange('A8:I8').setBackground('#FFFFFF');
+
+  // ROW 9: Section 2 Subheaders (Aset Tetap & Ekuitas)
+  sheet.setRowHeight(9, 24);
+  sheet.getRange('A9:D9').setBackground('#E8F6ED');
+  sheet.getRange('A9:B9').merge().setValue('II. ASET TETAP KONVEKSI (VALUASI PASAR)')
+    .setFontSize(9).setFontWeight('bold').setFontColor('#166534').setVerticalAlignment('middle');
+
+  sheet.getRange('E9').setBackground('#F8FAFC');
+
+  sheet.getRange('F9:I9').setBackground('#FCE7F3');
+  sheet.getRange('F9:G9').merge().setValue('II. EKUITAS (MODAL BERSIH)')
+    .setFontSize(9).setFontWeight('bold').setFontColor('#9D174D').setVerticalAlignment('middle');
+
+  // Fixed Asset rows (10 to 16)
+  var fixedAssetItems = [
+    { no: '1', name: 'Mesin Jahit & Obras', pattern: '*Mesin Jahit*' },
+    { no: '2', name: 'Mesin Potong & Meja Pola', pattern: '*Potong*' },
+    { no: '3', name: 'Sablon, Heatpress & Bordir', pattern: '*Sablon*' },
+    { no: '4', name: 'Setrika Uap Boiler & Finishing', pattern: '*Setrika*' },
+    { no: '5', name: 'Komputer Desain & Elektronik', pattern: '*Komputer*' },
+    { no: '6', name: 'Fasilitas Workshop & Kendaraan', pattern: '*Fasilitas*' },
+    { no: '7', name: 'Aset & Peralatan Lainnya', pattern: '*Lainnya*' }
+  ];
+
+  for (var fa = 0; fa < fixedAssetItems.length; fa++) {
+    var rowIdx = 10 + fa;
+    sheet.setRowHeight(rowIdx, ROW_H);
+
+    // Kiri: Aset Tetap
+    sheet.getRange('A' + rowIdx).setValue(fixedAssetItems[fa].no).setFontSize(8).setHorizontalAlignment('center');
+    sheet.getRange('B' + rowIdx).setValue(fixedAssetItems[fa].name).setFontSize(8.5).setVerticalAlignment('middle');
+    sheet.getRange('C' + rowIdx).setFormula('=IFERROR(SUMIFS(Aset!$I$4:$I, Aset!$D$4:$D, "' + fixedAssetItems[fa].pattern + '"),0)')
+      .setFontSize(8.5).setNumberFormat('"Rp"#,##0');
+
+    sheet.getRange('E' + rowIdx).setBackground('#F8FAFC');
+
+    // Kanan: Ekuitas baris 10 & 11, baris 12-16 kosong/penjelasan
+    if (fa === 0) {
+      sheet.getRange('F10').setValue('1').setFontSize(8).setHorizontalAlignment('center');
+      sheet.getRange('G10').setValue('Modal Disetor Pemilik (Valuasi Awal)').setFontSize(8.5).setVerticalAlignment('middle');
+      sheet.getRange('H10').setFormula('=MAX(0, D19-I7-H11)').setFontSize(8.5).setFontWeight('bold').setNumberFormat('"Rp"#,##0');
+    } else if (fa === 1) {
+      sheet.getRange('F11').setValue('2').setFontSize(8).setHorizontalAlignment('center');
+      sheet.getRange('G11').setValue('Akumulasi Laba Ditahan Usaha').setFontSize(8.5).setVerticalAlignment('middle');
+      sheet.getRange('H11').setFormula('=\'Laba Rugi\'!$C$26').setFontSize(8.5).setFontWeight('bold').setNumberFormat('"Rp"#,##0;[Red]-"Rp"#,##0');
+    } else if (fa === 2) {
+      sheet.getRange('F12:I12').merge().setValue('Ket: Modal Pemilik dihitung dari Total Aset dikurangi Kewajiban & Laba Ditahan.')
+        .setFontSize(7.5).setFontColor(CLR.gray2).setVerticalAlignment('middle');
+    }
+  }
+
+  // ROW 17: Subtotal Aset Tetap & Subtotal Ekuitas
+  sheet.setRowHeight(17, 26);
+  sheet.getRange('A17:D17').setBackground('#F0FDF4');
+  sheet.getRange('A17:B17').merge().setValue('Total Aset Tetap Konveksi').setFontSize(9).setFontWeight('bold').setFontColor('#166534');
+  sheet.getRange('D17').setFormula('=SUM(C10:C16)').setFontSize(9).setFontWeight('bold').setFontColor('#166534').setNumberFormat('"Rp"#,##0');
+
+  sheet.getRange('E17').setBackground('#F8FAFC');
+
+  sheet.getRange('F17:I17').setBackground('#FDF2F8');
+  sheet.getRange('F17:G17').merge().setValue('Total Ekuitas (Modal Bersih)').setFontSize(9).setFontWeight('bold').setFontColor('#9D174D');
+  sheet.getRange('I17').setFormula('=SUM(H10:H11)').setFontSize(9).setFontWeight('bold').setFontColor('#9D174D').setNumberFormat('"Rp"#,##0');
+
+  // ROW 18: Spacing
+  sheet.setRowHeight(18, 10);
+  sheet.getRange('A18:I18').setBackground('#FFFFFF');
+
+  // ROW 19: TOTAL AKTIVA (KIRI) vs TOTAL PASIVA (KANAN)
+  sheet.setRowHeight(19, 36);
+  sheet.getRange('A19:D19').setBackground('#166534');
+  sheet.getRange('A19:B19').merge().setValue('TOTAL AKTIVA (ASET)')
+    .setFontSize(10.5).setFontWeight('bold').setFontColor(CLR.white).setVerticalAlignment('middle');
+  sheet.getRange('D19').setFormula('=D7+D17')
+    .setFontSize(11.5).setFontWeight('bold').setFontColor(CLR.white).setNumberFormat('"Rp"#,##0').setVerticalAlignment('middle');
+
+  sheet.getRange('E19').setBackground('#CBD5E1');
+
+  sheet.getRange('F19:I19').setBackground('#1F3864');
+  sheet.getRange('F19:G19').merge().setValue('TOTAL PASIVA (KEWAJIBAN & EKUITAS)')
+    .setFontSize(10.5).setFontWeight('bold').setFontColor(CLR.white).setVerticalAlignment('middle');
+  sheet.getRange('I19').setFormula('=I7+I17')
+    .setFontSize(11.5).setFontWeight('bold').setFontColor(CLR.white).setNumberFormat('"Rp"#,##0').setVerticalAlignment('middle');
+
+  // ROW 20: Spacing
+  sheet.setRowHeight(20, 10);
+  sheet.getRange('A20:I20').setBackground('#FFFFFF');
+
+  // ROW 21: STATUS BANNER KESEIMBANGAN & VALUASI NET WORTH
+  sheet.setRowHeight(21, 34);
+  sheet.getRange('A21:D21').merge()
+    .setFormula('=IF(D19=I19, "✅ NERACA SEIMBANG (AKTIVA = PASIVA)", "⚠️ SELISIH: " & TEXT(D19-I19, "Rp#,##0"))')
+    .setFontSize(10).setFontWeight('bold').setFontColor('#065F46').setBackground('#D1FAE5')
+    .setHorizontalAlignment('center').setVerticalAlignment('middle')
+    .setBorder(true, true, true, true, false, false, '#10B981', SpreadsheetApp.BorderStyle.SOLID_MEDIUM);
+
+  sheet.getRange('E21').setBackground('#F8FAFC');
+
+  sheet.getRange('F21:I21').merge()
+    .setFormula('="💎 VALUASI BERSIH (NET WORTH): " & TEXT(D19-I7, "Rp#,##0")')
+    .setFontSize(10).setFontWeight('bold').setFontColor('#831843').setBackground('#FCE7F3')
+    .setHorizontalAlignment('center').setVerticalAlignment('middle')
+    .setBorder(true, true, true, true, false, false, '#EC4899', SpreadsheetApp.BorderStyle.SOLID_MEDIUM);
+}
+
+/* ========================================================================== */
 /* DATA HANDLERS                                                               */
 /* ========================================================================== */
 function handleSyncAll(data, ss) {
@@ -1315,6 +1739,34 @@ function handleSyncAll(data, ss) {
         ];
       });
       pinjamanSheet.getRange(4, 1, loanRows.length, loanRows[0].length).setValues(loanRows);
+    }
+  }
+
+  // 7. Aset & Valuasi Konveksi
+  var asetSheet = ss.getSheetByName('Aset');
+  if (asetSheet && data.assets) {
+    clearSheetDataRows(asetSheet, 4);
+    if (data.assets.length > 0) {
+      var assetRows = data.assets.map(function(a) {
+        var qty = a.qty || 1;
+        var curVal = a.current_value !== undefined ? a.current_value : (a.purchase_price || 0);
+        return [
+          a.date,
+          a.code,
+          a.name,
+          a.category,
+          qty,
+          a.unit || 'unit',
+          a.purchase_price || 0,
+          curVal,
+          qty * curVal,
+          a.condition || 'Baik',
+          a.location || '-',
+          a.notes || '-',
+          a.id || a.code || ''
+        ];
+      });
+      asetSheet.getRange(4, 1, assetRows.length, assetRows[0].length).setValues(assetRows);
     }
   }
 
@@ -1557,6 +2009,37 @@ function handleAddLoanPayment(lpData, ss) {
   }
 }
 
+function handleUpsertAsset(assetData, ss) {
+  var sheet = ss.getSheetByName('Aset');
+  if (!sheet) return;
+
+  var qty = assetData.qty || 1;
+  var curVal = assetData.current_value !== undefined ? assetData.current_value : (assetData.purchase_price || 0);
+
+  var a = Array.isArray(assetData) ? assetData : [
+    assetData.date,
+    assetData.code,
+    assetData.name,
+    assetData.category,
+    qty,
+    assetData.unit || 'unit',
+    assetData.purchase_price || 0,
+    curVal,
+    qty * curVal,
+    assetData.condition || 'Baik',
+    assetData.location || '-',
+    assetData.notes || '-',
+    assetData.id || assetData.code || ''
+  ];
+
+  var existing = findRowById(sheet, 13, a[12]);
+  if (existing > 0) {
+    sheet.getRange(existing, 1, 1, a.length).setValues([a]);
+  } else {
+    sheet.appendRow(a);
+  }
+}
+
 /**
  * Hapus baris yang datanya dihapus di panel admin. Tanpa ini pesanan yang sudah
  * dihapus tetap menyumbang omzet dan laba, dan pembayaran yang dihapus
@@ -1603,6 +2086,9 @@ function handleDelete(data, ss) {
     }
   } else if (data.entity === 'loan_payment') {
     deleteRowById(cashSheet, 10, data.id);
+  } else if (data.entity === 'asset') {
+    var asetSheet = ss.getSheetByName('Aset');
+    if (asetSheet) deleteRowById(asetSheet, 13, data.id);
   }
 
   refreshSaldoFormulas(cashSheet);

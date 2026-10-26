@@ -158,6 +158,12 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('loans/{loan}/payments', [Admin\LoanController::class, 'storePayment'])->name('loans.payments.store');
         Route::delete('loans/{loan}/payments/{payment}', [Admin\LoanController::class, 'destroyPayment'])->name('loans.payments.destroy');
 
+        // Aset & Valuasi Konveksi
+        Route::resource('assets', Admin\ConvectionAssetController::class)->except(['create', 'show', 'edit']);
+
+        // Laporan Keuangan & Neraca Skontro
+        Route::get('finance', [Admin\FinancialReportController::class, 'index'])->name('finance.index');
+
         // Spreadsheet Integration
         Route::get('spreadsheet', [Admin\SpreadsheetController::class, 'index'])->name('spreadsheet.index');
         Route::patch('spreadsheet', [Admin\SpreadsheetController::class, 'update'])->name('spreadsheet.update');

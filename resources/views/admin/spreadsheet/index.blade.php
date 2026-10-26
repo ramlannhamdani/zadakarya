@@ -57,7 +57,7 @@
                         Skrip di Google masih versi {{ $liveScriptVersion ?: 'lama (belum terpasang v'.$appScriptVersion.')' }}, aplikasi sudah versi {{ $appScriptVersion }}.
                     </p>
                     <p class="mt-0.5 text-amber-800">
-                        Pembaruan (Tab Pinjaman Pihak Luar &amp; Talangan Kas) memerlukan deploy skrip baru di Google Apps Script (v{{ $appScriptVersion }}). Salin kode terbaru di bawah dan lakukan deploy ulang (Deploy &rarr; Manage deployments &rarr; Edit &rarr; Version: New version &rarr; Deploy).
+                        Pembaruan (Tab Aset, Laba Rugi &amp; Neraca Bentuk Skontro) memerlukan deploy skrip baru di Google Apps Script (v{{ $appScriptVersion }}). Salin kode terbaru di bawah dan lakukan deploy ulang (Deploy &rarr; Manage deployments &rarr; Edit &rarr; Version: New version &rarr; Deploy), lalu tekan <strong>Tata Ulang</strong>.
                     </p>
                 </div>
                 @endif
@@ -111,7 +111,7 @@
     </div>
 
     <!-- 2. SYNCHRONIZED COUNTERS -->
-    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 lg:gap-6 pt-6">
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4 lg:gap-4 pt-6">
         <!-- 1. Data Pesanan -->
         <div class="bg-slate-50/70 rounded-xl p-3.5 sm:p-4">
             <div class="flex items-center justify-between">
@@ -165,7 +165,7 @@
         </div>
 
         <!-- 5. Pinjaman Pihak Luar -->
-        <div class="bg-slate-50/70 rounded-xl p-3.5 sm:p-4 col-span-2 sm:col-span-1">
+        <div class="bg-slate-50/70 rounded-xl p-3.5 sm:p-4">
             <div class="flex items-center justify-between">
                 <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Pinjaman</span>
                 <i class="fa-solid fa-hand-holding-dollar text-slate-300 text-xs"></i>
@@ -175,6 +175,19 @@
                 <span class="text-[11px] text-slate-400">utang luar</span>
             </div>
             <p class="text-[11px] text-slate-400 mt-0.5">Sheet: <span class="font-mono text-slate-600">Pinjaman</span></p>
+        </div>
+
+        <!-- 6. Aset & Valuasi Konveksi -->
+        <div class="bg-slate-50/70 rounded-xl p-3.5 sm:p-4">
+            <div class="flex items-center justify-between">
+                <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Aset Mesin</span>
+                <i class="fa-solid fa-boxes-stacked text-slate-300 text-xs"></i>
+            </div>
+            <div class="flex items-baseline gap-2 mt-1">
+                <span class="text-2xl sm:text-3xl font-bold text-slate-900">{{ number_format($assetCount ?? 0) }}</span>
+                <span class="text-[11px] text-slate-400">aset</span>
+            </div>
+            <p class="text-[11px] text-slate-400 mt-0.5">Sheet: <span class="font-mono text-slate-600">Aset, Neraca, Laba Rugi</span></p>
         </div>
     </div>
 </section>

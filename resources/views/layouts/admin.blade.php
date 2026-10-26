@@ -78,6 +78,8 @@
                     ['label' => 'Pembayaran', 'route' => 'admin.payments.index', 'match' => 'admin.payments.*', 'icon' => 'fa-regular fa-credit-card'],
                     ['label' => 'Beban Operasional', 'route' => 'admin.expenses.index', 'match' => 'admin.expenses.*', 'icon' => 'fa-solid fa-arrow-right-arrow-left'],
                     ['label' => 'Pinjaman', 'route' => 'admin.loans.index', 'match' => 'admin.loans.*', 'icon' => 'fa-solid fa-hand-holding-dollar'],
+                    ['label' => 'Aset Konveksi', 'route' => 'admin.assets.index', 'match' => 'admin.assets.*', 'icon' => 'fa-solid fa-boxes-stacked'],
+                    ['label' => 'Neraca & Laba Rugi', 'route' => 'admin.finance.index', 'match' => 'admin.finance.*', 'icon' => 'fa-solid fa-scale-balanced'],
                     ['label' => 'Spreadsheet', 'route' => 'admin.spreadsheet.index', 'match' => 'admin.spreadsheet.*', 'icon' => 'fa-regular fa-file-lines'],
                 ];
 

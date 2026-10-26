@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\ConvectionAsset;
 use App\Models\Loan;
 use App\Models\LoanPayment;
 use App\Models\OperationalExpense;
@@ -175,12 +176,18 @@ class GoogleSheetService
             ->latest('id')
             ->get();
 
+        $assets = ConvectionAsset::with('recorder')
+            ->latest('purchase_date')
+            ->latest('id')
+            ->get();
+
         $formattedOrders = $orders->map(fn (Order $order) => $this->formatOrderData($order))->all();
         $formattedCosts = $costs->map(fn (OrderCost $cost) => $this->formatCostData($cost))->all();
         $formattedPayments = $payments->map(fn (Payment $payment) => $this->formatPaymentData($payment))->all();
         $formattedExpenses = $expenses->map(fn (OperationalExpense $expense) => $this->formatExpenseData($expense))->all();
         $formattedLoans = $loans->map(fn (Loan $loan) => $this->formatLoanData($loan))->all();
         $formattedLoanPayments = $loanPayments->map(fn (LoanPayment $payment) => $this->formatLoanPaymentData($payment))->all();
+        $formattedAssets = $assets->map(fn (ConvectionAsset $asset) => $this->formatAssetData($asset))->all();
 
         $payload = [
             'action' => 'sync_all',
@@ -190,6 +197,7 @@ class GoogleSheetService
             'expenses' => $formattedExpenses,
             'loans' => $formattedLoans,
             'loan_payments' => $formattedLoanPayments,
+            'assets' => $formattedAssets,
             'synced_at' => now()->translatedFormat('d F Y H:i:s'),
         ];
 
@@ -208,6 +216,7 @@ class GoogleSheetService
                     'expenses' => $expenses->count(),
                     'loans' => $loans->count(),
                     'loan_payments' => $loanPayments->count(),
+                    'assets' => $assets->count(),
                 ],
             ];
         }
@@ -387,6 +396,35 @@ class GoogleSheetService
         return $ok;
     }
 
+    /**
+     * Add, update, or delete a single convection asset entry in Google Sheets.
+     */
+    public function syncAsset(ConvectionAsset $asset, string $action = 'add'): bool
+    {
+        if (! $this->isAutoSync()) {
+            return false;
+        }
+
+        $asset->loadMissing('recorder');
+
+        return $action === 'add'
+            ? $this->send(['type' => 'asset', 'asset' => $this->formatAssetData($asset)])
+            : $this->send(['action' => 'delete', 'entity' => 'asset', 'id' => $asset->code ?: ('AST-'.$asset->id)]);
+    }
+
+    public function deleteAsset(ConvectionAsset $asset): bool
+    {
+        if (! $this->isAutoSync()) {
+            return false;
+        }
+
+        return $this->send([
+            'action' => 'delete',
+            'entity' => 'asset',
+            'id' => $asset->code ?: ('AST-'.$asset->id),
+        ]);
+    }
+
     /* ---------------------------------------------------------------------- */
     /* Formatter Helpers (ATM Structure) */
     /* ---------------------------------------------------------------------- */
@@ -515,6 +553,27 @@ class GoogleSheetService
             'method' => $payment->method_label,
             'notes' => $payment->notes ?: '-',
             'recorded_by' => $payment->recorder?->name ?? 'Admin',
+        ];
+    }
+
+    public function formatAssetData(ConvectionAsset $asset): array
+    {
+        return [
+            'id' => $asset->code ?: ('AST-'.$asset->id),
+            'code' => $asset->code,
+            'date' => $asset->purchase_date?->format('Y-m-d') ?? now()->format('Y-m-d'),
+            'name' => $asset->name,
+            'category' => $asset->category_label,
+            'category_key' => $asset->category,
+            'qty' => (int) $asset->quantity,
+            'unit' => $asset->unit ?: 'unit',
+            'purchase_price' => (int) $asset->purchase_price,
+            'current_value' => (int) $asset->current_value,
+            'condition' => $asset->condition_label,
+            'condition_key' => $asset->condition,
+            'location' => $asset->location ?: '-',
+            'notes' => $asset->notes ?: '-',
+            'recorded_by' => $asset->recorder?->name ?? 'Admin',
         ];
     }
 
