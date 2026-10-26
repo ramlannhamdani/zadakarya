@@ -19,7 +19,7 @@
     }">
 
     <!-- CARD 1: INFORMASI PESANAN -->
-    <div class="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-slate-100">
+    <div class="bg-white rounded-2xl p-4 sm:p-6 lg:p-8 shadow-sm border border-slate-100">
         <div class="flex items-center gap-3 pb-6 mb-6 border-b border-slate-100">
             <div class="w-10 h-10 rounded-xl bg-brand-50 text-brand-700 flex items-center justify-center text-sm font-bold shrink-0">
                 <i class="fa-solid fa-shirt"></i>
@@ -121,8 +121,8 @@
     </div>
 
     <!-- CARD 2: ITEM PRODUK -->
-    <div class="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-slate-100">
-        <div class="flex items-center justify-between pb-6 mb-6 border-b border-slate-100">
+    <div class="bg-white rounded-2xl p-4 sm:p-6 lg:p-8 shadow-sm border border-slate-100">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 mb-6 border-b border-slate-100">
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-700 flex items-center justify-center text-sm font-bold shrink-0">
                     <i class="fa-solid fa-list-check"></i>
@@ -133,7 +133,7 @@
                 </div>
             </div>
             <button type="button" @click="addItem()"
-                    class="inline-flex items-center gap-2 px-3.5 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-semibold transition-all shadow-xs active:scale-95">
+                    class="self-start sm:self-auto inline-flex items-center gap-2 px-3.5 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-semibold transition-all shadow-xs active:scale-95">
                 <i class="fa-solid fa-plus text-[10px]"></i>
                 <span>Tambah Item</span>
             </button>
@@ -142,28 +142,28 @@
         <div class="space-y-4">
             <template x-for="(item, i) in items" :key="i">
                 <div class="rounded-2xl border border-slate-200/70 bg-slate-50/50 p-4 transition-all hover:bg-slate-50">
-                    <div class="grid gap-4 sm:grid-cols-12">
-                        <div class="sm:col-span-6 md:col-span-3 xl:col-span-4">
+                    <div class="grid grid-cols-12 gap-3 sm:gap-4">
+                        <div class="col-span-12 sm:col-span-6 xl:col-span-4">
                             <label class="block text-[11px] font-semibold text-slate-600 mb-1">Nama Produk <span class="text-rose-500">*</span></label>
                             <input class="w-full rounded-xl bg-white border border-slate-200/80 px-3 py-2 text-xs text-slate-800 placeholder-slate-400 focus:bg-white focus:border-brand-600 focus:outline-none"
                                    type="text" :name="`items[${i}][product_name]`" x-model="item.product_name" placeholder="Contoh: Polo Shirt Lacoste" required>
                         </div>
-                        <div class="sm:col-span-6 md:col-span-3">
+                        <div class="col-span-12 sm:col-span-6 xl:col-span-3">
                             <label class="block text-[11px] font-semibold text-slate-600 mb-1">Keterangan / Spesifikasi</label>
                             <input class="w-full rounded-xl bg-white border border-slate-200/80 px-3 py-2 text-xs text-slate-800 placeholder-slate-400 focus:bg-white focus:border-brand-600 focus:outline-none"
                                    type="text" :name="`items[${i}][description]`" x-model="item.description" placeholder="Warna, bahan, bordir...">
                         </div>
-                        <div class="sm:col-span-4 md:col-span-2 xl:col-span-1">
+                        <div class="col-span-4 sm:col-span-4 xl:col-span-1">
                             <label class="block text-[11px] font-semibold text-slate-600 mb-1">Qty <span class="text-rose-500">*</span></label>
                             <input class="w-full rounded-xl bg-white border border-slate-200/80 px-3 py-2 text-xs font-mono font-bold text-slate-800 focus:bg-white focus:border-brand-600 focus:outline-none"
                                    type="number" min="1" :name="`items[${i}][quantity]`" x-model="item.quantity" required>
                         </div>
-                        <div class="sm:col-span-4 md:col-span-2">
+                        <div class="col-span-4 sm:col-span-4 xl:col-span-2">
                             <label class="block text-[11px] font-semibold text-slate-600 mb-1">Satuan</label>
                             <input class="w-full rounded-xl bg-white border border-slate-200/80 px-3 py-2 text-xs text-slate-800 focus:bg-white focus:border-brand-600 focus:outline-none"
                                    type="text" :name="`items[${i}][unit]`" x-model="item.unit">
                         </div>
-                        <div class="sm:col-span-4 md:col-span-2">
+                        <div class="col-span-4 sm:col-span-4 xl:col-span-2">
                             <label class="block text-[11px] font-semibold text-slate-600 mb-1">Harga Satuan (Rp) <span class="text-rose-500">*</span></label>
                             <input class="w-full rounded-xl bg-white border border-slate-200/80 px-3 py-2 text-xs font-mono font-bold text-slate-800 focus:bg-white focus:border-brand-600 focus:outline-none"
                                    type="number" min="0" :name="`items[${i}][unit_price]`" x-model="item.unit_price" required>

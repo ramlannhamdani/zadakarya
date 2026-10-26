@@ -3,7 +3,7 @@
 @section('title', 'Invoice '.$invoice->invoice_number)
 
 @section('header-actions')
-<div class="flex items-center gap-2">
+<div class="flex flex-wrap items-center gap-2">
     <a href="{{ route('admin.orders.show', ['order' => $invoice->order, 'tab' => 'invoice']) }}"
        class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition-colors">
         <i class="fa-solid fa-shirt text-[10px]"></i>
@@ -93,18 +93,18 @@
     <div class="grid gap-6 {{ $multiInvoice ? 'lg:grid-cols-2' : '' }}">
         <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
             <p class="text-[10px] font-bold uppercase tracking-wider text-brand-700">Rincian Finansial Invoice Ini</p>
-            <div class="mt-4 grid grid-cols-3 gap-4 divide-x divide-slate-100">
-                <div>
+            <div class="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div class="bg-slate-50/70 rounded-xl p-3 sm:p-4">
                     <p class="text-[11px] text-slate-400">Total Tagihan</p>
-                    <p class="mt-1 text-base sm:text-lg font-bold font-mono text-slate-900">{{ rupiah($invoice->grand_total) }}</p>
+                    <p class="mt-1 text-base sm:text-lg font-bold font-mono text-slate-900 truncate">{{ rupiah($invoice->grand_total) }}</p>
                 </div>
-                <div class="pl-4">
+                <div class="bg-slate-50/70 rounded-xl p-3 sm:p-4">
                     <p class="text-[11px] text-slate-400">Terbayar</p>
-                    <p class="mt-1 text-base sm:text-lg font-bold font-mono text-emerald-600">{{ rupiah($invoicePaid) }}</p>
+                    <p class="mt-1 text-base sm:text-lg font-bold font-mono text-emerald-600 truncate">{{ rupiah($invoicePaid) }}</p>
                 </div>
-                <div class="pl-4">
+                <div class="bg-slate-50/70 rounded-xl p-3 sm:p-4">
                     <p class="text-[11px] text-slate-400">Sisa Tagihan</p>
-                    <p class="mt-1 text-base sm:text-lg font-bold font-mono {{ $invoiceOutstanding > 0 ? 'text-rose-600' : 'text-slate-400' }}">{{ rupiah($invoiceOutstanding) }}</p>
+                    <p class="mt-1 text-base sm:text-lg font-bold font-mono {{ $invoiceOutstanding > 0 ? 'text-rose-600' : 'text-slate-400' }} truncate">{{ rupiah($invoiceOutstanding) }}</p>
                 </div>
             </div>
             @if($multiInvoice && $invoicePaid === 0)
@@ -118,16 +118,16 @@
         @if($multiInvoice)
             <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
                 <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Seluruh Pesanan ({{ $invoice->order->invoices->count() }} invoice)</p>
-                <div class="mt-4 grid grid-cols-3 gap-4 divide-x divide-slate-100">
-                    <div>
+                <div class="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div class="bg-slate-50/70 rounded-xl p-3 sm:p-4">
                         <p class="text-[11px] text-slate-400">Total Terbayar</p>
-                        <p class="mt-1 text-base sm:text-lg font-bold font-mono text-emerald-600">{{ rupiah($invoice->order->amount_paid) }}</p>
+                        <p class="mt-1 text-base sm:text-lg font-bold font-mono text-emerald-600 truncate">{{ rupiah($invoice->order->amount_paid) }}</p>
                     </div>
-                    <div class="pl-4">
+                    <div class="bg-slate-50/70 rounded-xl p-3 sm:p-4">
                         <p class="text-[11px] text-slate-400">Sisa Piutang</p>
-                        <p class="mt-1 text-base sm:text-lg font-bold font-mono text-rose-600">{{ rupiah($invoice->order->remaining) }}</p>
+                        <p class="mt-1 text-base sm:text-lg font-bold font-mono text-rose-600 truncate">{{ rupiah($invoice->order->remaining) }}</p>
                     </div>
-                    <div class="pl-4">
+                    <div class="bg-slate-50/70 rounded-xl p-3 sm:p-4">
                         <p class="text-[11px] text-slate-400">Status Pembayaran</p>
                         <div class="mt-1.5"><x-payment-badge :status="$invoice->order->payment_status" /></div>
                     </div>

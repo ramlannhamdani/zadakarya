@@ -13,37 +13,35 @@
 <div class="space-y-6">
 
     <!-- 1. SUMMARY METRICS TILES -->
-    <section class="bg-white rounded-2xl p-6 shadow-sm">
-        <div class="grid grid-cols-2 sm:grid-cols-3 gap-6 divide-y sm:divide-y-0 sm:divide-x divide-slate-100">
-            <!-- Total Foto -->
-            <div class="pt-4 sm:pt-0 sm:px-4 first:pt-0 first:pl-0">
-                <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Total Gambar Galeri</p>
-                <div class="flex items-baseline gap-2 mt-1">
-                    <span class="text-2xl sm:text-3xl font-bold text-slate-900">{{ number_format($stats['total']) }}</span>
-                    <span class="text-[11px] text-slate-400">foto tersimpan</span>
-                </div>
-                <p class="text-[11px] text-slate-400 mt-0.5">Asset visual website</p>
+    <section class="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
+        <!-- Total Foto -->
+        <div class="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-slate-100/60">
+            <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Total Gambar Galeri</p>
+            <div class="flex items-baseline gap-2 mt-1">
+                <span class="text-2xl sm:text-3xl font-bold text-slate-900">{{ number_format($stats['total']) }}</span>
+                <span class="text-[11px] text-slate-400">foto</span>
             </div>
+            <p class="text-[11px] text-slate-400 mt-0.5">Asset visual website</p>
+        </div>
 
-            <!-- Tayang di Publik -->
-            <div class="pt-4 sm:pt-0 sm:px-4">
-                <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Muncul di Publik (Live)</p>
-                <div class="flex items-baseline gap-2 mt-1">
-                    <span class="text-2xl sm:text-3xl font-bold text-emerald-600">{{ number_format($stats['public']) }}</span>
-                    <span class="text-[11px] text-emerald-600/80 font-medium">terlihat pengunjung</span>
-                </div>
-                <p class="text-[11px] text-slate-400 mt-0.5">Tayang di galeri website</p>
+        <!-- Tayang di Publik -->
+        <div class="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-slate-100/60">
+            <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Muncul di Publik (Live)</p>
+            <div class="flex items-baseline gap-2 mt-1">
+                <span class="text-2xl sm:text-3xl font-bold text-emerald-600">{{ number_format($stats['public']) }}</span>
+                <span class="text-[11px] text-emerald-600/80 font-medium truncate">terlihat pengunjung</span>
             </div>
+            <p class="text-[11px] text-slate-400 mt-0.5">Tayang di galeri website</p>
+        </div>
 
-            <!-- Disembunyikan (Hidden) -->
-            <div class="pt-4 sm:pt-0 sm:px-4 col-span-2 sm:col-span-1">
-                <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Disembunyikan (Arsip)</p>
-                <div class="flex items-baseline gap-2 mt-1">
-                    <span class="text-2xl sm:text-3xl font-bold text-slate-700">{{ number_format($stats['hidden']) }}</span>
-                    <span class="text-[11px] text-slate-400 font-medium">hanya admin</span>
-                </div>
-                <p class="text-[11px] text-slate-400 mt-0.5">Tidak tampil di website</p>
+        <!-- Disembunyikan (Hidden) -->
+        <div class="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-slate-100/60 col-span-2 sm:col-span-1">
+            <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Disembunyikan (Arsip)</p>
+            <div class="flex items-baseline gap-2 mt-1">
+                <span class="text-2xl sm:text-3xl font-bold text-slate-700">{{ number_format($stats['hidden']) }}</span>
+                <span class="text-[11px] text-slate-400 font-medium">hanya admin</span>
             </div>
+            <p class="text-[11px] text-slate-400 mt-0.5">Tidak tampil di website</p>
         </div>
     </section>
 
@@ -52,7 +50,7 @@
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             
             <!-- Status Tab Pills -->
-            <div class="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 text-xs">
+            <div class="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 text-xs no-scrollbar">
                 <a href="{{ route('admin.gallery.index') }}" class="px-3.5 py-1.5 rounded-xl font-semibold transition-all whitespace-nowrap {{ !request('status') ? 'bg-slate-900 text-white' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' }}">
                     Semua Gambar ({{ $stats['total'] }})
                 </a>
@@ -141,9 +139,8 @@
 
 </div>
 
-<!-- MODAL UPLOAD GAMBAR BARU -->
 <div id="uploadModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs hidden">
-    <div class="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl relative animate-in fade-in zoom-in-95 duration-150">
+    <div class="bg-white rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto p-5 sm:p-6 shadow-2xl relative animate-in fade-in zoom-in-95 duration-150">
         
         <div class="flex items-center justify-between pb-4 border-b border-slate-100 mb-4">
             <div>

@@ -3,44 +3,42 @@
 @section('title', 'Catatan Pembayaran & Arus Kas Masuk')
 
 @section('content')
-<!-- 1. SUMMARY METRICS TILES (Sleek Flat Container) -->
-<section class="bg-white rounded-2xl p-6 shadow-sm">
-    <div class="grid grid-cols-2 sm:grid-cols-4 gap-6 divide-y sm:divide-y-0 sm:divide-x divide-slate-100">
-        <!-- Total Dana Diterima Keseluruhan -->
-        <div class="pt-4 sm:pt-0 sm:px-4 first:pt-0 first:pl-0">
-            <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Total Kas Masuk</p>
-            <div class="flex items-baseline gap-2 mt-1">
-                <span class="text-2xl sm:text-3xl font-bold text-emerald-600">{{ rupiah($stats['total']) }}</span>
-            </div>
-            <p class="text-[11px] text-slate-400 mt-0.5">Semua riwayat pembayaran pesanan</p>
+<!-- 1. SUMMARY METRICS TILES -->
+<section class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+    <!-- Total Dana Diterima Keseluruhan -->
+    <div class="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-slate-100/60">
+        <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Total Kas Masuk</p>
+        <div class="flex items-baseline gap-2 mt-1">
+            <span class="text-xl sm:text-2xl font-bold text-emerald-600 truncate">{{ rupiah($stats['total']) }}</span>
         </div>
+        <p class="text-[11px] text-slate-400 mt-0.5 truncate">Semua riwayat pesanan</p>
+    </div>
 
-        <!-- Penerimaan Bulan Ini -->
-        <div class="pt-4 sm:pt-0 sm:px-4">
-            <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Penerimaan Bulan Ini</p>
-            <div class="flex items-baseline gap-2 mt-1">
-                <span class="text-2xl sm:text-3xl font-bold text-brand-700">{{ rupiah($stats['this_month']) }}</span>
-            </div>
-            <p class="text-[11px] text-brand-600 font-medium mt-0.5">{{ now()->translatedFormat('F Y') }} berjalan</p>
+    <!-- Penerimaan Bulan Ini -->
+    <div class="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-slate-100/60">
+        <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Penerimaan Bulan Ini</p>
+        <div class="flex items-baseline gap-2 mt-1">
+            <span class="text-xl sm:text-2xl font-bold text-brand-700 truncate">{{ rupiah($stats['this_month']) }}</span>
         </div>
+        <p class="text-[11px] text-brand-600 font-medium mt-0.5 truncate">{{ now()->translatedFormat('F Y') }} berjalan</p>
+    </div>
 
-        <!-- Pembayaran Transfer Bank -->
-        <div class="pt-4 sm:pt-0 sm:px-4">
-            <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Transfer Bank</p>
-            <div class="flex items-baseline gap-2 mt-1">
-                <span class="text-2xl sm:text-3xl font-bold text-slate-900">{{ rupiah($stats['transfer']) }}</span>
-            </div>
-            <p class="text-[11px] text-slate-400 mt-0.5">{{ $stats['transfer_count'] }} transaksi via bank</p>
+    <!-- Pembayaran Transfer Bank -->
+    <div class="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-slate-100/60">
+        <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Transfer Bank</p>
+        <div class="flex items-baseline gap-2 mt-1">
+            <span class="text-xl sm:text-2xl font-bold text-slate-900 truncate">{{ rupiah($stats['transfer']) }}</span>
         </div>
+        <p class="text-[11px] text-slate-400 mt-0.5 truncate">{{ $stats['transfer_count'] }} transaksi via bank</p>
+    </div>
 
-        <!-- Pembayaran Tunai / Cash -->
-        <div class="pt-4 sm:pt-0 sm:px-4">
-            <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Tunai / Cash Workshop</p>
-            <div class="flex items-baseline gap-2 mt-1">
-                <span class="text-2xl sm:text-3xl font-bold text-slate-900">{{ rupiah($stats['cash']) }}</span>
-            </div>
-            <p class="text-[11px] text-slate-400 mt-0.5">{{ $stats['cash_count'] }} transaksi cash langsung</p>
+    <!-- Pembayaran Tunai / Cash -->
+    <div class="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-slate-100/60">
+        <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Tunai / Cash Workshop</p>
+        <div class="flex items-baseline gap-2 mt-1">
+            <span class="text-xl sm:text-2xl font-bold text-slate-900 truncate">{{ rupiah($stats['cash']) }}</span>
         </div>
+        <p class="text-[11px] text-slate-400 mt-0.5 truncate">{{ $stats['cash_count'] }} transaksi cash langsung</p>
     </div>
 </section>
 
@@ -49,7 +47,7 @@
     <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         
         <!-- Filter Tabs -->
-        <div class="flex items-center gap-1.5 overflow-x-auto pb-1 lg:pb-0 text-xs">
+        <div class="flex items-center gap-1.5 overflow-x-auto pb-1 lg:pb-0 text-xs no-scrollbar">
             <a href="{{ route('admin.payments.index') }}"
                class="px-3 py-1.5 rounded-xl font-semibold transition-all whitespace-nowrap {{ !$tab ? 'bg-slate-900 text-white' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' }}">
                 Semua Pembayaran ({{ $stats['count'] }})
@@ -65,21 +63,21 @@
         </div>
 
         <!-- Search Form -->
-        <form method="GET" action="{{ route('admin.payments.index') }}" class="flex flex-wrap sm:flex-nowrap items-center gap-2.5">
+        <form method="GET" action="{{ route('admin.payments.index') }}" class="flex items-center gap-2 w-full lg:w-auto">
             @if($tab)<input type="hidden" name="tab" value="{{ $tab }}">@endif
 
             <!-- Search Input -->
-            <div class="relative w-full sm:w-64">
+            <div class="relative flex-1 sm:w-64 sm:flex-none">
                 <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
                 <input type="text" name="q" value="{{ request('q') }}" placeholder="Cari No. Order / Customer / Ref..."
                        class="w-full bg-slate-50 text-xs rounded-xl pl-9 pr-4 py-2 text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-300">
             </div>
 
-            <button type="submit" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-colors">
+            <button type="submit" class="shrink-0 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-colors">
                 Cari
             </button>
             @if(request()->hasAny(['q', 'tab']))
-            <a href="{{ route('admin.payments.index') }}" class="px-3 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-500 text-xs transition-colors">
+            <a href="{{ route('admin.payments.index') }}" class="shrink-0 px-3 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-500 text-xs transition-colors">
                 Reset
             </a>
             @endif
@@ -94,14 +92,14 @@
         <table class="w-full text-left text-xs whitespace-nowrap">
             <thead>
                 <tr class="text-[11px] font-semibold text-slate-400 border-b border-slate-100">
-                    <th class="py-3.5 px-5 font-normal uppercase tracking-wider">TANGGAL</th>
-                    <th class="py-3.5 px-5 font-normal uppercase tracking-wider">NO. ORDER</th>
-                    <th class="py-3.5 px-5 font-normal uppercase tracking-wider">CUSTOMER</th>
-                    <th class="py-3.5 px-5 font-normal uppercase tracking-wider text-right">NOMINAL</th>
-                    <th class="py-3.5 px-5 font-normal uppercase tracking-wider text-center">METODE</th>
-                    <th class="py-3.5 px-5 font-normal uppercase tracking-wider">INVOICE</th>
-                    <th class="py-3.5 px-5 font-normal uppercase tracking-wider">CATATAN</th>
-                    <th class="py-3.5 px-5 font-normal uppercase tracking-wider text-center">AKSI</th>
+                    <th class="py-3.5 px-3.5 sm:px-5 font-normal uppercase tracking-wider">TANGGAL</th>
+                    <th class="py-3.5 px-3.5 sm:px-5 font-normal uppercase tracking-wider">NO. ORDER</th>
+                    <th class="py-3.5 px-3.5 sm:px-5 font-normal uppercase tracking-wider">CUSTOMER</th>
+                    <th class="py-3.5 px-3.5 sm:px-5 font-normal uppercase tracking-wider text-right">NOMINAL</th>
+                    <th class="py-3.5 px-3.5 sm:px-5 font-normal uppercase tracking-wider text-center">METODE</th>
+                    <th class="py-3.5 px-3.5 sm:px-5 font-normal uppercase tracking-wider">INVOICE</th>
+                    <th class="py-3.5 px-3.5 sm:px-5 font-normal uppercase tracking-wider">CATATAN</th>
+                    <th class="py-3.5 px-3.5 sm:px-5 font-normal uppercase tracking-wider text-center">AKSI</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-slate-50">

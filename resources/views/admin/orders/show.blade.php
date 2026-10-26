@@ -55,28 +55,28 @@
             </div>
         </div>
 
-        <dl class="mt-6 grid grid-cols-2 gap-4 border-t border-slate-100 pt-6 sm:grid-cols-3 lg:grid-cols-5 divide-y sm:divide-y-0 sm:divide-x divide-slate-100">
-            <div class="first:pl-0 sm:px-4">
-                <dt class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Grand Total</dt>
-                <dd class="mt-1 whitespace-nowrap text-lg font-bold font-mono text-slate-900">{{ rupiah($order->grand_total) }}</dd>
+        <div class="mt-6 grid grid-cols-2 gap-3 sm:gap-4 border-t border-slate-100 pt-6 sm:grid-cols-3 lg:grid-cols-5">
+            <div class="bg-slate-50/70 rounded-xl p-3 sm:p-4">
+                <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Grand Total</p>
+                <p class="mt-1 whitespace-nowrap text-base sm:text-lg font-bold font-mono text-slate-900 truncate">{{ rupiah($order->grand_total) }}</p>
             </div>
-            <div class="pt-4 sm:pt-0 sm:px-4">
-                <dt class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Terbayar</dt>
-                <dd class="mt-1 whitespace-nowrap text-lg font-bold font-mono text-emerald-600">{{ rupiah($order->amount_paid) }}</dd>
+            <div class="bg-slate-50/70 rounded-xl p-3 sm:p-4">
+                <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Terbayar</p>
+                <p class="mt-1 whitespace-nowrap text-base sm:text-lg font-bold font-mono text-emerald-600 truncate">{{ rupiah($order->amount_paid) }}</p>
             </div>
-            <div class="pt-4 sm:pt-0 sm:px-4">
-                <dt class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Sisa Tagihan</dt>
-                <dd class="mt-1 whitespace-nowrap text-lg font-bold font-mono {{ $order->remaining > 0 ? 'text-rose-600' : 'text-slate-400' }}">{{ rupiah($order->remaining) }}</dd>
+            <div class="bg-slate-50/70 rounded-xl p-3 sm:p-4">
+                <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Sisa Tagihan</p>
+                <p class="mt-1 whitespace-nowrap text-base sm:text-lg font-bold font-mono {{ $order->remaining > 0 ? 'text-rose-600' : 'text-slate-400' }} truncate">{{ rupiah($order->remaining) }}</p>
             </div>
-            <div class="pt-4 sm:pt-0 sm:px-4">
-                <dt class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Status Pembayaran</dt>
-                <dd class="mt-1.5"><x-payment-badge :status="$order->payment_status" /></dd>
+            <div class="bg-slate-50/70 rounded-xl p-3 sm:p-4">
+                <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Status Pembayaran</p>
+                <div class="mt-1.5"><x-payment-badge :status="$order->payment_status" /></div>
             </div>
-            <div class="pt-4 sm:pt-0 sm:px-4">
-                <dt class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Tahap Produksi</dt>
-                <dd class="mt-1 text-xs font-bold text-slate-800">{{ $order->current_stage }}/7 — {{ $order->current_stage_name }}</dd>
+            <div class="bg-slate-50/70 rounded-xl p-3 sm:p-4 col-span-2 sm:col-span-1">
+                <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Tahap Produksi</p>
+                <p class="mt-1 text-xs font-bold text-slate-800">{{ $order->current_stage }}/7 — {{ $order->current_stage_name }}</p>
             </div>
-        </dl>
+        </div>
 
         @php $invoicedTotal = (int) $order->invoices->sum('grand_total'); @endphp
         @if($order->invoices->isNotEmpty() && $invoicedTotal !== $order->grand_total)
@@ -145,7 +145,7 @@
         ];
         $tab = array_key_exists($tab, $tabs) ? $tab : 'overview';
     @endphp
-    <div class="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
+    <div class="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs no-scrollbar">
         @foreach($tabs as $key => $label)
             <a href="{{ route('admin.orders.show', ['order' => $order, 'tab' => $key]) }}"
                class="px-3.5 py-2 rounded-xl font-semibold transition-all whitespace-nowrap {{ $tab === $key ? 'bg-slate-900 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' }}">

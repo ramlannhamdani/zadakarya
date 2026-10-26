@@ -11,10 +11,10 @@
 
 @section('content')
 <!-- 1. SUMMARY METRICS TILES DINAMIS (5 CARDS) -->
-<section class="bg-white rounded-2xl p-6 shadow-sm">
-    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 divide-y md:divide-y-0 md:divide-x divide-slate-100">
+<section class="bg-white rounded-2xl p-4 sm:p-6 shadow-sm">
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 lg:gap-6">
         <!-- 1. Uang Masuk -->
-        <div class="pt-4 md:pt-0 md:px-4 first:pt-0 first:pl-0">
+        <div class="bg-slate-50/70 rounded-xl p-3.5 sm:p-4">
             <div class="flex items-center justify-between">
                 <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Uang Masuk</p>
                 <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
@@ -22,13 +22,13 @@
             <div class="flex items-baseline gap-2 mt-1">
                 <span class="text-xl sm:text-2xl font-bold text-emerald-600">{{ rupiah($periodIncome) }}</span>
             </div>
-            <p class="text-[11px] text-slate-400 mt-0.5">Total kas masuk diterima</p>
+            <p class="text-[11px] text-slate-400 mt-0.5">Kas masuk diterima</p>
         </div>
 
         <!-- 2. HPP (Belanja Pesanan) -->
-        <div class="pt-4 md:pt-0 md:px-4">
+        <div class="bg-slate-50/70 rounded-xl p-3.5 sm:p-4">
             <div class="flex items-center justify-between">
-                <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">HPP (Bahan & CMT)</p>
+                <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">HPP (Bahan)</p>
                 @php
                     $totalOut = $periodTotalOutflow > 0 ? $periodTotalOutflow : 1;
                     $hppPct = round(($periodHpp / $totalOut) * 100, 1);
@@ -40,11 +40,11 @@
             <div class="flex items-baseline gap-2 mt-1">
                 <span class="text-xl sm:text-2xl font-bold text-rose-600">{{ rupiah($periodHpp) }}</span>
             </div>
-            <p class="text-[11px] text-slate-400 mt-0.5">Kain, sablon, bordir & makloon</p>
+            <p class="text-[11px] text-slate-400 mt-0.5">Kain & makloon</p>
         </div>
 
         <!-- 3. Ops Konveksi -->
-        <div class="pt-4 md:pt-0 md:px-4">
+        <div class="bg-slate-50/70 rounded-xl p-3.5 sm:p-4">
             <div class="flex items-center justify-between">
                 <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Ops. Konveksi</p>
                 <span class="text-[10px] font-bold text-rose-700 bg-rose-50 px-2 py-0.5 rounded-full">{{ $convectionPct }}%</span>
@@ -52,23 +52,23 @@
             <div class="flex items-baseline gap-2 mt-1">
                 <span class="text-xl sm:text-2xl font-bold text-rose-600">{{ rupiah($periodConvectionExpense) }}</span>
             </div>
-            <p class="text-[11px] text-slate-400 mt-0.5">Listrik, sewa, upah & servis</p>
+            <p class="text-[11px] text-slate-400 mt-0.5">Overhead workshop</p>
         </div>
 
         <!-- 4. Ops Pribadi (Prive) -->
-        <div class="pt-4 md:pt-0 md:px-4">
+        <div class="bg-slate-50/70 rounded-xl p-3.5 sm:p-4">
             <div class="flex items-center justify-between">
-                <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Ops. Pribadi (Prive)</p>
+                <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Ops. Pribadi</p>
                 <span class="text-[10px] font-bold text-rose-700 bg-rose-50 px-2 py-0.5 rounded-full">{{ $personalPct }}%</span>
             </div>
             <div class="flex items-baseline gap-2 mt-1">
                 <span class="text-xl sm:text-2xl font-bold text-rose-600">{{ rupiah($periodPersonalExpense) }}</span>
             </div>
-            <p class="text-[11px] text-slate-400 mt-0.5">Penarikan kebutuhan owner</p>
+            <p class="text-[11px] text-slate-400 mt-0.5">Prive owner</p>
         </div>
 
         <!-- 5. Saldo Kas Riil -->
-        <div class="pt-4 md:pt-0 md:px-4">
+        <div class="bg-slate-50/70 rounded-xl p-3.5 sm:p-4 col-span-2 sm:col-span-1">
             <div class="flex items-center justify-between">
                 <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Saldo Kas Riil</p>
                 <span class="text-[10px] font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-full">Kas Bersih</span>
@@ -78,7 +78,7 @@
                     {{ rupiah($totalCurrentBalance) }}
                 </span>
             </div>
-            <p class="text-[11px] text-slate-400 mt-0.5">Uang Masuk - Semua Beban</p>
+            <p class="text-[11px] text-slate-400 mt-0.5">Saldo riil di tangan</p>
         </div>
     </div>
 </section>
@@ -88,7 +88,7 @@
     <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         
         <!-- Filter Tabs Berdasarkan Jenis Beban -->
-        <div class="flex items-center gap-1.5 overflow-x-auto pb-1 lg:pb-0 text-xs">
+        <div class="flex items-center gap-1.5 overflow-x-auto pb-1 lg:pb-0 text-xs no-scrollbar">
             <a href="{{ route('admin.expenses.index', array_merge(request()->except('expense_type'), ['expense_type' => ''])) }}"
                class="px-3 py-1.5 rounded-xl font-semibold transition-all whitespace-nowrap {{ !request('expense_type') ? 'bg-slate-900 text-white' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' }}">
                 Semua Beban
@@ -104,34 +104,36 @@
         </div>
 
         <!-- Search & Filter Options -->
-        <form method="GET" action="{{ route('admin.expenses.index') }}" class="flex flex-wrap sm:flex-nowrap items-center gap-2.5">
+        <form method="GET" action="{{ route('admin.expenses.index') }}" class="flex flex-wrap items-center gap-2 w-full lg:w-auto">
             @if(request('expense_type'))<input type="hidden" name="expense_type" value="{{ request('expense_type') }}">@endif
 
             <!-- Search Input -->
-            <div class="relative w-full sm:w-56">
+            <div class="relative flex-1 min-w-[150px] sm:w-56 sm:flex-none">
                 <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
                 <input type="text" name="q" value="{{ request('q') }}" placeholder="Cari Ref / Keterangan..."
                        class="w-full bg-slate-50 text-xs rounded-xl pl-9 pr-4 py-2 text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-300">
             </div>
 
             <!-- Bulan & Tahun Filter Dropdown -->
-            <select name="month" class="bg-slate-50 text-xs text-slate-700 rounded-xl px-3 py-2 focus:outline-none focus:ring-1 focus:ring-slate-300">
-                @foreach(range(1, 12) as $m)
-                    <option value="{{ $m }}" @selected($month == $m)>{{ \Carbon\Carbon::create(null, $m)->translatedFormat('F') }}</option>
-                @endforeach
-            </select>
+            <div class="flex items-center gap-1.5">
+                <select name="month" class="bg-slate-50 text-xs text-slate-700 rounded-xl px-2.5 sm:px-3 py-2 focus:outline-none focus:ring-1 focus:ring-slate-300">
+                    @foreach(range(1, 12) as $m)
+                        <option value="{{ $m }}" @selected($month == $m)>{{ \Carbon\Carbon::create(null, $m)->translatedFormat('F') }}</option>
+                    @endforeach
+                </select>
 
-            <select name="year" class="bg-slate-50 text-xs text-slate-700 rounded-xl px-3 py-2 focus:outline-none focus:ring-1 focus:ring-slate-300">
-                @foreach($years as $y)
-                    <option value="{{ $y }}" @selected($year == $y)>{{ $y }}</option>
-                @endforeach
-            </select>
+                <select name="year" class="bg-slate-50 text-xs text-slate-700 rounded-xl px-2.5 sm:px-3 py-2 focus:outline-none focus:ring-1 focus:ring-slate-300">
+                    @foreach($years as $y)
+                        <option value="{{ $y }}" @selected($year == $y)>{{ $y }}</option>
+                    @endforeach
+                </select>
+            </div>
 
-            <button type="submit" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-colors">
+            <button type="submit" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-colors shrink-0">
                 Filter
             </button>
             @if(request()->anyFilled(['q', 'expense_type', 'category']) || request('period') === 'all')
-                <a href="{{ route('admin.expenses.index') }}" class="px-3 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-500 text-xs transition-colors">
+                <a href="{{ route('admin.expenses.index') }}" class="px-3 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-500 text-xs transition-colors shrink-0">
                     Reset
                 </a>
             @endif
@@ -146,15 +148,15 @@
         <table class="w-full text-left text-xs whitespace-nowrap">
             <thead>
                 <tr class="text-[11px] font-semibold text-slate-400 border-b border-slate-100">
-                    <th class="py-3.5 px-5 font-normal uppercase tracking-wider">TANGGAL</th>
-                    <th class="py-3.5 px-5 font-normal uppercase tracking-wider">NO. REF</th>
-                    <th class="py-3.5 px-5 font-normal uppercase tracking-wider">JENIS</th>
-                    <th class="py-3.5 px-5 font-normal uppercase tracking-wider">KATEGORI</th>
-                    <th class="py-3.5 px-5 font-normal uppercase tracking-wider">KETERANGAN</th>
-                    <th class="py-3.5 px-5 font-normal uppercase tracking-wider text-right">NOMINAL</th>
-                    <th class="py-3.5 px-5 font-normal uppercase tracking-wider text-center">METODE</th>
-                    <th class="py-3.5 px-5 font-normal uppercase tracking-wider text-center">BUKTI</th>
-                    <th class="py-3.5 px-5 font-normal uppercase tracking-wider text-center">AKSI</th>
+                    <th class="py-3.5 px-3.5 sm:px-5 font-normal uppercase tracking-wider">TANGGAL</th>
+                    <th class="py-3.5 px-3.5 sm:px-5 font-normal uppercase tracking-wider">NO. REF</th>
+                    <th class="py-3.5 px-3.5 sm:px-5 font-normal uppercase tracking-wider">JENIS</th>
+                    <th class="py-3.5 px-3.5 sm:px-5 font-normal uppercase tracking-wider">KATEGORI</th>
+                    <th class="py-3.5 px-3.5 sm:px-5 font-normal uppercase tracking-wider">KETERANGAN</th>
+                    <th class="py-3.5 px-3.5 sm:px-5 font-normal uppercase tracking-wider text-right">NOMINAL</th>
+                    <th class="py-3.5 px-3.5 sm:px-5 font-normal uppercase tracking-wider text-center">METODE</th>
+                    <th class="py-3.5 px-3.5 sm:px-5 font-normal uppercase tracking-wider text-center">BUKTI</th>
+                    <th class="py-3.5 px-3.5 sm:px-5 font-normal uppercase tracking-wider text-center">AKSI</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-slate-50">

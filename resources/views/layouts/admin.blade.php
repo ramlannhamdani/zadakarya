@@ -48,18 +48,23 @@
 <div class="flex min-h-screen">
     
     <!-- SIDEBAR (Flat, Tanpa Stroke Tebal) -->
-    <aside id="sidebar" class="w-64 bg-white flex flex-col justify-between shrink-0 fixed inset-y-0 left-0 z-40 transition-transform duration-300 md:static -translate-x-full md:translate-x-0 shadow-[1px_0_0_0_#f1f5f9]"
-           :class="sidebar ? '!translate-x-0' : '-translate-x-full md:translate-x-0'">
+    <aside id="sidebar" class="w-64 bg-white flex flex-col justify-between shrink-0 fixed inset-y-0 left-0 z-40 transition-transform duration-300 lg:static -translate-x-full lg:translate-x-0 shadow-[1px_0_0_0_#f1f5f9]"
+           :class="sidebar ? '!translate-x-0' : '-translate-x-full lg:translate-x-0'">
         <div class="min-h-0 flex-1 flex flex-col">
             <!-- Brand Header -->
-            <div class="h-20 flex items-center gap-3.5 px-6 shrink-0">
-                <div class="w-9 h-9 rounded-xl bg-brand-600 text-white flex items-center justify-center font-bold text-sm tracking-wider shadow-xs">
-                    ZK
+            <div class="h-20 flex items-center justify-between px-6 shrink-0 border-b border-slate-50 lg:border-b-0">
+                <div class="flex items-center gap-3.5">
+                    <div class="w-9 h-9 rounded-xl bg-brand-600 text-white flex items-center justify-center font-bold text-sm tracking-wider shadow-xs">
+                        ZK
+                    </div>
+                    <div>
+                        <h1 class="text-sm font-bold text-slate-900 leading-snug">Zada Karya</h1>
+                        <span class="text-[10px] font-semibold text-slate-400 tracking-wider uppercase">Admin Workspace</span>
+                    </div>
                 </div>
-                <div>
-                    <h1 class="text-sm font-bold text-slate-900 leading-snug">Zada Karya</h1>
-                    <span class="text-[10px] font-semibold text-slate-400 tracking-wider uppercase">Admin Workspace</span>
-                </div>
+                <button type="button" @click="sidebar = false" class="lg:hidden text-slate-400 hover:text-slate-600 p-1.5 rounded-lg -mr-1" aria-label="Tutup Menu">
+                    <i class="fa-solid fa-xmark text-sm"></i>
+                </button>
             </div>
 
             <!-- Navigation Menu -->
@@ -127,25 +132,25 @@
         </div>
     </aside>
 
-    <!-- Mobile Sidebar Overlay Backdrop -->
-    <div x-show="sidebar" x-cloak @click="sidebar = false" class="fixed inset-0 bg-slate-900/30 backdrop-blur-xs z-30 md:hidden"></div>
+    <!-- Mobile/Tablet Sidebar Overlay Backdrop -->
+    <div x-show="sidebar" x-cloak @click="sidebar = false" class="fixed inset-0 bg-slate-900/30 backdrop-blur-xs z-30 lg:hidden"></div>
 
     <!-- MAIN CONTENT AREA -->
     <div class="flex-1 flex flex-col min-w-0 overflow-y-auto">
         
         <!-- TOP NAVBAR (Clean & Borderless) -->
-        <header class="h-16 bg-white/70 backdrop-blur-md sticky top-0 z-30 px-6 sm:px-8 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <button @click="sidebar = !sidebar" class="md:hidden text-slate-500 p-2 hover:bg-slate-100 rounded-lg">
+        <header class="h-16 bg-white/70 backdrop-blur-md sticky top-0 z-30 px-4 sm:px-6 lg:px-8 flex items-center justify-between">
+            <div class="flex items-center gap-2.5 sm:gap-3 min-w-0">
+                <button type="button" @click="sidebar = !sidebar" class="lg:hidden text-slate-500 p-2 hover:bg-slate-100 rounded-lg shrink-0" aria-label="Buka Menu">
                     <i class="fa-solid fa-bars text-sm"></i>
                 </button>
-                <div>
-                    <h2 class="text-base font-bold text-slate-900 tracking-tight">@yield('title', 'Dashboard')</h2>
+                <div class="min-w-0">
+                    <h2 class="text-sm sm:text-base font-bold text-slate-900 tracking-tight truncate max-w-[130px] sm:max-w-xs md:max-w-none">@yield('title', 'Dashboard')</h2>
                 </div>
             </div>
 
             <!-- User Controls & Custom Header Actions -->
-            <div class="flex items-center gap-3 sm:gap-4">
+            <div class="flex items-center gap-2 sm:gap-4 shrink-0">
                 @yield('header-actions')
 
                 <button title="Notifikasi" class="w-8 h-8 rounded-lg bg-slate-50 hover:bg-slate-100 text-slate-500 flex items-center justify-center transition-colors relative">
@@ -163,15 +168,15 @@
                     if (!$initials) $initials = 'AZ';
                 @endphp
 
-                <div class="flex items-center gap-2.5 pl-1 border-l border-slate-100">
-                    <div class="w-8 h-8 rounded-full bg-slate-100 text-slate-700 font-bold flex items-center justify-center text-xs">
+                <div class="flex items-center gap-2 sm:gap-2.5 pl-1 border-l border-slate-100">
+                    <div class="w-8 h-8 rounded-full bg-slate-100 text-slate-700 font-bold flex items-center justify-center text-xs shrink-0">
                         {{ $initials }}
                     </div>
                     <div class="text-left hidden sm:block">
                         <span class="text-xs font-semibold text-slate-800 block leading-tight">{{ $userName }}</span>
                         <span class="text-[10px] text-slate-400">Super Administrator</span>
                     </div>
-                    <form method="POST" action="{{ route('admin.logout') }}" class="inline-block ml-1">
+                    <form method="POST" action="{{ route('admin.logout') }}" class="inline-block ml-0.5 sm:ml-1">
                         @csrf
                         <button type="submit" title="Logout" class="text-slate-400 hover:text-slate-600 p-1.5 rounded transition-colors">
                             <i class="fa-solid fa-arrow-right-from-bracket text-xs"></i>
@@ -182,7 +187,7 @@
         </header>
 
         <!-- PAGE BODY CONTAINER -->
-        <main class="p-6 sm:p-8 space-y-6 max-w-7xl mx-auto w-full flex-1">
+        <main class="p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto w-full flex-1">
             @if(session('success'))
                 <div class="flex items-center justify-between gap-3 rounded-2xl bg-emerald-50/90 border border-emerald-100 px-4 py-3 text-xs font-medium text-emerald-800 shadow-xs">
                     <div class="flex items-center gap-2.5">

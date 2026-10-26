@@ -13,47 +13,45 @@
 <div class="space-y-6">
 
     <!-- 1. SUMMARY METRICS TILES -->
-    <section class="bg-white rounded-2xl p-6 shadow-sm">
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-6 divide-y sm:divide-y-0 sm:divide-x divide-slate-100">
-            <!-- Total Karya -->
-            <div class="pt-4 sm:pt-0 sm:px-4 first:pt-0 first:pl-0">
-                <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Total Karya</p>
-                <div class="flex items-baseline gap-2 mt-1">
-                    <span class="text-2xl sm:text-3xl font-bold text-slate-900">{{ number_format($stats['total']) }}</span>
-                    <span class="text-[11px] text-slate-400">karya foto</span>
-                </div>
-                <p class="text-[11px] text-slate-400 mt-0.5">Semua dokumentasi produksi</p>
+    <section class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <!-- Total Karya -->
+        <div class="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-slate-100/60">
+            <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Total Karya</p>
+            <div class="flex items-baseline gap-2 mt-1">
+                <span class="text-2xl sm:text-3xl font-bold text-slate-900">{{ number_format($stats['total']) }}</span>
+                <span class="text-[11px] text-slate-400">foto</span>
             </div>
+            <p class="text-[11px] text-slate-400 mt-0.5 truncate">Dokumentasi produksi</p>
+        </div>
 
-            <!-- Tayang (Published) -->
-            <div class="pt-4 sm:pt-0 sm:px-4">
-                <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Tayang (Published)</p>
-                <div class="flex items-baseline gap-2 mt-1">
-                    <span class="text-2xl sm:text-3xl font-bold text-emerald-600">{{ number_format($stats['published']) }}</span>
-                    <span class="text-[11px] text-emerald-600/80 font-medium">live di website</span>
-                </div>
-                <p class="text-[11px] text-slate-400 mt-0.5">Dapat dilihat publik & calon klien</p>
+        <!-- Tayang (Published) -->
+        <div class="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-slate-100/60">
+            <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Tayang (Published)</p>
+            <div class="flex items-baseline gap-2 mt-1">
+                <span class="text-2xl sm:text-3xl font-bold text-emerald-600">{{ number_format($stats['published']) }}</span>
+                <span class="text-[11px] text-emerald-600/80 font-medium truncate">live di website</span>
             </div>
+            <p class="text-[11px] text-slate-400 mt-0.5 truncate">Dilihat calon klien</p>
+        </div>
 
-            <!-- Draft / Arsip -->
-            <div class="pt-4 sm:pt-0 sm:px-4">
-                <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Draft / Belum Tayang</p>
-                <div class="flex items-baseline gap-2 mt-1">
-                    <span class="text-2xl sm:text-3xl font-bold text-amber-600">{{ number_format($stats['draft']) }}</span>
-                    <span class="text-[11px] text-amber-600/80 font-medium">pending rilis</span>
-                </div>
-                <p class="text-[11px] text-slate-400 mt-0.5">Menunggu approval foto final</p>
+        <!-- Draft / Arsip -->
+        <div class="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-slate-100/60">
+            <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Draft / Belum Tayang</p>
+            <div class="flex items-baseline gap-2 mt-1">
+                <span class="text-2xl sm:text-3xl font-bold text-amber-600">{{ number_format($stats['draft']) }}</span>
+                <span class="text-[11px] text-amber-600/80 font-medium truncate">pending rilis</span>
             </div>
+            <p class="text-[11px] text-slate-400 mt-0.5 truncate">Menunggu approval</p>
+        </div>
 
-            <!-- Kategori Pakaian -->
-            <div class="pt-4 sm:pt-0 sm:px-4">
-                <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Kategori Pakaian</p>
-                <div class="flex items-baseline gap-2 mt-1">
-                    <span class="text-2xl sm:text-3xl font-bold text-slate-900">{{ number_format($stats['categories_count']) }}</span>
-                    <span class="text-[11px] text-slate-400">kategori</span>
-                </div>
-                <p class="text-[11px] text-slate-400 mt-0.5">Kaos, PDH, Jaket, Almet, dsb</p>
+        <!-- Kategori Pakaian -->
+        <div class="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-slate-100/60">
+            <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Kategori Pakaian</p>
+            <div class="flex items-baseline gap-2 mt-1">
+                <span class="text-2xl sm:text-3xl font-bold text-slate-900">{{ number_format($stats['categories_count']) }}</span>
+                <span class="text-[11px] text-slate-400">segmen</span>
             </div>
+            <p class="text-[11px] text-slate-400 mt-0.5 truncate">Kaos, PDH, Jaket, dsb</p>
         </div>
     </section>
 
@@ -158,7 +156,7 @@
                     @endif
 
                     <!-- Status Tab Pills -->
-                    <div class="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 text-xs">
+                    <div class="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 text-xs no-scrollbar">
                         <a href="{{ route('admin.portfolio.index', array_merge(request()->except('status'), [])) }}" class="px-3 py-1.5 rounded-xl font-semibold transition-all whitespace-nowrap {{ !request('status') ? 'bg-slate-900 text-white' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' }}">
                             Semua ({{ $stats['total'] }})
                         </a>
@@ -171,13 +169,13 @@
                     </div>
 
                     <!-- Right Search & Year Filter -->
-                    <div class="flex flex-wrap sm:flex-nowrap items-center gap-2.5">
-                        <div class="relative w-full sm:w-56">
+                    <div class="flex items-center gap-2 w-full sm:w-auto">
+                        <div class="relative flex-1 sm:w-56 sm:flex-none">
                             <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
                             <input type="text" name="q" value="{{ request('q') }}" placeholder="Cari judul / klien..." class="w-full bg-slate-50 text-xs rounded-xl pl-9 pr-4 py-2 text-slate-700 placeholder-slate-400 border border-slate-200/60 focus:outline-none focus:ring-1 focus:ring-slate-300">
                         </div>
 
-                        <select name="year" onchange="this.form.submit()" class="bg-slate-50 text-xs font-semibold text-slate-700 rounded-xl px-3 py-2 border border-slate-200/60 focus:outline-none focus:ring-1 focus:ring-slate-300 cursor-pointer">
+                        <select name="year" onchange="this.form.submit()" class="bg-slate-50 text-xs font-semibold text-slate-700 rounded-xl px-3 py-2 border border-slate-200/60 focus:outline-none focus:ring-1 focus:ring-slate-300 cursor-pointer shrink-0">
                             <option value="">Semua Tahun</option>
                             @foreach($years as $yr)
                                 <option value="{{ $yr }}" @selected(request('year') == $yr)>{{ $yr }}</option>
@@ -193,11 +191,11 @@
                     <table class="w-full text-left text-xs whitespace-nowrap">
                         <thead>
                             <tr class="text-[11px] font-semibold text-slate-400 border-b border-slate-100 bg-slate-50/50">
-                                <th class="py-3.5 px-5 font-normal uppercase tracking-wider">JUDUL KARYA</th>
-                                <th class="py-3.5 px-5 font-normal uppercase tracking-wider">KATEGORI</th>
-                                <th class="py-3.5 px-5 font-normal uppercase tracking-wider text-center">TAHUN</th>
-                                <th class="py-3.5 px-5 font-normal uppercase tracking-wider text-center">STATUS</th>
-                                <th class="py-3.5 px-5 font-normal uppercase tracking-wider text-center">AKSI</th>
+                                <th class="py-3.5 px-3.5 sm:px-5 font-normal uppercase tracking-wider">JUDUL KARYA</th>
+                                <th class="py-3.5 px-3.5 sm:px-5 font-normal uppercase tracking-wider">KATEGORI</th>
+                                <th class="py-3.5 px-3.5 sm:px-5 font-normal uppercase tracking-wider text-center">TAHUN</th>
+                                <th class="py-3.5 px-3.5 sm:px-5 font-normal uppercase tracking-wider text-center">STATUS</th>
+                                <th class="py-3.5 px-3.5 sm:px-5 font-normal uppercase tracking-wider text-center">AKSI</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-50">

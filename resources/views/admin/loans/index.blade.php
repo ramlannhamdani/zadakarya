@@ -17,117 +17,117 @@
 
     <div class="space-y-6">
         <!-- 1. SUMMARY METRICS TILES (Sleek Flat Container) -->
-        <section class="bg-white rounded-2xl p-6 shadow-sm">
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-6 divide-y sm:divide-y-0 sm:divide-x divide-slate-100">
-            <!-- Total Sisa Hutang Aktif -->
-            <div class="pt-4 sm:pt-0 sm:px-4 first:pt-0 first:pl-0">
-                <div class="flex items-center justify-between">
-                    <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Sisa Hutang Aktif</p>
-                    <span class="rounded-full bg-rose-50 px-2 py-0.5 text-[10px] font-bold text-rose-700">Kewajiban</span>
-                </div>
-                <div class="flex items-baseline gap-2 mt-1">
-                    <span class="text-2xl sm:text-3xl font-bold text-rose-600">{{ rupiah($totalActiveDebt) }}</span>
-                </div>
-                <p class="text-[11px] text-slate-400 mt-0.5">Total pinjaman: {{ rupiah($totalDebtRecorded) }}</p>
-            </div>
-
-            <!-- Pinjaman Masuk Bulan Ini -->
-            <div class="pt-4 sm:pt-0 sm:px-4">
-                <div class="flex items-center justify-between">
-                    <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Pinjaman Masuk</p>
-                    <span class="rounded-full bg-indigo-50 px-2 py-0.5 text-[10px] font-bold text-indigo-700">Bulan Ini</span>
-                </div>
-                <div class="flex items-baseline gap-2 mt-1">
-                    <span class="text-2xl sm:text-3xl font-bold text-indigo-700">{{ rupiah($loansThisMonth) }}</span>
-                </div>
-                <p class="text-[11px] text-slate-400 mt-0.5">Dana talangan diterima</p>
-            </div>
-
-            <!-- Pelunasan Bulan Ini -->
-            <div class="pt-4 sm:pt-0 sm:px-4">
-                <div class="flex items-center justify-between">
-                    <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Pelunasan</p>
-                    <span class="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700">Bulan Ini</span>
-                </div>
-                <div class="flex items-baseline gap-2 mt-1">
-                    <span class="text-2xl sm:text-3xl font-bold text-emerald-600">{{ rupiah($repaymentsThisMonth) }}</span>
-                </div>
-                <p class="text-[11px] text-slate-400 mt-0.5">Total terbayar: {{ rupiah($totalRepaidAllTime) }}</p>
-            </div>
-
-            <!-- Jatuh Tempo Mendekat -->
-            <div class="pt-4 sm:pt-0 sm:px-4">
-                <div class="flex items-center justify-between">
-                    <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Jatuh Tempo</p>
-                    <span class="rounded-full {{ $dueSoonCount > 0 ? 'bg-amber-50 text-amber-700' : 'bg-slate-100 text-slate-600' }} px-2 py-0.5 text-[10px] font-bold">≤ 7 Hari</span>
-                </div>
-                <div class="flex items-baseline gap-2 mt-1">
-                    <span class="text-2xl sm:text-3xl font-bold {{ $dueSoonCount > 0 ? 'text-amber-600' : 'text-slate-900' }}">{{ $dueSoonCount }}</span>
-                    <span class="text-[11px] text-slate-400 font-medium">pinjaman</span>
-                </div>
-                <p class="text-[11px] text-slate-400 mt-0.5">Target pelunasan segera</p>
-            </div>
-        </div>
-    </section>
-
-    <!-- 2. FILTER & ACTION TOOLBAR -->
-    <section class="bg-white rounded-2xl p-4 sm:p-5 shadow-sm space-y-4">
-        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-            
-            <!-- Status Filter Tabs -->
-            <div class="flex items-center gap-1.5 overflow-x-auto pb-1 lg:pb-0 text-xs">
-                <a href="{{ route('admin.loans.index', array_merge(request()->query(), ['status' => 'all'])) }}"
-                   class="px-3 py-1.5 rounded-xl font-semibold transition-all whitespace-nowrap {{ $status === 'all' ? 'bg-slate-900 text-white' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' }}">
-                    Semua
-                </a>
-                <a href="{{ route('admin.loans.index', array_merge(request()->query(), ['status' => 'active'])) }}"
-                   class="px-3 py-1.5 rounded-xl font-semibold transition-all whitespace-nowrap {{ $status === 'active' ? 'bg-rose-600 text-white' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' }}">
-                    Hutang Aktif
-                </a>
-                <a href="{{ route('admin.loans.index', array_merge(request()->query(), ['status' => 'unpaid'])) }}"
-                   class="px-3 py-1.5 rounded-xl font-semibold transition-all whitespace-nowrap {{ $status === 'unpaid' ? 'bg-slate-900 text-white' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' }}">
-                    Belum Dicicil
-                </a>
-                <a href="{{ route('admin.loans.index', array_merge(request()->query(), ['status' => 'partial'])) }}"
-                   class="px-3 py-1.5 rounded-xl font-semibold transition-all whitespace-nowrap {{ $status === 'partial' ? 'bg-slate-900 text-white' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' }}">
-                    Dicicil Sebagian
-                </a>
-                <a href="{{ route('admin.loans.index', array_merge(request()->query(), ['status' => 'paid'])) }}"
-                   class="px-3 py-1.5 rounded-xl font-semibold transition-all whitespace-nowrap {{ $status === 'paid' ? 'bg-emerald-600 text-white' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' }}">
-                    Lunas
-                </a>
-            </div>
-
-            <!-- Search & Actions -->
-            <div class="flex flex-wrap sm:flex-nowrap items-center gap-2.5">
-                <form method="GET" action="{{ route('admin.loans.index') }}" class="flex items-center gap-2">
-                    @if(request('status'))
-                        <input type="hidden" name="status" value="{{ request('status') }}">
-                    @endif
-                    <div class="relative w-full sm:w-60">
-                        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                        <input type="text" name="q" value="{{ request('q') }}" placeholder="Cari pinjaman / pihak lain..."
-                               class="w-full bg-slate-50 text-xs rounded-xl pl-9 pr-4 py-2 text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-300">
+        <section class="bg-white rounded-2xl p-4 sm:p-6 shadow-sm">
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
+                <!-- Total Sisa Hutang Aktif -->
+                <div class="bg-slate-50/70 rounded-xl p-3.5 sm:p-4">
+                    <div class="flex items-center justify-between">
+                        <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Sisa Hutang</p>
+                        <span class="rounded-full bg-rose-50 px-2 py-0.5 text-[10px] font-bold text-rose-700">Kewajiban</span>
                     </div>
-                    <button type="submit" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-colors">
-                        Cari
-                    </button>
-                    @if(request()->anyFilled(['q', 'status']))
-                        <a href="{{ route('admin.loans.index') }}" class="px-3 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-500 text-xs transition-colors">
-                            Reset
-                        </a>
-                    @endif
-                </form>
+                    <div class="flex items-baseline gap-2 mt-1">
+                        <span class="text-xl sm:text-2xl font-bold text-rose-600">{{ rupiah($totalActiveDebt) }}</span>
+                    </div>
+                    <p class="text-[11px] text-slate-400 mt-0.5">Total: {{ rupiah($totalDebtRecorded) }}</p>
+                </div>
 
-                <button type="button" @click="createModal = true"
-                        class="inline-flex items-center justify-center gap-2 px-3.5 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-semibold transition-all shadow-xs active:scale-95 whitespace-nowrap">
-                    <i class="fa-solid fa-plus text-[10px]"></i>
-                    <span>Catat Pinjaman Baru</span>
-                </button>
+                <!-- Pinjaman Masuk Bulan Ini -->
+                <div class="bg-slate-50/70 rounded-xl p-3.5 sm:p-4">
+                    <div class="flex items-center justify-between">
+                        <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Pinjaman Masuk</p>
+                        <span class="rounded-full bg-indigo-50 px-2 py-0.5 text-[10px] font-bold text-indigo-700">Bulan Ini</span>
+                    </div>
+                    <div class="flex items-baseline gap-2 mt-1">
+                        <span class="text-xl sm:text-2xl font-bold text-indigo-700">{{ rupiah($loansThisMonth) }}</span>
+                    </div>
+                    <p class="text-[11px] text-slate-400 mt-0.5">Dana diterima</p>
+                </div>
+
+                <!-- Pelunasan Bulan Ini -->
+                <div class="bg-slate-50/70 rounded-xl p-3.5 sm:p-4">
+                    <div class="flex items-center justify-between">
+                        <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Pelunasan</p>
+                        <span class="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700">Bulan Ini</span>
+                    </div>
+                    <div class="flex items-baseline gap-2 mt-1">
+                        <span class="text-xl sm:text-2xl font-bold text-emerald-600">{{ rupiah($repaymentsThisMonth) }}</span>
+                    </div>
+                    <p class="text-[11px] text-slate-400 mt-0.5">Terbayar: {{ rupiah($totalRepaidAllTime) }}</p>
+                </div>
+
+                <!-- Jatuh Tempo Mendekat -->
+                <div class="bg-slate-50/70 rounded-xl p-3.5 sm:p-4">
+                    <div class="flex items-center justify-between">
+                        <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Jatuh Tempo</p>
+                        <span class="rounded-full {{ $dueSoonCount > 0 ? 'bg-amber-50 text-amber-700' : 'bg-slate-100 text-slate-600' }} px-2 py-0.5 text-[10px] font-bold">≤ 7 Hari</span>
+                    </div>
+                    <div class="flex items-baseline gap-2 mt-1">
+                        <span class="text-xl sm:text-2xl font-bold {{ $dueSoonCount > 0 ? 'text-amber-600' : 'text-slate-900' }}">{{ $dueSoonCount }}</span>
+                        <span class="text-[11px] text-slate-400 font-medium">pinjaman</span>
+                    </div>
+                    <p class="text-[11px] text-slate-400 mt-0.5">Target segera</p>
+                </div>
             </div>
+        </section>
 
-        </div>
-    </section>
+        <!-- 2. FILTER & ACTION TOOLBAR -->
+        <section class="bg-white rounded-2xl p-4 sm:p-5 shadow-sm space-y-4">
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                
+                <!-- Status Filter Tabs -->
+                <div class="flex items-center gap-1.5 overflow-x-auto pb-1 lg:pb-0 text-xs no-scrollbar">
+                    <a href="{{ route('admin.loans.index', array_merge(request()->query(), ['status' => 'all'])) }}"
+                       class="px-3 py-1.5 rounded-xl font-semibold transition-all whitespace-nowrap {{ $status === 'all' ? 'bg-slate-900 text-white' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' }}">
+                        Semua
+                    </a>
+                    <a href="{{ route('admin.loans.index', array_merge(request()->query(), ['status' => 'active'])) }}"
+                       class="px-3 py-1.5 rounded-xl font-semibold transition-all whitespace-nowrap {{ $status === 'active' ? 'bg-rose-600 text-white' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' }}">
+                        Hutang Aktif
+                    </a>
+                    <a href="{{ route('admin.loans.index', array_merge(request()->query(), ['status' => 'unpaid'])) }}"
+                       class="px-3 py-1.5 rounded-xl font-semibold transition-all whitespace-nowrap {{ $status === 'unpaid' ? 'bg-slate-900 text-white' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' }}">
+                        Belum Dicicil
+                    </a>
+                    <a href="{{ route('admin.loans.index', array_merge(request()->query(), ['status' => 'partial'])) }}"
+                       class="px-3 py-1.5 rounded-xl font-semibold transition-all whitespace-nowrap {{ $status === 'partial' ? 'bg-slate-900 text-white' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' }}">
+                        Dicicil Sebagian
+                    </a>
+                    <a href="{{ route('admin.loans.index', array_merge(request()->query(), ['status' => 'paid'])) }}"
+                       class="px-3 py-1.5 rounded-xl font-semibold transition-all whitespace-nowrap {{ $status === 'paid' ? 'bg-emerald-600 text-white' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' }}">
+                        Lunas
+                    </a>
+                </div>
+
+                <!-- Search & Actions -->
+                <div class="flex flex-col sm:flex-row sm:items-center gap-2.5 w-full lg:w-auto">
+                    <form method="GET" action="{{ route('admin.loans.index') }}" class="flex items-center gap-2 w-full sm:w-auto">
+                        @if(request('status'))
+                            <input type="hidden" name="status" value="{{ request('status') }}">
+                        @endif
+                        <div class="relative flex-1 sm:w-60 sm:flex-none">
+                            <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                            <input type="text" name="q" value="{{ request('q') }}" placeholder="Cari pinjaman / kreditur..."
+                                   class="w-full bg-slate-50 text-xs rounded-xl pl-9 pr-4 py-2 text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-300">
+                        </div>
+                        <button type="submit" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-colors shrink-0">
+                            Cari
+                        </button>
+                        @if(request()->anyFilled(['q', 'status']))
+                            <a href="{{ route('admin.loans.index') }}" class="px-3 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-500 text-xs transition-colors shrink-0">
+                                Reset
+                            </a>
+                        @endif
+                    </form>
+
+                    <button type="button" @click="createModal = true"
+                            class="inline-flex items-center justify-center gap-2 px-3.5 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-semibold transition-all shadow-xs active:scale-95 whitespace-nowrap">
+                        <i class="fa-solid fa-plus text-[10px]"></i>
+                        <span>Catat Pinjaman Baru</span>
+                    </button>
+                </div>
+
+            </div>
+        </section>
 
     <!-- 3. DATA TABLE PINJAMAN -->
     <section class="bg-white rounded-2xl shadow-sm overflow-hidden">
@@ -279,7 +279,7 @@
                  x-transition:leave="ease-in duration-150"
                  x-transition:leave-start="opacity-100 scale-100"
                  x-transition:leave-end="opacity-0 scale-95"
-                 class="relative w-full max-w-lg transform rounded-2xl bg-white p-6 sm:p-7 text-left shadow-2xl border border-slate-100 transition-all">
+                 class="relative w-full max-w-lg transform rounded-2xl bg-white p-5 sm:p-7 text-left shadow-2xl border border-slate-100 transition-all max-h-[90vh] overflow-y-auto">
 
                 <div class="flex items-center justify-between pb-4 mb-4 border-b border-slate-100">
                     <div class="flex items-center gap-3">
@@ -385,7 +385,7 @@
                  x-transition:leave="ease-in duration-150"
                  x-transition:leave-start="opacity-100 scale-100"
                  x-transition:leave-end="opacity-0 scale-95"
-                 class="relative w-full max-w-md transform rounded-2xl bg-white p-6 sm:p-7 text-left shadow-2xl border border-slate-100 transition-all">
+                 class="relative w-full max-w-md transform rounded-2xl bg-white p-5 sm:p-7 text-left shadow-2xl border border-slate-100 transition-all max-h-[90vh] overflow-y-auto">
 
                 <div class="flex items-center justify-between pb-4 mb-4 border-b border-slate-100">
                     <div class="flex items-center gap-3">

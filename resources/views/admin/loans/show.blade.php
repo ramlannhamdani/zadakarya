@@ -286,7 +286,7 @@
                  x-transition:leave="ease-in duration-150"
                  x-transition:leave-start="opacity-100 scale-100"
                  x-transition:leave-end="opacity-0 scale-95"
-                 class="relative w-full max-w-lg transform rounded-2xl bg-white p-6 sm:p-7 text-left shadow-2xl border border-slate-100 transition-all">
+                 class="relative w-full max-w-lg transform rounded-2xl bg-white p-5 sm:p-7 text-left shadow-2xl border border-slate-100 transition-all max-h-[90vh] overflow-y-auto">
 
                 <div class="flex items-center justify-between pb-4 mb-4 border-b border-slate-100">
                     <div class="flex items-center gap-3">
@@ -377,7 +377,7 @@
                  x-transition:leave="ease-in duration-150"
                  x-transition:leave-start="opacity-100 scale-100"
                  x-transition:leave-end="opacity-0 scale-95"
-                 class="relative w-full max-w-md transform rounded-2xl bg-white p-6 sm:p-7 text-left shadow-2xl border border-slate-100 transition-all">
+                 class="relative w-full max-w-md transform rounded-2xl bg-white p-5 sm:p-7 text-left shadow-2xl border border-slate-100 transition-all max-h-[90vh] overflow-y-auto">
 
                 <div class="flex items-center justify-between pb-4 mb-4 border-b border-slate-100">
                     <div class="flex items-center gap-3">

@@ -13,51 +13,49 @@
 <div class="space-y-6">
 
     <!-- 1. SUMMARY METRICS TILES -->
-    <section class="bg-white rounded-2xl p-6 shadow-sm">
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-6 divide-y sm:divide-y-0 sm:divide-x divide-slate-100">
-            <!-- Total Ulasan -->
-            <div class="pt-4 sm:pt-0 sm:px-4 first:pt-0 first:pl-0">
-                <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Total Ulasan</p>
-                <div class="flex items-baseline gap-2 mt-1">
-                    <span class="text-2xl sm:text-3xl font-bold text-slate-900">{{ number_format($stats['total']) }}</span>
-                    <span class="text-[11px] text-slate-400">testimoni</span>
-                </div>
-                <p class="text-[11px] text-slate-400 mt-0.5">Klien konveksi & seragam</p>
+    <section class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <!-- Total Ulasan -->
+        <div class="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-slate-100/60">
+            <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Total Ulasan</p>
+            <div class="flex items-baseline gap-2 mt-1">
+                <span class="text-2xl sm:text-3xl font-bold text-slate-900">{{ number_format($stats['total']) }}</span>
+                <span class="text-[11px] text-slate-400">testimoni</span>
             </div>
+            <p class="text-[11px] text-slate-400 mt-0.5 truncate">Klien konveksi & seragam</p>
+        </div>
 
-            <!-- Rata-Rata Rating -->
-            <div class="pt-4 sm:pt-0 sm:px-4">
-                <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Rata-Rata Rating</p>
-                <div class="flex items-baseline gap-2 mt-1">
-                    <span class="text-2xl sm:text-3xl font-bold text-amber-500">{{ number_format($stats['avg_rating'], 1) }}</span>
-                    <div class="flex items-center text-amber-400 text-xs gap-0.5">
-                        @for($i = 1; $i <= 5; $i++)
-                            <i class="fa-solid fa-star {{ $i <= round($stats['avg_rating']) ? 'text-amber-400' : 'text-slate-200' }}"></i>
-                        @endfor
-                    </div>
+        <!-- Rata-Rata Rating -->
+        <div class="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-slate-100/60">
+            <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Rata-Rata Rating</p>
+            <div class="flex items-baseline gap-2 mt-1">
+                <span class="text-2xl sm:text-3xl font-bold text-amber-500">{{ number_format($stats['avg_rating'], 1) }}</span>
+                <div class="flex items-center text-amber-400 text-xs gap-0.5">
+                    @for($i = 1; $i <= 5; $i++)
+                        <i class="fa-solid fa-star {{ $i <= round($stats['avg_rating']) ? 'text-amber-400' : 'text-slate-200' }}"></i>
+                    @endfor
                 </div>
-                <p class="text-[11px] text-slate-400 mt-0.5">Dari skala 5.0 bintang</p>
             </div>
+            <p class="text-[11px] text-slate-400 mt-0.5 truncate">Skala 5.0 bintang</p>
+        </div>
 
-            <!-- Tayang di Web (Live) -->
-            <div class="pt-4 sm:pt-0 sm:px-4">
-                <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Tayang di Web (Live)</p>
-                <div class="flex items-baseline gap-2 mt-1">
-                    <span class="text-2xl sm:text-3xl font-bold text-emerald-600">{{ number_format($stats['published']) }}</span>
-                    <span class="text-[11px] text-emerald-600/80 font-medium">terverifikasi</span>
-                </div>
-                <p class="text-[11px] text-slate-400 mt-0.5">Muncul di landing page</p>
+        <!-- Tayang di Web (Live) -->
+        <div class="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-slate-100/60">
+            <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Tayang di Web (Live)</p>
+            <div class="flex items-baseline gap-2 mt-1">
+                <span class="text-2xl sm:text-3xl font-bold text-emerald-600">{{ number_format($stats['published']) }}</span>
+                <span class="text-[11px] text-emerald-600/80 font-medium truncate">terverifikasi</span>
             </div>
+            <p class="text-[11px] text-slate-400 mt-0.5 truncate">Muncul di landing page</p>
+        </div>
 
-            <!-- Perlu Moderasi / Hidden -->
-            <div class="pt-4 sm:pt-0 sm:px-4">
-                <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Perlu Moderasi</p>
-                <div class="flex items-baseline gap-2 mt-1">
-                    <span class="text-2xl sm:text-3xl font-bold text-slate-600">{{ number_format($stats['hidden']) }}</span>
-                    <span class="text-[11px] text-slate-400 font-medium">disembunyikan</span>
-                </div>
-                <p class="text-[11px] text-slate-400 mt-0.5">Menunggu konfirmasi admin</p>
+        <!-- Perlu Moderasi / Hidden -->
+        <div class="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-slate-100/60">
+            <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Perlu Moderasi</p>
+            <div class="flex items-baseline gap-2 mt-1">
+                <span class="text-2xl sm:text-3xl font-bold text-slate-600">{{ number_format($stats['hidden']) }}</span>
+                <span class="text-[11px] text-slate-400 font-medium truncate">disembunyikan</span>
             </div>
+            <p class="text-[11px] text-slate-400 mt-0.5 truncate">Menunggu konfirmasi admin</p>
         </div>
     </section>
 
@@ -66,7 +64,7 @@
         <form method="GET" action="{{ route('admin.reviews.index') }}" class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             
             <!-- Status Tab Pills -->
-            <div class="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 text-xs">
+            <div class="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 text-xs no-scrollbar">
                 <a href="{{ route('admin.reviews.index', request()->except('status')) }}" class="px-3.5 py-1.5 rounded-xl font-semibold transition-all whitespace-nowrap {{ !request('status') ? 'bg-slate-900 text-white' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' }}">
                     Semua Ulasan ({{ $stats['total'] }})
                 </a>
@@ -79,17 +77,17 @@
             </div>
 
             <!-- Search & Rating Dropdown Filter -->
-            <div class="flex items-center gap-2.5">
-                <div class="relative w-full sm:w-64">
+            <div class="flex items-center gap-2 w-full sm:w-auto">
+                <div class="relative flex-1 sm:w-64 sm:flex-none">
                     <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                    <input type="text" name="q" value="{{ request('q') }}" placeholder="Cari nama / isi testimoni..." class="w-full bg-slate-50 text-xs rounded-xl pl-9 pr-4 py-2 text-slate-700 placeholder-slate-400 border border-slate-200/60 focus:outline-none focus:ring-1 focus:ring-slate-300">
+                    <input type="text" name="q" value="{{ request('q') }}" placeholder="Cari nama / testimoni..." class="w-full bg-slate-50 text-xs rounded-xl pl-9 pr-4 py-2 text-slate-700 placeholder-slate-400 border border-slate-200/60 focus:outline-none focus:ring-1 focus:ring-slate-300">
                 </div>
 
                 <select name="rating" onchange="this.form.submit()" class="bg-slate-50 text-xs font-semibold text-slate-700 rounded-xl px-3 py-2 border border-slate-200/60 focus:outline-none focus:ring-1 focus:ring-slate-300 cursor-pointer shrink-0">
                     <option value="">Semua Bintang</option>
-                    <option value="5" @selected(request('rating') == '5')>Bintang 5 ★★★★★</option>
-                    <option value="4" @selected(request('rating') == '4')>Bintang 4 ★★★★☆</option>
-                    <option value="3" @selected(request('rating') == '3')>Bintang 3 ★★★☆☆</option>
+                    <option value="5" @selected(request('rating') == '5')>5 ★</option>
+                    <option value="4" @selected(request('rating') == '4')>4 ★</option>
+                    <option value="3" @selected(request('rating') == '3')>3 ★</option>
                 </select>
             </div>
 
@@ -102,12 +100,12 @@
             <table class="w-full text-left text-xs whitespace-nowrap">
                 <thead>
                     <tr class="text-[11px] font-semibold text-slate-400 border-b border-slate-100 bg-slate-50/50">
-                        <th class="py-3.5 px-5 font-normal uppercase tracking-wider">NAMA</th>
-                        <th class="py-3.5 px-5 font-normal uppercase tracking-wider text-center">RATING</th>
-                        <th class="py-3.5 px-5 font-normal uppercase tracking-wider">ULASAN</th>
-                        <th class="py-3.5 px-5 font-normal uppercase tracking-wider text-center">TANGGAL</th>
-                        <th class="py-3.5 px-5 font-normal uppercase tracking-wider text-center">STATUS</th>
-                        <th class="py-3.5 px-5 font-normal uppercase tracking-wider text-center">AKSI</th>
+                        <th class="py-3.5 px-3.5 sm:px-5 font-normal uppercase tracking-wider">NAMA</th>
+                        <th class="py-3.5 px-3.5 sm:px-5 font-normal uppercase tracking-wider text-center">RATING</th>
+                        <th class="py-3.5 px-3.5 sm:px-5 font-normal uppercase tracking-wider">ULASAN</th>
+                        <th class="py-3.5 px-3.5 sm:px-5 font-normal uppercase tracking-wider text-center">TANGGAL</th>
+                        <th class="py-3.5 px-3.5 sm:px-5 font-normal uppercase tracking-wider text-center">STATUS</th>
+                        <th class="py-3.5 px-3.5 sm:px-5 font-normal uppercase tracking-wider text-center">AKSI</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-50">

@@ -111,9 +111,9 @@
     </div>
 
     <!-- 2. SYNCHRONIZED COUNTERS -->
-    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6 pt-6 divide-y sm:divide-y-0 sm:divide-x divide-slate-100">
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 lg:gap-6 pt-6">
         <!-- 1. Data Pesanan -->
-        <div class="pt-4 sm:pt-0 sm:px-4 first:pt-0 first:pl-0">
+        <div class="bg-slate-50/70 rounded-xl p-3.5 sm:p-4">
             <div class="flex items-center justify-between">
                 <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Data Pesanan</span>
                 <i class="fa-solid fa-box-open text-slate-300 text-xs"></i>
@@ -126,7 +126,7 @@
         </div>
 
         <!-- 2. Pengeluaran HPP -->
-        <div class="pt-4 sm:pt-0 sm:px-4">
+        <div class="bg-slate-50/70 rounded-xl p-3.5 sm:p-4">
             <div class="flex items-center justify-between">
                 <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Biaya HPP</span>
                 <i class="fa-solid fa-tags text-slate-300 text-xs"></i>
@@ -139,7 +139,7 @@
         </div>
 
         <!-- 3. Beban Operasional -->
-        <div class="pt-4 sm:pt-0 sm:px-4">
+        <div class="bg-slate-50/70 rounded-xl p-3.5 sm:p-4">
             <div class="flex items-center justify-between">
                 <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Beban Ops</span>
                 <i class="fa-solid fa-arrow-right-arrow-left text-slate-300 text-xs"></i>
@@ -152,7 +152,7 @@
         </div>
 
         <!-- 4. Data Pembayaran -->
-        <div class="pt-4 sm:pt-0 sm:px-4">
+        <div class="bg-slate-50/70 rounded-xl p-3.5 sm:p-4">
             <div class="flex items-center justify-between">
                 <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Pembayaran</span>
                 <i class="fa-regular fa-credit-card text-slate-300 text-xs"></i>
@@ -165,7 +165,7 @@
         </div>
 
         <!-- 5. Pinjaman Pihak Luar -->
-        <div class="pt-4 sm:pt-0 sm:px-4">
+        <div class="bg-slate-50/70 rounded-xl p-3.5 sm:p-4 col-span-2 sm:col-span-1">
             <div class="flex items-center justify-between">
                 <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Pinjaman</span>
                 <i class="fa-solid fa-hand-holding-dollar text-slate-300 text-xs"></i>

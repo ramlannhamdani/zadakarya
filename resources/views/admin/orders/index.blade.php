@@ -11,40 +11,40 @@
 
 @section('content')
 <!-- 1. SUMMARY METRICS TILES (Sleek Flat Container) -->
-<section class="bg-white rounded-2xl p-6 shadow-sm">
-    <div class="grid grid-cols-2 sm:grid-cols-4 gap-6 divide-y sm:divide-y-0 sm:divide-x divide-slate-100">
+<section class="bg-white rounded-2xl p-4 sm:p-6 shadow-sm">
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
         <!-- Total Pesanan -->
-        <div class="pt-4 sm:pt-0 sm:px-4 first:pt-0 first:pl-0">
+        <div class="bg-slate-50/70 rounded-xl p-3.5 sm:p-4">
             <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Total Semua Order</p>
             <div class="flex items-baseline gap-2 mt-1">
-                <span class="text-3xl font-bold text-slate-900">{{ $stats['total'] }}</span>
+                <span class="text-2xl sm:text-3xl font-bold text-slate-900">{{ $stats['total'] }}</span>
                 <span class="text-[11px] text-slate-400">transaksi</span>
             </div>
         </div>
 
         <!-- Pesanan Dalam Produksi -->
-        <div class="pt-4 sm:pt-0 sm:px-4">
+        <div class="bg-slate-50/70 rounded-xl p-3.5 sm:p-4">
             <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Sedang Berjalan</p>
             <div class="flex items-baseline gap-2 mt-1">
-                <span class="text-3xl font-bold text-amber-600">{{ $stats['active'] }}</span>
-                <span class="text-[11px] text-amber-600/80 font-medium">proses konveksi</span>
+                <span class="text-2xl sm:text-3xl font-bold text-amber-600">{{ $stats['active'] }}</span>
+                <span class="text-[11px] text-amber-600/80 font-medium">proses</span>
             </div>
         </div>
 
         <!-- Pesanan Selesai -->
-        <div class="pt-4 sm:pt-0 sm:px-4">
+        <div class="bg-slate-50/70 rounded-xl p-3.5 sm:p-4">
             <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Pesanan Selesai</p>
             <div class="flex items-baseline gap-2 mt-1">
-                <span class="text-3xl font-bold text-emerald-600">{{ $stats['completed'] }}</span>
-                <span class="text-[11px] text-emerald-600/80 font-medium">terkirim / lunas</span>
+                <span class="text-2xl sm:text-3xl font-bold text-emerald-600">{{ $stats['completed'] }}</span>
+                <span class="text-[11px] text-emerald-600/80 font-medium">terkirim</span>
             </div>
         </div>
 
         <!-- Menunggu Pelunasan -->
-        <div class="pt-4 sm:pt-0 sm:px-4">
+        <div class="bg-slate-50/70 rounded-xl p-3.5 sm:p-4">
             <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Belum Lunas</p>
             <div class="flex items-baseline gap-2 mt-1">
-                <span class="text-3xl font-bold text-slate-700">{{ $stats['unpaid'] }}</span>
+                <span class="text-2xl sm:text-3xl font-bold text-slate-700">{{ $stats['unpaid'] }}</span>
                 <span class="text-[11px] text-slate-400 font-medium">order</span>
             </div>
             @if(($readyToBillCount ?? 0) > 0)
@@ -62,7 +62,7 @@
     <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         
         <!-- Filter Tabs -->
-        <div class="flex items-center gap-1.5 overflow-x-auto pb-1 lg:pb-0 text-xs">
+        <div class="flex items-center gap-1.5 overflow-x-auto pb-1 lg:pb-0 text-xs no-scrollbar">
             <a href="{{ route('admin.orders.index') }}"
                class="px-3 py-1.5 rounded-xl font-semibold transition-all whitespace-nowrap {{ (!$cashStatus && !$status && !$filter) ? 'bg-slate-900 text-white' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' }}">
                 Semua ({{ $stats['total'] }})
@@ -96,24 +96,24 @@
         </div>
 
         <!-- Search & Filter Options -->
-        <form method="GET" action="{{ route('admin.orders.index') }}" class="flex flex-wrap sm:flex-nowrap items-center gap-2.5">
+        <form method="GET" action="{{ route('admin.orders.index') }}" class="flex items-center gap-2 w-full sm:w-auto">
             @if($status)<input type="hidden" name="status" value="{{ $status }}">@endif
             @if($cashStatus)<input type="hidden" name="cash_status" value="{{ $cashStatus }}">@endif
             @if($filter)<input type="hidden" name="filter" value="{{ $filter }}">@endif
 
             <!-- Search Input -->
-            <div class="relative w-full sm:w-64">
+            <div class="relative flex-1 sm:w-64 sm:flex-none">
                 <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
                 <input type="text" name="q" value="{{ request('q') }}" placeholder="Cari No. Order / Customer..."
                        class="w-full bg-slate-50 text-xs rounded-xl pl-9 pr-4 py-2 text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-300">
             </div>
 
             <!-- Submit Button -->
-            <button type="submit" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-colors">
+            <button type="submit" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-colors shrink-0">
                 Cari
             </button>
             @if(request()->hasAny(['q', 'status', 'cash_status', 'filter']))
-            <a href="{{ route('admin.orders.index') }}" class="px-3 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-500 text-xs transition-colors">
+            <a href="{{ route('admin.orders.index') }}" class="px-3 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-500 text-xs transition-colors shrink-0">
                 Reset
             </a>
             @endif
@@ -128,16 +128,16 @@
         <table class="w-full text-left text-xs whitespace-nowrap">
             <thead>
                 <tr class="text-[11px] font-semibold text-slate-400 border-b border-slate-100">
-                    <th class="py-3.5 px-5 font-normal">NO. ORDER</th>
-                    <th class="py-3.5 px-5 font-normal">CUSTOMER</th>
-                    <th class="py-3.5 px-5 font-normal">PRODUK</th>
-                    <th class="py-3.5 px-5 font-normal text-right">TOTAL</th>
-                    <th class="py-3.5 px-5 font-normal text-center">PEMBAYARAN</th>
-                    <th class="py-3.5 px-5 font-normal text-center">TALANGAN KAS</th>
-                    <th class="py-3.5 px-5 font-normal">TAHAP</th>
-                    <th class="py-3.5 px-5 font-normal text-center">DEADLINE</th>
-                    <th class="py-3.5 px-5 font-normal text-center">STATUS</th>
-                    <th class="py-3.5 px-5 font-normal text-center">AKSI</th>
+                    <th class="py-3.5 px-3.5 sm:px-5 font-normal">NO. ORDER</th>
+                    <th class="py-3.5 px-3.5 sm:px-5 font-normal">CUSTOMER</th>
+                    <th class="py-3.5 px-3.5 sm:px-5 font-normal">PRODUK</th>
+                    <th class="py-3.5 px-3.5 sm:px-5 font-normal text-right">TOTAL</th>
+                    <th class="py-3.5 px-3.5 sm:px-5 font-normal text-center">PEMBAYARAN</th>
+                    <th class="py-3.5 px-3.5 sm:px-5 font-normal text-center">TALANGAN KAS</th>
+                    <th class="py-3.5 px-3.5 sm:px-5 font-normal">TAHAP</th>
+                    <th class="py-3.5 px-3.5 sm:px-5 font-normal text-center">DEADLINE</th>
+                    <th class="py-3.5 px-3.5 sm:px-5 font-normal text-center">STATUS</th>
+                    <th class="py-3.5 px-3.5 sm:px-5 font-normal text-center">AKSI</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-slate-50">

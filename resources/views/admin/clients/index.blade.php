@@ -13,47 +13,45 @@
 <div class="space-y-6">
 
     <!-- 1. SUMMARY METRICS TILES -->
-    <section class="bg-white rounded-2xl p-6 shadow-sm">
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-6 divide-y sm:divide-y-0 sm:divide-x divide-slate-100">
-            <!-- Total Mitra -->
-            <div class="pt-4 sm:pt-0 sm:px-4 first:pt-0 first:pl-0">
-                <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Total Klien</p>
-                <div class="flex items-baseline gap-2 mt-1">
-                    <span class="text-2xl sm:text-3xl font-bold text-slate-900">{{ number_format($stats['total']) }}</span>
-                    <span class="text-[11px] text-slate-400">mitra logo</span>
-                </div>
-                <p class="text-[11px] text-slate-400 mt-0.5">Brand & instansi rekanan</p>
+    <section class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <!-- Total Mitra -->
+        <div class="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-slate-100/60">
+            <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Total Klien</p>
+            <div class="flex items-baseline gap-2 mt-1">
+                <span class="text-2xl sm:text-3xl font-bold text-slate-900">{{ number_format($stats['total']) }}</span>
+                <span class="text-[11px] text-slate-400">mitra logo</span>
             </div>
+            <p class="text-[11px] text-slate-400 mt-0.5 truncate">Brand & instansi rekanan</p>
+        </div>
 
-            <!-- Tayang di Website -->
-            <div class="pt-4 sm:pt-0 sm:px-4">
-                <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Tayang di Website</p>
-                <div class="flex items-baseline gap-2 mt-1">
-                    <span class="text-2xl sm:text-3xl font-bold text-emerald-600">{{ number_format($stats['live']) }}</span>
-                    <span class="text-[11px] text-emerald-600/80 font-medium">muncul di publik</span>
-                </div>
-                <p class="text-[11px] text-slate-400 mt-0.5">Ditampilkan di logo slider</p>
+        <!-- Tayang di Website -->
+        <div class="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-slate-100/60">
+            <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Tayang di Website</p>
+            <div class="flex items-baseline gap-2 mt-1">
+                <span class="text-2xl sm:text-3xl font-bold text-emerald-600">{{ number_format($stats['live']) }}</span>
+                <span class="text-[11px] text-emerald-600/80 font-medium truncate">muncul di publik</span>
             </div>
+            <p class="text-[11px] text-slate-400 mt-0.5 truncate">Logo slider website</p>
+        </div>
 
-            <!-- Disembunyikan / Draft -->
-            <div class="pt-4 sm:pt-0 sm:px-4">
-                <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Disembunyikan</p>
-                <div class="flex items-baseline gap-2 mt-1">
-                    <span class="text-2xl sm:text-3xl font-bold text-slate-600">{{ number_format($stats['hidden']) }}</span>
-                    <span class="text-[11px] text-slate-400 font-medium">arsip / pending</span>
-                </div>
-                <p class="text-[11px] text-slate-400 mt-0.5">Tidak tampil di web publik</p>
+        <!-- Disembunyikan / Draft -->
+        <div class="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-slate-100/60">
+            <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Disembunyikan</p>
+            <div class="flex items-baseline gap-2 mt-1">
+                <span class="text-2xl sm:text-3xl font-bold text-slate-600">{{ number_format($stats['hidden']) }}</span>
+                <span class="text-[11px] text-slate-400 font-medium truncate">arsip/pending</span>
             </div>
+            <p class="text-[11px] text-slate-400 mt-0.5 truncate">Tidak tampil di web</p>
+        </div>
 
-            <!-- Klien dengan Website URL -->
-            <div class="pt-4 sm:pt-0 sm:px-4">
-                <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Dengan Tautan URL</p>
-                <div class="flex items-baseline gap-2 mt-1">
-                    <span class="text-2xl sm:text-3xl font-bold text-brand-700">{{ number_format($stats['linked']) }}</span>
-                    <span class="text-[11px] text-slate-400 font-medium">link aktif</span>
-                </div>
-                <p class="text-[11px] text-slate-400 mt-0.5">Bisa diklik menuju web klien</p>
+        <!-- Klien dengan Website URL -->
+        <div class="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-slate-100/60">
+            <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Dengan Tautan URL</p>
+            <div class="flex items-baseline gap-2 mt-1">
+                <span class="text-2xl sm:text-3xl font-bold text-brand-700">{{ number_format($stats['linked']) }}</span>
+                <span class="text-[11px] text-slate-400 font-medium truncate">link aktif</span>
             </div>
+            <p class="text-[11px] text-slate-400 mt-0.5 truncate">Bisa diklik menuju web</p>
         </div>
     </section>
 
@@ -62,7 +60,7 @@
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             
             <!-- Status Tab Pills -->
-            <div class="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 text-xs">
+            <div class="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 text-xs no-scrollbar">
                 <a href="{{ route('admin.clients.index', request()->except('status')) }}" class="px-3.5 py-1.5 rounded-xl font-semibold transition-all whitespace-nowrap {{ !request('status') ? 'bg-slate-900 text-white' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' }}">
                     Semua Klien ({{ $stats['total'] }})
                 </a>
@@ -75,11 +73,11 @@
             </div>
 
             <!-- Search & View Mode Switcher -->
-            <form method="GET" action="{{ route('admin.clients.index') }}" class="flex items-center gap-2.5">
+            <form method="GET" action="{{ route('admin.clients.index') }}" class="flex items-center gap-2 w-full sm:w-auto">
                 @if(request('status'))
                     <input type="hidden" name="status" value="{{ request('status') }}">
                 @endif
-                <div class="relative w-full sm:w-64">
+                <div class="relative flex-1 sm:w-64 sm:flex-none">
                     <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
                     <input type="text" name="q" value="{{ request('q') }}" placeholder="Cari nama klien / website..." class="w-full bg-slate-50 text-xs rounded-xl pl-9 pr-4 py-2 text-slate-700 placeholder-slate-400 border border-slate-200/60 focus:outline-none focus:ring-1 focus:ring-slate-300">
                 </div>

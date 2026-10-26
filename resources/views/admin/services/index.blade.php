@@ -13,47 +13,45 @@
 <div class="space-y-6">
 
     <!-- 1. SUMMARY METRICS TILES -->
-    <section class="bg-white rounded-2xl p-6 shadow-sm">
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-6 divide-y sm:divide-y-0 sm:divide-x divide-slate-100">
-            <!-- Total Layanan -->
-            <div class="pt-4 sm:pt-0 sm:px-4 first:pt-0 first:pl-0">
-                <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Total Layanan</p>
-                <div class="flex items-baseline gap-2 mt-1">
-                    <span class="text-2xl sm:text-3xl font-bold text-slate-900">{{ number_format($stats['total']) }}</span>
-                    <span class="text-[11px] text-slate-400">segmen konveksi</span>
-                </div>
-                <p class="text-[11px] text-slate-400 mt-0.5">Produk aktif & penawaran</p>
+    <section class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <!-- Total Layanan -->
+        <div class="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-slate-100/60">
+            <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Total Layanan</p>
+            <div class="flex items-baseline gap-2 mt-1">
+                <span class="text-2xl sm:text-3xl font-bold text-slate-900">{{ number_format($stats['total']) }}</span>
+                <span class="text-[11px] text-slate-400">segmen</span>
             </div>
+            <p class="text-[11px] text-slate-400 mt-0.5 truncate">Produk aktif & penawaran</p>
+        </div>
 
-            <!-- Layanan Aktif (Live di Web) -->
-            <div class="pt-4 sm:pt-0 sm:px-4">
-                <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Aktif (Live di Web)</p>
-                <div class="flex items-baseline gap-2 mt-1">
-                    <span class="text-2xl sm:text-3xl font-bold text-emerald-600">{{ number_format($stats['active']) }}</span>
-                    <span class="text-[11px] text-emerald-600/80 font-medium">tayang di website</span>
-                </div>
-                <p class="text-[11px] text-slate-400 mt-0.5">Dapat dipesan pelanggan</p>
+        <!-- Layanan Aktif (Live di Web) -->
+        <div class="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-slate-100/60">
+            <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Aktif (Live di Web)</p>
+            <div class="flex items-baseline gap-2 mt-1">
+                <span class="text-2xl sm:text-3xl font-bold text-emerald-600">{{ number_format($stats['active']) }}</span>
+                <span class="text-[11px] text-emerald-600/80 font-medium truncate">tayang di web</span>
             </div>
+            <p class="text-[11px] text-slate-400 mt-0.5 truncate">Dapat dipesan pelanggan</p>
+        </div>
 
-            <!-- Nonaktif / Draft -->
-            <div class="pt-4 sm:pt-0 sm:px-4">
-                <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Nonaktif (Draft)</p>
-                <div class="flex items-baseline gap-2 mt-1">
-                    <span class="text-2xl sm:text-3xl font-bold text-slate-600">{{ number_format($stats['inactive']) }}</span>
-                    <span class="text-[11px] text-slate-400 font-medium">disembunyikan</span>
-                </div>
-                <p class="text-[11px] text-slate-400 mt-0.5">Pengembangan produk baru</p>
+        <!-- Nonaktif / Draft -->
+        <div class="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-slate-100/60">
+            <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Nonaktif (Draft)</p>
+            <div class="flex items-baseline gap-2 mt-1">
+                <span class="text-2xl sm:text-3xl font-bold text-slate-600">{{ number_format($stats['inactive']) }}</span>
+                <span class="text-[11px] text-slate-400 font-medium truncate">disembunyikan</span>
             </div>
+            <p class="text-[11px] text-slate-400 mt-0.5 truncate">Pengembangan produk</p>
+        </div>
 
-            <!-- Standar Min. Order -->
-            <div class="pt-4 sm:pt-0 sm:px-4">
-                <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Standar Min. Order</p>
-                <div class="flex items-baseline gap-2 mt-1">
-                    <span class="text-2xl sm:text-3xl font-bold text-brand-700">{{ $stats['avg_min_order'] }}</span>
-                    <span class="text-[11px] text-slate-400">Pcs / kloter</span>
-                </div>
-                <p class="text-[11px] text-slate-400 mt-0.5">Kapasitas potong & jahit</p>
+        <!-- Standar Min. Order -->
+        <div class="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-slate-100/60">
+            <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Standar Min. Order</p>
+            <div class="flex items-baseline gap-2 mt-1">
+                <span class="text-2xl sm:text-3xl font-bold text-brand-700">{{ $stats['avg_min_order'] }}</span>
+                <span class="text-[11px] text-slate-400">Pcs / kloter</span>
             </div>
+            <p class="text-[11px] text-slate-400 mt-0.5 truncate">Kapasitas potong & jahit</p>
         </div>
     </section>
 
@@ -62,7 +60,7 @@
         <form method="GET" action="{{ route('admin.services.index') }}" class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             
             <!-- Status Tab Pills -->
-            <div class="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 text-xs">
+            <div class="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 text-xs no-scrollbar">
                 <a href="{{ route('admin.services.index', request()->except('status')) }}" class="px-3 py-1.5 rounded-xl font-semibold transition-all whitespace-nowrap {{ !request('status') ? 'bg-slate-900 text-white' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' }}">
                     Semua Layanan ({{ $stats['total'] }})
                 </a>
@@ -75,8 +73,8 @@
             </div>
 
             <!-- Search & Quick Action -->
-            <div class="flex items-center gap-2.5">
-                <div class="relative w-full sm:w-64">
+            <div class="flex items-center gap-2.5 w-full sm:w-auto">
+                <div class="relative flex-1 sm:w-64 sm:flex-none">
                     <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
                     <input type="text" name="q" value="{{ request('q') }}" placeholder="Cari nama layanan / slug..." class="w-full bg-slate-50 text-xs rounded-xl pl-9 pr-4 py-2 text-slate-700 placeholder-slate-400 border border-slate-200/60 focus:outline-none focus:ring-1 focus:ring-slate-300">
                 </div>
@@ -91,12 +89,12 @@
             <table class="w-full text-left text-xs whitespace-nowrap">
                 <thead>
                     <tr class="text-[11px] font-semibold text-slate-400 border-b border-slate-100 bg-slate-50/50">
-                        <th class="py-3.5 px-5 font-normal uppercase tracking-wider">LAYANAN</th>
-                        <th class="py-3.5 px-5 font-normal uppercase tracking-wider">SLUG (URL)</th>
-                        <th class="py-3.5 px-5 font-normal uppercase tracking-wider text-center">MIN. ORDER</th>
-                        <th class="py-3.5 px-5 font-normal uppercase tracking-wider text-center">URUTAN</th>
-                        <th class="py-3.5 px-5 font-normal uppercase tracking-wider text-center">STATUS</th>
-                        <th class="py-3.5 px-5 font-normal uppercase tracking-wider text-center">AKSI</th>
+                        <th class="py-3.5 px-3.5 sm:px-5 font-normal uppercase tracking-wider">LAYANAN</th>
+                        <th class="py-3.5 px-3.5 sm:px-5 font-normal uppercase tracking-wider">SLUG (URL)</th>
+                        <th class="py-3.5 px-3.5 sm:px-5 font-normal uppercase tracking-wider text-center">MIN. ORDER</th>
+                        <th class="py-3.5 px-3.5 sm:px-5 font-normal uppercase tracking-wider text-center">URUTAN</th>
+                        <th class="py-3.5 px-3.5 sm:px-5 font-normal uppercase tracking-wider text-center">STATUS</th>
+                        <th class="py-3.5 px-3.5 sm:px-5 font-normal uppercase tracking-wider text-center">AKSI</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-50">

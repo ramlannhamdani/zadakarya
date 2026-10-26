@@ -13,47 +13,45 @@
 <div class="space-y-6">
 
     <!-- 1. SUMMARY METRICS TILES -->
-    <section class="bg-white rounded-2xl p-6 shadow-sm">
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-6 divide-y sm:divide-y-0 sm:divide-x divide-slate-100">
-            <!-- Total Artikel -->
-            <div class="pt-4 sm:pt-0 sm:px-4 first:pt-0 first:pl-0">
-                <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Total Artikel</p>
-                <div class="flex items-baseline gap-2 mt-1">
-                    <span class="text-2xl sm:text-3xl font-bold text-slate-900">{{ number_format($statusCounts['all'] ?? 0) }}</span>
-                    <span class="text-[11px] text-slate-400">postingan</span>
-                </div>
-                <p class="text-[11px] text-slate-400 mt-0.5">Konten artikel website</p>
+    <section class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <!-- Total Artikel -->
+        <div class="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-slate-100/60">
+            <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Total Artikel</p>
+            <div class="flex items-baseline gap-2 mt-1">
+                <span class="text-2xl sm:text-3xl font-bold text-slate-900">{{ number_format($statusCounts['all'] ?? 0) }}</span>
+                <span class="text-[11px] text-slate-400">post</span>
             </div>
+            <p class="text-[11px] text-slate-400 mt-0.5 truncate">Konten artikel website</p>
+        </div>
 
-            <!-- Tayang (Published) -->
-            <div class="pt-4 sm:pt-0 sm:px-4">
-                <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Tayang (Published)</p>
-                <div class="flex items-baseline gap-2 mt-1">
-                    <span class="text-2xl sm:text-3xl font-bold text-emerald-600">{{ number_format($statusCounts['published'] ?? 0) }}</span>
-                    <span class="text-[11px] text-emerald-600/80 font-medium">bisa dibaca publik</span>
-                </div>
-                <p class="text-[11px] text-slate-400 mt-0.5">Live di halaman blog</p>
+        <!-- Tayang (Published) -->
+        <div class="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-slate-100/60">
+            <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Tayang (Published)</p>
+            <div class="flex items-baseline gap-2 mt-1">
+                <span class="text-2xl sm:text-3xl font-bold text-emerald-600">{{ number_format($statusCounts['published'] ?? 0) }}</span>
+                <span class="text-[11px] text-emerald-600/80 font-medium truncate">dibaca publik</span>
             </div>
+            <p class="text-[11px] text-slate-400 mt-0.5 truncate">Live di halaman blog</p>
+        </div>
 
-            <!-- Konsep (Draft) -->
-            <div class="pt-4 sm:pt-0 sm:px-4">
-                <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Konsep (Draft)</p>
-                <div class="flex items-baseline gap-2 mt-1">
-                    <span class="text-2xl sm:text-3xl font-bold text-amber-600">{{ number_format($statusCounts['draft'] ?? 0) }}</span>
-                    <span class="text-[11px] text-amber-600/80 font-medium">dalam penulisan</span>
-                </div>
-                <p class="text-[11px] text-slate-400 mt-0.5">Belum dipublikasikan</p>
+        <!-- Konsep (Draft) -->
+        <div class="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-slate-100/60">
+            <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Konsep (Draft)</p>
+            <div class="flex items-baseline gap-2 mt-1">
+                <span class="text-2xl sm:text-3xl font-bold text-amber-600">{{ number_format($statusCounts['draft'] ?? 0) }}</span>
+                <span class="text-[11px] text-amber-600/80 font-medium truncate">dalam penulisan</span>
             </div>
+            <p class="text-[11px] text-slate-400 mt-0.5 truncate">Belum dipublikasikan</p>
+        </div>
 
-            <!-- Total Kategori Blog -->
-            <div class="pt-4 sm:pt-0 sm:px-4">
-                <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Kategori Topik</p>
-                <div class="flex items-baseline gap-2 mt-1">
-                    <span class="text-2xl sm:text-3xl font-bold text-brand-700">{{ number_format($categories->count()) }}</span>
-                    <span class="text-[11px] text-slate-400 font-medium">rubrik edukasi</span>
-                </div>
-                <p class="text-[11px] text-slate-400 mt-0.5">Bahan, sablon, seragam, dll</p>
+        <!-- Total Kategori Blog -->
+        <div class="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-slate-100/60">
+            <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Kategori Topik</p>
+            <div class="flex items-baseline gap-2 mt-1">
+                <span class="text-2xl sm:text-3xl font-bold text-brand-700">{{ number_format($categories->count()) }}</span>
+                <span class="text-[11px] text-slate-400 font-medium truncate">rubrik</span>
             </div>
+            <p class="text-[11px] text-slate-400 mt-0.5 truncate">Bahan, sablon, seragam</p>
         </div>
     </section>
 
@@ -157,7 +155,7 @@
                     @endif
 
                     <!-- Status Tab Pills -->
-                    <div class="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 text-xs">
+                    <div class="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 text-xs no-scrollbar">
                         <a href="{{ route('admin.articles.index', request()->except('status')) }}" class="px-3.5 py-1.5 rounded-xl font-semibold transition-all whitespace-nowrap {{ !$currentStatus ? 'bg-slate-900 text-white' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' }}">
                             Semua ({{ $statusCounts['all'] ?? 0 }})
                         </a>
@@ -188,11 +186,11 @@
                     <table class="w-full text-left text-xs whitespace-nowrap">
                         <thead>
                             <tr class="text-[11px] font-semibold text-slate-400 border-b border-slate-100 bg-slate-50/50">
-                                <th class="py-3.5 px-5 font-normal uppercase tracking-wider">JUDUL ARTIKEL</th>
-                                <th class="py-3.5 px-5 font-normal uppercase tracking-wider">KATEGORI</th>
-                                <th class="py-3.5 px-5 font-normal uppercase tracking-wider text-center">TERBIT</th>
-                                <th class="py-3.5 px-5 font-normal uppercase tracking-wider text-center">STATUS</th>
-                                <th class="py-3.5 px-5 font-normal uppercase tracking-wider text-center">AKSI</th>
+                                <th class="py-3.5 px-3.5 sm:px-5 font-normal uppercase tracking-wider">JUDUL ARTIKEL</th>
+                                <th class="py-3.5 px-3.5 sm:px-5 font-normal uppercase tracking-wider">KATEGORI</th>
+                                <th class="py-3.5 px-3.5 sm:px-5 font-normal uppercase tracking-wider text-center">TERBIT</th>
+                                <th class="py-3.5 px-3.5 sm:px-5 font-normal uppercase tracking-wider text-center">STATUS</th>
+                                <th class="py-3.5 px-3.5 sm:px-5 font-normal uppercase tracking-wider text-center">AKSI</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-50">
