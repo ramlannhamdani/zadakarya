@@ -3,142 +3,161 @@
 @section('title', 'Pesanan '.$order->order_number)
 
 @section('content')
-{{-- Header summary --}}
-<div class="admin-card">
-    <div class="flex flex-wrap items-start justify-between gap-4">
-        <div>
-            <div class="flex items-center gap-3">
-                <span class="font-mono text-2xl font-extrabold text-brand-600">{{ $order->order_number }}</span>
-                <x-order-status-badge :status="$order->status" />
-            </div>
-            <p class="mt-1 font-semibold text-ink">{{ $order->name }}</p>
-            <p class="text-sm text-neutral-500">
-                <a href="{{ route('admin.customers.show', $order->customer) }}" class="font-medium text-brand-600 hover:underline">{{ $order->customer->display_name }}</a>
-                &bull; dibuat {{ $order->created_at->translatedFormat('d M Y') }}
-            </p>
-        </div>
-        <div class="flex flex-wrap items-center gap-2">
-            <a href="{{ route('tracking.index', ['order' => $order->order_number]) }}" target="_blank" class="btn-outline !px-4 !py-2 text-xs">Lihat Tracking Publik</a>
-            <a href="{{ route('admin.orders.edit', $order) }}" class="btn-outline !px-4 !py-2 text-xs">Edit Pesanan</a>
-            <form method="POST" action="{{ route('admin.orders.status', $order) }}" class="flex items-center gap-1.5">
-                @csrf @method('PATCH')
-                <select name="status" class="form-input !w-auto !py-2 text-xs" onchange="this.form.submit()">
-                    @foreach(\App\Models\Order::STATUSES as $key => $label)
-                        <option value="{{ $key }}" @selected($order->status === $key)>{{ $label }}</option>
-                    @endforeach
-                </select>
-            </form>
-            <form method="POST" action="{{ route('admin.orders.destroy', $order) }}"
-                  onsubmit="return confirm('Hapus pesanan {{ $order->order_number }}?\n\nInvoice, pembayaran ({{ rupiah($order->amount_paid) }}), foto produksi, dan file pesanan ini ikut terhapus permanen — total pendapatan di dashboard akan berkurang.\n\nUntuk pesanan yang batal tapi datanya ingin disimpan, ubah status jadi Dibatalkan.')">
-                @csrf @method('DELETE')
-                <button type="submit" class="rounded-lg border border-red-200 px-4 py-2 text-xs font-semibold text-red-600 transition hover:border-red-400 hover:bg-red-50">Hapus Pesanan</button>
-            </form>
-        </div>
+<div class="space-y-6">
+    <!-- Header Back Bar -->
+    <div class="flex items-center justify-between">
+        <a href="{{ route('admin.orders.index') }}" class="inline-flex items-center gap-2 text-xs font-semibold text-slate-500 hover:text-slate-800 transition-colors">
+            <i class="fa-solid fa-arrow-left"></i>
+            <span>Kembali ke Daftar Pesanan</span>
+        </a>
     </div>
 
-    <dl class="mt-5 grid grid-cols-2 gap-4 border-t border-line pt-5 sm:grid-cols-3 lg:grid-cols-5">
-        <div>
-            <dt class="text-xs font-bold uppercase tracking-wider text-neutral-500">Grand Total</dt>
-            <dd class="mt-1 whitespace-nowrap text-lg font-extrabold text-ink">{{ rupiah($order->grand_total) }}</dd>
-        </div>
-        <div>
-            <dt class="text-xs font-bold uppercase tracking-wider text-neutral-500">Terbayar</dt>
-            <dd class="mt-1 whitespace-nowrap text-lg font-extrabold text-green-600">{{ rupiah($order->amount_paid) }}</dd>
-        </div>
-        <div>
-            <dt class="text-xs font-bold uppercase tracking-wider text-neutral-500">Sisa</dt>
-            <dd class="mt-1 whitespace-nowrap text-lg font-extrabold {{ $order->remaining > 0 ? 'text-brand-600' : 'text-neutral-400' }}">{{ rupiah($order->remaining) }}</dd>
-        </div>
-        <div>
-            <dt class="text-xs font-bold uppercase tracking-wider text-neutral-500">Pembayaran</dt>
-            <dd class="mt-1.5"><x-payment-badge :status="$order->payment_status" /></dd>
-        </div>
-        <div>
-            <dt class="text-xs font-bold uppercase tracking-wider text-neutral-500">Tahap Saat Ini</dt>
-            <dd class="mt-1 text-sm font-bold text-ink">{{ $order->current_stage }}/7 — {{ $order->current_stage_name }}</dd>
-        </div>
-    </dl>
-
-    @php $invoicedTotal = (int) $order->invoices->sum('grand_total'); @endphp
-    @if($order->invoices->isNotEmpty() && $invoicedTotal !== $order->grand_total)
-        {{-- Grand Total berasal dari Item Produk, sedangkan invoice punya itemnya
-             sendiri — kalau berbeda, angka Sisa & status pembayaran jadi menyesatkan. --}}
-        <div class="mt-5 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-            <p class="font-semibold">Total invoice ({{ rupiah($invoicedTotal) }}) tidak sama dengan Grand Total pesanan ({{ rupiah($order->grand_total) }}).</p>
-            <p class="mt-1 text-amber-800">Grand Total dihitung dari <strong>Item Produk</strong> di tab Overview, bukan dari invoice. Selama keduanya berbeda, kolom <strong>Sisa</strong> dan status pembayaran di atas ikut tidak akurat. Samakan itemnya lewat <a href="{{ route('admin.orders.edit', $order) }}" class="font-semibold underline">Edit Pesanan</a>, atau pisahkan pekerjaan yang berbeda menjadi pesanan tersendiri.</p>
-        </div>
-    @endif
-
-    @if($order->loans && $order->loans->isNotEmpty())
-        @php
-            $activeLoans = $order->loans->whereIn('status', [\App\Models\Loan::STATUS_UNPAID, \App\Models\Loan::STATUS_PARTIAL]);
-            $totalLoanAmount = $order->loans->sum('amount');
-            $totalLoanRemaining = $order->loans->sum(fn ($l) => $l->remaining_amount);
-        @endphp
-        <div class="mt-4 rounded-xl border border-indigo-200 bg-indigo-50/70 p-4 text-xs text-indigo-950">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center gap-2">
-                    <span class="flex h-6 w-6 items-center justify-center rounded-lg bg-indigo-600 text-white font-bold text-xs">💳</span>
-                    <span class="font-extrabold text-sm text-indigo-900">Dana Talangan / Pinjaman Terkait Pesanan Ini</span>
+    {{-- Header summary Card --}}
+    <div class="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-slate-100">
+        <div class="flex flex-wrap items-start justify-between gap-4">
+            <div>
+                <div class="flex items-center gap-3">
+                    <span class="font-mono text-2xl font-bold text-brand-700">{{ $order->order_number }}</span>
+                    <x-order-status-badge :status="$order->status" />
                 </div>
-                <a href="{{ route('admin.loans.index', ['q' => $order->order_number]) }}" class="font-bold text-indigo-700 hover:underline">
-                    Kelola Pinjaman &rarr;
+                <h2 class="mt-1 font-bold text-slate-900 text-base">{{ $order->name }}</h2>
+                <p class="text-xs text-slate-400 mt-0.5">
+                    <a href="{{ route('admin.customers.show', $order->customer) }}" class="font-semibold text-slate-700 hover:text-brand-600 transition-colors">{{ $order->customer->display_name }}</a>
+                    &bull; dibuat pada {{ $order->created_at->translatedFormat('d F Y') }}
+                </p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+                <a href="{{ route('tracking.index', ['order' => $order->order_number]) }}" target="_blank"
+                   class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-colors">
+                    <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+                    <span>Tracking Publik</span>
                 </a>
+                <a href="{{ route('admin.orders.edit', $order) }}"
+                   class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-colors">
+                    <i class="fa-solid fa-pen-to-square text-[11px]"></i>
+                    <span>Edit Pesanan</span>
+                </a>
+                <form method="POST" action="{{ route('admin.orders.status', $order) }}" class="flex items-center gap-1.5">
+                    @csrf @method('PATCH')
+                    <select name="status" class="w-auto rounded-xl bg-slate-50 border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-800 focus:bg-white focus:border-brand-600 focus:outline-none" onchange="this.form.submit()">
+                        @foreach(\App\Models\Order::STATUSES as $key => $label)
+                            <option value="{{ $key }}" @selected($order->status === $key)>{{ $label }}</option>
+                        @endforeach
+                    </select>
+                </form>
+                <form method="POST" action="{{ route('admin.orders.destroy', $order) }}"
+                      onsubmit="return confirm('Hapus pesanan {{ $order->order_number }}?\n\nInvoice, pembayaran ({{ rupiah($order->amount_paid) }}), foto produksi, dan file pesanan ini ikut terhapus permanen — total pendapatan di dashboard akan berkurang.\n\nUntuk pesanan yang batal tapi datanya ingin disimpan, ubah status jadi Dibatalkan.')">
+                    @csrf @method('DELETE')
+                    <button type="submit" class="p-2 rounded-xl text-rose-500 hover:bg-rose-50 hover:text-rose-700 transition-colors" title="Hapus Pesanan">
+                        <i class="fa-regular fa-trash-can text-xs"></i>
+                    </button>
+                </form>
             </div>
-            <div class="mt-2.5 flex flex-wrap gap-4 text-xs">
-                <div>
-                    <span class="text-neutral-500">Total Pinjaman:</span>
-                    <strong class="font-bold text-ink ml-1">{{ rupiah($totalLoanAmount) }}</strong>
-                </div>
-                <div>
-                    <span class="text-neutral-500">Sisa Hutang:</span>
-                    <strong class="font-extrabold {{ $totalLoanRemaining > 0 ? 'text-rose-600' : 'text-emerald-700' }} ml-1">{{ rupiah($totalLoanRemaining) }}</strong>
-                </div>
-                <div>
-                    <span class="text-neutral-500">Pemberi Pinjaman:</span>
-                    <span class="font-semibold text-neutral-800 ml-1">{{ $order->loans->pluck('lender_name')->unique()->join(', ') }}</span>
-                </div>
+        </div>
+
+        <dl class="mt-6 grid grid-cols-2 gap-4 border-t border-slate-100 pt-6 sm:grid-cols-3 lg:grid-cols-5 divide-y sm:divide-y-0 sm:divide-x divide-slate-100">
+            <div class="first:pl-0 sm:px-4">
+                <dt class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Grand Total</dt>
+                <dd class="mt-1 whitespace-nowrap text-lg font-bold font-mono text-slate-900">{{ rupiah($order->grand_total) }}</dd>
             </div>
-            @if($order->remaining <= 0 && $totalLoanRemaining > 0)
-                <div class="mt-2.5 pt-2.5 border-t border-indigo-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-indigo-950">
-                    <span class="font-medium">⚠️ <strong>Pengingat:</strong> Piutang pesanan ini sudah Lunas dari customer! Segera kembalikan dana talangan ke pemberi pinjaman.</span>
-                    <a href="{{ route('admin.loans.index', ['q' => $order->order_number]) }}" class="rounded-lg bg-indigo-600 px-3 py-1.5 text-center text-xs font-bold text-white hover:bg-indigo-700 shrink-0 shadow-xs">
-                        Bayar Pinjaman Sekarang
+            <div class="pt-4 sm:pt-0 sm:px-4">
+                <dt class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Terbayar</dt>
+                <dd class="mt-1 whitespace-nowrap text-lg font-bold font-mono text-emerald-600">{{ rupiah($order->amount_paid) }}</dd>
+            </div>
+            <div class="pt-4 sm:pt-0 sm:px-4">
+                <dt class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Sisa Tagihan</dt>
+                <dd class="mt-1 whitespace-nowrap text-lg font-bold font-mono {{ $order->remaining > 0 ? 'text-rose-600' : 'text-slate-400' }}">{{ rupiah($order->remaining) }}</dd>
+            </div>
+            <div class="pt-4 sm:pt-0 sm:px-4">
+                <dt class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Status Pembayaran</dt>
+                <dd class="mt-1.5"><x-payment-badge :status="$order->payment_status" /></dd>
+            </div>
+            <div class="pt-4 sm:pt-0 sm:px-4">
+                <dt class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Tahap Produksi</dt>
+                <dd class="mt-1 text-xs font-bold text-slate-800">{{ $order->current_stage }}/7 — {{ $order->current_stage_name }}</dd>
+            </div>
+        </dl>
+
+        @php $invoicedTotal = (int) $order->invoices->sum('grand_total'); @endphp
+        @if($order->invoices->isNotEmpty() && $invoicedTotal !== $order->grand_total)
+            <div class="mt-5 rounded-xl border border-amber-200 bg-amber-50 p-4 text-xs text-amber-900">
+                <p class="font-bold">Total invoice ({{ rupiah($invoicedTotal) }}) tidak sama dengan Grand Total pesanan ({{ rupiah($order->grand_total) }}).</p>
+                <p class="mt-1 text-amber-800 leading-relaxed">Grand Total dihitung dari <strong>Item Produk</strong> di tab Overview. Samakan itemnya lewat <a href="{{ route('admin.orders.edit', $order) }}" class="font-semibold underline">Edit Pesanan</a> agar pencatatan sisa piutang sinkron.</p>
+            </div>
+        @endif
+
+        @if($order->loans && $order->loans->isNotEmpty())
+            @php
+                $activeLoans = $order->loans->whereIn('status', [\App\Models\Loan::STATUS_UNPAID, \App\Models\Loan::STATUS_PARTIAL]);
+                $totalLoanAmount = $order->loans->sum('amount');
+                $totalLoanRemaining = $order->loans->sum(fn ($l) => $l->remaining_amount);
+            @endphp
+            <div class="mt-5 rounded-2xl border border-indigo-100 bg-indigo-50/50 p-4 sm:p-5 text-xs text-indigo-950">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-7 h-7 rounded-lg bg-indigo-600 text-white flex items-center justify-center text-xs">
+                            <i class="fa-solid fa-credit-card"></i>
+                        </div>
+                        <span class="font-bold text-indigo-950 text-sm">Dana Talangan / Pinjaman Terkait Pesanan Ini</span>
+                    </div>
+                    <a href="{{ route('admin.loans.index', ['q' => $order->order_number]) }}" class="font-bold text-indigo-700 hover:underline">
+                        Kelola Pinjaman &rarr;
                     </a>
                 </div>
-            @endif
-        </div>
-    @endif
-</div>
+                <div class="mt-3 flex flex-wrap gap-6 text-xs">
+                    <div>
+                        <span class="text-slate-500">Total Pinjaman:</span>
+                        <strong class="font-bold font-mono text-slate-800 ml-1">{{ rupiah($totalLoanAmount) }}</strong>
+                    </div>
+                    <div>
+                        <span class="text-slate-500">Sisa Hutang:</span>
+                        <strong class="font-bold font-mono {{ $totalLoanRemaining > 0 ? 'text-rose-600' : 'text-emerald-700' }} ml-1">{{ rupiah($totalLoanRemaining) }}</strong>
+                    </div>
+                    <div>
+                        <span class="text-slate-500">Pemberi Pinjaman:</span>
+                        <span class="font-semibold text-slate-800 ml-1">{{ $order->loans->pluck('lender_name')->unique()->join(', ') }}</span>
+                    </div>
+                </div>
+                @if($order->remaining <= 0 && $totalLoanRemaining > 0)
+                    <div class="mt-3 pt-3 border-t border-indigo-200/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-indigo-950">
+                        <span class="font-medium">⚠️ <strong>Pengingat:</strong> Piutang pesanan ini sudah LUNAS dari customer! Segera kembalikan dana talangan ke kreditur.</span>
+                        <a href="{{ route('admin.loans.index', ['q' => $order->order_number]) }}" class="rounded-xl bg-indigo-600 px-3.5 py-1.5 text-center text-xs font-semibold text-white hover:bg-indigo-700 shrink-0 shadow-xs active:scale-95 transition-all">
+                            Bayar Pinjaman Sekarang
+                        </a>
+                    </div>
+                @endif
+            </div>
+        @endif
+    </div>
 
-{{-- Tabs --}}
-@php
-    $tabs = [
-        'overview' => 'Overview',
-        'tracking' => 'Tracking',
-        'photos' => 'Foto Produksi',
-        'invoice' => 'Invoice',
-        'payments' => 'Pembayaran',
-        'hpp' => 'Biaya & HPP',
-        'files' => 'File',
-        'history' => 'Riwayat',
-        'notes' => 'Catatan Internal',
-    ];
-    $tab = array_key_exists($tab, $tabs) ? $tab : 'overview';
-@endphp
-<div class="mt-6 flex flex-wrap gap-1.5 border-b border-line pb-px">
-    @foreach($tabs as $key => $label)
-        <a href="{{ route('admin.orders.show', ['order' => $order, 'tab' => $key]) }}"
-           class="rounded-t-lg px-4 py-2.5 text-sm font-semibold transition {{ $tab === $key ? 'border border-b-0 border-line bg-white text-brand-600' : 'text-neutral-500 hover:text-ink' }}">
-            {{ $label }}
-            @if($key === 'photos' && $order->productionPhotos->count())<span class="ml-1 rounded-full bg-neutral-100 px-1.5 text-xs">{{ $order->productionPhotos->count() }}</span>@endif
-            @if($key === 'invoice' && $order->invoices->count())<span class="ml-1 rounded-full bg-neutral-100 px-1.5 text-xs">{{ $order->invoices->count() }}</span>@endif
-            @if($key === 'payments' && $order->payments->count())<span class="ml-1 rounded-full bg-neutral-100 px-1.5 text-xs">{{ $order->payments->count() }}</span>@endif
-            @if($key === 'hpp' && $order->costs->count())<span class="ml-1 rounded-full bg-neutral-100 px-1.5 text-xs">{{ $order->costs->count() }}</span>@endif
-            @if($key === 'files' && $order->attachments->count())<span class="ml-1 rounded-full bg-neutral-100 px-1.5 text-xs">{{ $order->attachments->count() }}</span>@endif
-        </a>
-    @endforeach
-</div>
+    {{-- Tabs --}}
+    @php
+        $tabs = [
+            'overview' => 'Overview',
+            'tracking' => 'Tracking',
+            'photos' => 'Foto Produksi',
+            'invoice' => 'Invoice',
+            'payments' => 'Pembayaran',
+            'hpp' => 'Biaya & HPP',
+            'files' => 'File',
+            'history' => 'Riwayat',
+            'notes' => 'Catatan Internal',
+        ];
+        $tab = array_key_exists($tab, $tabs) ? $tab : 'overview';
+    @endphp
+    <div class="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
+        @foreach($tabs as $key => $label)
+            <a href="{{ route('admin.orders.show', ['order' => $order, 'tab' => $key]) }}"
+               class="px-3.5 py-2 rounded-xl font-semibold transition-all whitespace-nowrap {{ $tab === $key ? 'bg-slate-900 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' }}">
+                {{ $label }}
+                @if($key === 'photos' && $order->productionPhotos->count())<span class="ml-1.5 rounded-full {{ $tab === $key ? 'bg-slate-800 text-slate-200' : 'bg-slate-200 text-slate-700' }} px-1.5 py-0.5 text-[10px]">{{ $order->productionPhotos->count() }}</span>@endif
+                @if($key === 'invoice' && $order->invoices->count())<span class="ml-1.5 rounded-full {{ $tab === $key ? 'bg-slate-800 text-slate-200' : 'bg-slate-200 text-slate-700' }} px-1.5 py-0.5 text-[10px]">{{ $order->invoices->count() }}</span>@endif
+                @if($key === 'payments' && $order->payments->count())<span class="ml-1.5 rounded-full {{ $tab === $key ? 'bg-slate-800 text-slate-200' : 'bg-slate-200 text-slate-700' }} px-1.5 py-0.5 text-[10px]">{{ $order->payments->count() }}</span>@endif
+                @if($key === 'hpp' && $order->costs->count())<span class="ml-1.5 rounded-full {{ $tab === $key ? 'bg-slate-800 text-slate-200' : 'bg-slate-200 text-slate-700' }} px-1.5 py-0.5 text-[10px]">{{ $order->costs->count() }}</span>@endif
+                @if($key === 'files' && $order->attachments->count())<span class="ml-1.5 rounded-full {{ $tab === $key ? 'bg-slate-800 text-slate-200' : 'bg-slate-200 text-slate-700' }} px-1.5 py-0.5 text-[10px]">{{ $order->attachments->count() }}</span>@endif
+            </a>
+        @endforeach
+    </div>
 
 <div class="mt-5">
     {{-- ============ OVERVIEW ============ --}}
@@ -1059,5 +1078,6 @@
             <button type="submit" class="btn-primary mt-4">Simpan Catatan</button>
         </form>
     @endif
+</div>
 </div>
 @endsection

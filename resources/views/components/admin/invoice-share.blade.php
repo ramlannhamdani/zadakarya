@@ -34,9 +34,9 @@
     <button type="button" x-on:click="share()" :disabled="busy"
             title="{{ wa_number($order->customer?->whatsapp) ? 'Kirim ke '.$order->customer->whatsapp : 'Nomor WhatsApp customer belum tersimpan — kontak dipilih di WhatsApp' }}"
             @class([
-                'inline-flex items-center gap-1.5 rounded-lg border border-green-600/30 font-semibold text-green-700 hover:bg-green-50 disabled:opacity-60',
+                'inline-flex items-center gap-1.5 rounded-xl bg-emerald-50 text-emerald-700 hover:bg-emerald-100 font-semibold border border-emerald-200/60 shadow-xs active:scale-95 transition-all disabled:opacity-60',
                 'px-2.5 py-1 text-xs' => $small,
-                'px-4 py-2 text-xs' => ! $small,
+                'px-3.5 py-1.5 sm:px-4 sm:py-2 text-xs' => ! $small,
             ])>
         <svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
             <path d="M17.47 14.38c-.3-.15-1.75-.86-2.02-.96-.27-.1-.47-.15-.67.15-.2.3-.77.96-.94 1.16-.17.2-.35.22-.65.07-.3-.15-1.25-.46-2.38-1.47-.88-.78-1.48-1.75-1.65-2.05-.17-.3-.02-.46.13-.61.14-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.08-.15-.67-1.61-.92-2.2-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.79.37-.27.3-1.04 1.01-1.04 2.47s1.06 2.87 1.21 3.07c.15.2 2.1 3.2 5.08 4.49.71.3 1.26.49 1.69.63.71.22 1.36.19 1.87.12.57-.09 1.75-.72 2-1.41.25-.69.25-1.28.17-1.41-.07-.13-.27-.2-.57-.35Z"/>

@@ -270,7 +270,7 @@
                  x-transition:leave-start="opacity-100"
                  x-transition:leave-end="opacity-0"
                  @click="createModal = false"
-                 class="fixed inset-0 bg-neutral-900/60 transition-opacity backdrop-blur-xs"></div>
+                 class="fixed inset-0 bg-slate-900/40 transition-opacity backdrop-blur-xs"></div>
 
             <div x-show="createModal"
                  x-transition:enter="ease-out duration-200"
@@ -279,53 +279,56 @@
                  x-transition:leave="ease-in duration-150"
                  x-transition:leave-start="opacity-100 scale-100"
                  x-transition:leave-end="opacity-0 scale-95"
-                 class="relative w-full max-w-lg transform rounded-2xl bg-white p-6 text-left shadow-2xl transition-all">
+                 class="relative w-full max-w-lg transform rounded-2xl bg-white p-6 sm:p-7 text-left shadow-2xl border border-slate-100 transition-all">
 
-                <div class="flex items-center justify-between border-b border-line pb-3.5">
-                    <div class="flex items-center gap-2">
-                        <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-50 text-brand-600">
-                            <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+                <div class="flex items-center justify-between pb-4 mb-4 border-b border-slate-100">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center text-sm font-bold shrink-0">
+                            <i class="fa-solid fa-hand-holding-dollar"></i>
                         </div>
                         <div>
-                            <h3 class="text-base font-extrabold text-ink">Catat Pinjaman / Dana Talangan</h3>
-                            <p class="text-xs text-neutral-500">Mencatat penerimaan dana pinjaman dari pihak lain</p>
+                            <h3 class="text-base font-bold text-slate-900 tracking-tight">Catat Pinjaman / Dana Talangan</h3>
+                            <p class="text-xs text-slate-400">Pencatatan penerimaan dana pinjaman atau talangan operasional</p>
                         </div>
                     </div>
-                    <button type="button" @click="createModal = false" class="text-neutral-400 hover:text-neutral-600">✕</button>
+                    <button type="button" @click="createModal = false"
+                            class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-400 hover:text-slate-600 flex items-center justify-center transition-colors">
+                        <i class="fa-solid fa-xmark text-xs"></i>
+                    </button>
                 </div>
 
-                <form method="POST" action="{{ route('admin.loans.store') }}" class="mt-4 space-y-4">
+                <form method="POST" action="{{ route('admin.loans.store') }}" class="space-y-4">
                     @csrf
 
                     <div>
-                        <label class="block text-xs font-bold text-neutral-700">Nama Pemberi Pinjaman / Kreditur <span class="text-red-500">*</span></label>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1.5">Nama Pemberi Pinjaman / Kreditur <span class="text-rose-500">*</span></label>
                         <input type="text" name="lender_name" required placeholder="Contoh: Pak Haji Rahmat, Rekan Konveksi, Bank"
-                               class="form-input mt-1 w-full text-sm">
+                               class="w-full rounded-xl bg-slate-50 border border-slate-200/80 px-3.5 py-2.5 text-xs text-slate-800 placeholder-slate-400 focus:bg-white focus:border-brand-600 focus:outline-none transition-colors">
                     </div>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
-                            <label class="block text-xs font-bold text-neutral-700">Nominal Pinjaman (Rp) <span class="text-red-500">*</span></label>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1.5">Nominal Pinjaman (Rp) <span class="text-rose-500">*</span></label>
                             <input type="number" name="amount" required min="1000" step="1000" placeholder="Contoh: 10000000"
-                                   class="form-input mt-1 w-full text-sm font-semibold">
+                                   class="w-full rounded-xl bg-slate-50 border border-slate-200/80 px-3.5 py-2.5 text-xs font-mono font-bold text-slate-800 focus:bg-white focus:border-brand-600 focus:outline-none transition-colors">
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-neutral-700">Tanggal Diterima <span class="text-red-500">*</span></label>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1.5">Tanggal Diterima <span class="text-rose-500">*</span></label>
                             <input type="date" name="loan_date" required value="{{ now()->toDateString() }}"
-                                   class="form-input mt-1 w-full text-sm">
+                                   class="w-full rounded-xl bg-slate-50 border border-slate-200/80 px-3.5 py-2.5 text-xs text-slate-800 focus:bg-white focus:border-brand-600 focus:outline-none transition-colors">
                         </div>
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-neutral-700">Target Jatuh Tempo (Opsional)</label>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1.5">Target Jatuh Tempo (Opsional)</label>
                         <input type="date" name="due_date"
-                               class="form-input mt-1 w-full text-sm">
-                        <p class="mt-1 text-[11px] text-neutral-400">Kosongkan jika pinjaman tidak memiliki tenggat waktu tetap.</p>
+                               class="w-full rounded-xl bg-slate-50 border border-slate-200/80 px-3.5 py-2.5 text-xs text-slate-800 focus:bg-white focus:border-brand-600 focus:outline-none transition-colors">
+                        <p class="mt-1 text-[11px] text-slate-400">Kosongkan jika pinjaman tidak memiliki tenggat waktu tetap.</p>
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-neutral-700">Tautkan ke Pesanan Tertentu (Opsional)</label>
-                        <select name="order_id" class="form-input mt-1 w-full text-xs">
+                        <label class="block text-xs font-semibold text-slate-700 mb-1.5">Tautkan ke Pesanan Tertentu (Opsional)</label>
+                        <select name="order_id" class="w-full rounded-xl bg-slate-50 border border-slate-200/80 px-3.5 py-2.5 text-xs text-slate-800 focus:bg-white focus:border-brand-600 focus:outline-none transition-colors">
                             <option value="">— Tidak Terikat Pesanan (Pinjaman Umum) —</option>
                             @foreach($ordersWithReceivables as $ord)
                                 <option value="{{ $ord->id }}">
@@ -333,26 +336,29 @@
                                 </option>
                             @endforeach
                         </select>
-                        <p class="mt-1 text-[11px] text-neutral-500">
-                            💡 <em>Pilih pesanan jika pinjaman ini untuk menalangi produksi pesanan yang piutangnya belum dibayar customer.</em>
+                        <p class="mt-1 text-[11px] text-slate-400">
+                            💡 <em>Pilih pesanan jika pinjaman ini untuk menalangi biaya produksi pesanan yang piutangnya belum dibayar customer.</em>
                         </p>
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-neutral-700">Keperluan / Keterangan Singkat</label>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1.5">Keperluan / Keterangan Singkat</label>
                         <input type="text" name="purpose" placeholder="Contoh: Talangan beli kain seragam drill 5 roll"
-                               class="form-input mt-1 w-full text-sm">
+                               class="w-full rounded-xl bg-slate-50 border border-slate-200/80 px-3.5 py-2.5 text-xs text-slate-800 placeholder-slate-400 focus:bg-white focus:border-brand-600 focus:outline-none transition-colors">
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-neutral-700">Catatan Tambahan (Opsional)</label>
-                        <textarea name="notes" rows="2" placeholder="Nomor rekening pengembalian, kesepakatan, dll..."
-                                  class="form-input mt-1 w-full text-sm"></textarea>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1.5">Catatan Tambahan (Opsional)</label>
+                        <textarea name="notes" rows="2" placeholder="Nomor rekening pengembalian, kesepakatan bagi hasil, dll..."
+                                  class="w-full rounded-xl bg-slate-50 border border-slate-200/80 px-3.5 py-2.5 text-xs text-slate-800 placeholder-slate-400 focus:bg-white focus:border-brand-600 focus:outline-none transition-colors"></textarea>
                     </div>
 
-                    <div class="flex items-center justify-end gap-2.5 pt-3 border-t border-line">
-                        <button type="button" @click="createModal = false" class="btn-outline !py-2 !px-4 text-xs font-semibold">Batal</button>
-                        <button type="submit" class="btn-primary !py-2 !px-5 text-xs font-bold">Simpan Pinjaman</button>
+                    <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
+                        <button type="button" @click="createModal = false" class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-colors">Batal</button>
+                        <button type="submit" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold shadow-xs active:scale-95 transition-all">
+                            <i class="fa-solid fa-check text-[11px]"></i>
+                            <span>Simpan Pinjaman</span>
+                        </button>
                     </div>
                 </form>
             </div>
@@ -370,7 +376,7 @@
                  x-transition:leave-start="opacity-100"
                  x-transition:leave-end="opacity-0"
                  @click="payModal = false"
-                 class="fixed inset-0 bg-neutral-900/60 transition-opacity backdrop-blur-xs"></div>
+                 class="fixed inset-0 bg-slate-900/40 transition-opacity backdrop-blur-xs"></div>
 
             <div x-show="payModal"
                  x-transition:enter="ease-out duration-200"
@@ -379,54 +385,57 @@
                  x-transition:leave="ease-in duration-150"
                  x-transition:leave-start="opacity-100 scale-100"
                  x-transition:leave-end="opacity-0 scale-95"
-                 class="relative w-full max-w-md transform rounded-2xl bg-white p-6 text-left shadow-2xl transition-all">
+                 class="relative w-full max-w-md transform rounded-2xl bg-white p-6 sm:p-7 text-left shadow-2xl border border-slate-100 transition-all">
 
-                <div class="flex items-center justify-between border-b border-line pb-3.5">
-                    <div class="flex items-center gap-2">
-                        <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700">
-                            <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z"/></svg>
+                <div class="flex items-center justify-between pb-4 mb-4 border-b border-slate-100">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center text-sm font-bold shrink-0">
+                            <i class="fa-solid fa-money-bill-transfer"></i>
                         </div>
                         <div>
-                            <h3 class="text-base font-extrabold text-ink">Bayar / Cicil Pinjaman</h3>
-                            <p class="text-xs text-neutral-500" x-text="activeLoan ? activeLoan.reference_no + ' (' + activeLoan.lender_name + ')' : ''"></p>
+                            <h3 class="text-base font-bold text-slate-900 tracking-tight">Bayar / Cicil Pinjaman</h3>
+                            <p class="text-xs text-slate-400" x-text="activeLoan ? activeLoan.reference_no + ' (' + activeLoan.lender_name + ')' : ''"></p>
                         </div>
                     </div>
-                    <button type="button" @click="payModal = false" class="text-neutral-400 hover:text-neutral-600">✕</button>
+                    <button type="button" @click="payModal = false"
+                            class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-400 hover:text-slate-600 flex items-center justify-center transition-colors">
+                        <i class="fa-solid fa-xmark text-xs"></i>
+                    </button>
                 </div>
 
                 <template x-if="activeLoan">
-                    <form method="POST" :action="'/admin/loans/' + activeLoan.id + '/payments'" enctype="multipart/form-data" class="mt-4 space-y-4">
+                    <form method="POST" :action="'/admin/loans/' + activeLoan.id + '/payments'" enctype="multipart/form-data" class="space-y-4">
                         @csrf
 
                         {{-- Info Sisa Hutang --}}
-                        <div class="rounded-xl border border-rose-200 bg-rose-50/40 p-3 flex items-center justify-between">
+                        <div class="rounded-xl border border-rose-100 bg-rose-50/60 p-3.5 flex items-center justify-between">
                             <div>
-                                <p class="text-[11px] font-bold uppercase tracking-wider text-rose-700">Sisa Hutang Saat Ini</p>
-                                <p class="text-lg font-extrabold text-rose-700" x-text="activeLoan.remaining_formatted"></p>
+                                <p class="text-[10px] font-bold uppercase tracking-wider text-rose-700">Sisa Hutang Saat Ini</p>
+                                <p class="text-lg font-bold font-mono text-rose-700 mt-0.5" x-text="activeLoan.remaining_formatted"></p>
                             </div>
                             <button type="button"
                                     @click="payAmount = activeLoan.remaining_amount"
-                                    class="rounded-lg bg-rose-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-rose-700 shadow-xs transition">
+                                    class="rounded-xl bg-rose-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-rose-700 shadow-xs active:scale-95 transition-all">
                                 Lunasi Penuh
                             </button>
                         </div>
 
                         <div>
-                            <label class="block text-xs font-bold text-neutral-700">Nominal Pembayaran (Rp) <span class="text-red-500">*</span></label>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1.5">Nominal Pembayaran (Rp) <span class="text-rose-500">*</span></label>
                             <input type="number" name="amount" required min="1000" :max="activeLoan.remaining_amount"
                                    x-model="payAmount"
-                                   class="form-input mt-1 w-full text-base font-extrabold text-ink">
+                                   class="w-full rounded-xl bg-slate-50 border border-slate-200/80 px-3.5 py-2.5 text-sm font-bold font-mono text-slate-900 focus:bg-white focus:border-brand-600 focus:outline-none transition-colors">
                         </div>
 
                         <div class="grid grid-cols-2 gap-3">
                             <div>
-                                <label class="block text-xs font-bold text-neutral-700">Tanggal Bayar <span class="text-red-500">*</span></label>
+                                <label class="block text-xs font-semibold text-slate-700 mb-1.5">Tanggal Bayar <span class="text-rose-500">*</span></label>
                                 <input type="date" name="payment_date" required value="{{ now()->toDateString() }}"
-                                       class="form-input mt-1 w-full text-xs">
+                                       class="w-full rounded-xl bg-slate-50 border border-slate-200/80 px-3.5 py-2.5 text-xs text-slate-800 focus:bg-white focus:border-brand-600 focus:outline-none transition-colors">
                             </div>
                             <div>
-                                <label class="block text-xs font-bold text-neutral-700">Metode Bayar <span class="text-red-500">*</span></label>
-                                <select name="payment_method" class="form-input mt-1 w-full text-xs font-medium">
+                                <label class="block text-xs font-semibold text-slate-700 mb-1.5">Metode Bayar <span class="text-rose-500">*</span></label>
+                                <select name="payment_method" class="w-full rounded-xl bg-slate-50 border border-slate-200/80 px-3.5 py-2.5 text-xs text-slate-800 focus:bg-white focus:border-brand-600 focus:outline-none transition-colors">
                                     <option value="transfer">Transfer Bank</option>
                                     <option value="cash">Tunai / Kas</option>
                                     <option value="other">Lainnya</option>
@@ -435,21 +444,22 @@
                         </div>
 
                         <div>
-                            <label class="block text-xs font-bold text-neutral-700">Catatan / Keterangan</label>
-                            <input type="text" name="notes" placeholder="Contoh: Cicilan ke-1 dari hasil pelunasan order..."
-                                   class="form-input mt-1 w-full text-xs">
+                            <label class="block text-xs font-semibold text-slate-700 mb-1.5">Catatan / Keterangan</label>
+                            <input type="text" name="notes" placeholder="Contoh: Cicilan ke-1 dari pelunasan pesanan..."
+                                   class="w-full rounded-xl bg-slate-50 border border-slate-200/80 px-3.5 py-2.5 text-xs text-slate-800 placeholder-slate-400 focus:bg-white focus:border-brand-600 focus:outline-none transition-colors">
                         </div>
 
                         <div>
-                            <label class="block text-xs font-bold text-neutral-700">Upload Bukti Transfer / Nota (Opsional)</label>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1.5">Upload Bukti Transfer / Nota (Opsional)</label>
                             <input type="file" name="attachment" accept="image/*,application/pdf"
-                                   class="form-input mt-1 w-full text-xs file:mr-2 file:rounded-md file:border-0 file:bg-cream file:px-2 file:py-1 file:text-xs file:font-semibold">
+                                   class="w-full rounded-xl bg-slate-50 border border-slate-200/80 px-3.5 py-2 text-xs text-slate-700 file:mr-3 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-800 hover:file:bg-slate-300">
                         </div>
 
-                        <div class="flex items-center justify-end gap-2.5 pt-3 border-t border-line">
-                            <button type="button" @click="payModal = false" class="btn-outline !py-2 !px-4 text-xs font-semibold">Batal</button>
-                            <button type="submit" class="btn-primary !bg-emerald-600 hover:!bg-emerald-700 !py-2 !px-5 text-xs font-bold shadow-xs">
-                                Simpan Pembayaran
+                        <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
+                            <button type="button" @click="payModal = false" class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-colors">Batal</button>
+                            <button type="submit" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-xs active:scale-95 transition-all">
+                                <i class="fa-solid fa-check text-[11px]"></i>
+                                <span>Simpan Pembayaran</span>
                             </button>
                         </div>
                     </form>
