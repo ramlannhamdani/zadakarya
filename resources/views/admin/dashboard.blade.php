@@ -254,17 +254,17 @@
         <!-- Hutang / Pinjaman -->
         <div class="bg-white rounded-2xl p-5 shadow-sm flex flex-col justify-between">
             <div class="flex justify-between items-center mb-3">
-                <span class="text-xs font-semibold text-slate-600">Pinjaman & Talangan</span>
+                <span class="text-xs font-semibold text-slate-600">Pinjaman (Pihak Luar)</span>
                 <a href="{{ route('admin.loans.index') }}" class="text-[11px] font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 px-2 py-0.5 rounded-md transition-colors">
                     Kelola &rarr;
                 </a>
             </div>
             <div>
                 <div class="text-2xl font-bold {{ ($financials['total_active_debt'] ?? 0) > 0 ? 'text-rose-600' : 'text-slate-900' }}">{{ rupiah($financials['total_active_debt'] ?? 0) }}</div>
-                <div class="text-xs text-slate-400 mt-0.5">Sisa kewajiban pinjaman</div>
+                <div class="text-xs text-slate-400 mt-0.5">Sisa pokok utang pinjaman</div>
             </div>
             <p class="text-xs text-slate-400 mt-4 leading-relaxed">
-                Pinjaman dana pihak lain untuk menalangi operasional selagi piutang belum cair.
+                Pinjaman dana dari kreditur/pihak lain yang menambah kas kantor dan wajib dicicil.
             </p>
         </div>
     </div>

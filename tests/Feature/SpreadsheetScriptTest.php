@@ -212,4 +212,14 @@ class SpreadsheetScriptTest extends TestCase
         $this->assertStringContainsString('convectionSheet.getRange(4, 1, convRows.length, convRows[0].length).setValues(convRows);', $this->script);
         $this->assertStringContainsString('personalSheet.getRange(4, 1, persRows.length, persRows[0].length).setValues(persRows);', $this->script);
     }
+
+    public function test_loan_sheet_is_configured_and_handled_in_spreadsheet_script(): void
+    {
+        $this->assertStringContainsString('setupPinjamanSheet(pinjamanSheet);', $this->script);
+        $this->assertStringContainsString("'Pinjaman'", $this->script);
+        $this->assertStringContainsString('function setupPinjamanSheet(', $this->script);
+        $this->assertStringContainsString('function handleUpsertLoan(', $this->script);
+        $this->assertStringContainsString('function handleAddLoanPayment(', $this->script);
+        $this->assertStringContainsString('pinjamanSheet.getRange(4, 1, loanRows.length, loanRows[0].length).setValues(loanRows);', $this->script);
+    }
 }

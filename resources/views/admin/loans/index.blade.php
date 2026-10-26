@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Pinjaman & Dana Talangan')
+@section('title', 'Pinjaman')
 
 @section('content')
 <div x-data="{
@@ -287,8 +287,8 @@
                             <i class="fa-solid fa-hand-holding-dollar"></i>
                         </div>
                         <div>
-                            <h3 class="text-base font-bold text-slate-900 tracking-tight">Catat Pinjaman / Dana Talangan</h3>
-                            <p class="text-xs text-slate-400">Pencatatan penerimaan dana pinjaman atau talangan operasional</p>
+                            <h3 class="text-base font-bold text-slate-900 tracking-tight">Catat Pinjaman Baru</h3>
+                            <p class="text-xs text-slate-400">Pencatatan dana pinjaman dari pihak luar / kreditur yang menambah kas</p>
                         </div>
                     </div>
                     <button type="button" @click="createModal = false"

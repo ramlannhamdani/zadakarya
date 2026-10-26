@@ -72,7 +72,7 @@
                     ['label' => 'Invoice', 'route' => 'admin.invoices.index', 'match' => 'admin.invoices.*', 'icon' => 'fa-solid fa-receipt'],
                     ['label' => 'Pembayaran', 'route' => 'admin.payments.index', 'match' => 'admin.payments.*', 'icon' => 'fa-regular fa-credit-card'],
                     ['label' => 'Beban Operasional', 'route' => 'admin.expenses.index', 'match' => 'admin.expenses.*', 'icon' => 'fa-solid fa-arrow-right-arrow-left'],
-                    ['label' => 'Pinjaman & Talangan', 'route' => 'admin.loans.index', 'match' => 'admin.loans.*', 'icon' => 'fa-solid fa-hand-holding-dollar'],
+                    ['label' => 'Pinjaman', 'route' => 'admin.loans.index', 'match' => 'admin.loans.*', 'icon' => 'fa-solid fa-hand-holding-dollar'],
                     ['label' => 'Spreadsheet', 'route' => 'admin.spreadsheet.index', 'match' => 'admin.spreadsheet.*', 'icon' => 'fa-regular fa-file-lines'],
                 ];
 

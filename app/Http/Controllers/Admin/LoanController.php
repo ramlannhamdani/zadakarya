@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Loan;
 use App\Models\LoanPayment;
 use App\Models\Order;
+use App\Services\GoogleSheetService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
@@ -112,6 +113,7 @@ class LoanController extends Controller
         $validated['amount_paid'] = 0;
 
         $loan = Loan::create($validated);
+        app(GoogleSheetService::class)->syncLoan($loan);
 
         return redirect()->route('admin.loans.index')
             ->with('success', 'Pinjaman ' . $loan->reference_no . ' dari ' . $loan->lender_name . ' berhasil dicatat.');
@@ -140,6 +142,7 @@ class LoanController extends Controller
 
         $loan->update($validated);
         $loan->recalculateStatus();
+        app(GoogleSheetService::class)->syncLoan($loan);
 
         return redirect()->back()->with('success', 'Data pinjaman ' . $loan->reference_no . ' berhasil diperbarui.');
     }
@@ -155,6 +158,7 @@ class LoanController extends Controller
             }
         }
 
+        app(GoogleSheetService::class)->deleteLoan($loan);
         $loan->delete();
 
         return redirect()->route('admin.loans.index')
@@ -192,6 +196,7 @@ class LoanController extends Controller
         ]);
 
         $loan->refresh();
+        app(GoogleSheetService::class)->syncLoanPayment($payment);
 
         $msg = 'Pembayaran pinjaman sebesar Rp ' . number_format($payment->amount, 0, ',', '.') . ' berhasil dicatat.';
         if ($loan->status === Loan::STATUS_PAID) {
@@ -207,6 +212,7 @@ class LoanController extends Controller
             Storage::disk('public')->delete($payment->attachment_path);
         }
 
+        app(GoogleSheetService::class)->deleteLoanPayment($payment);
         $payment->delete();
         $loan->refresh();
 

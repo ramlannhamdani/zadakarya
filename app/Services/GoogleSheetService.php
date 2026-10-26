@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Models\Loan;
+use App\Models\LoanPayment;
 use App\Models\OperationalExpense;
 use App\Models\Order;
 use App\Models\OrderCost;
@@ -163,10 +165,22 @@ class GoogleSheetService
             ->latest('id')
             ->get();
 
+        $loans = Loan::with(['order.customer', 'payments.recorder', 'recorder'])
+            ->latest('loan_date')
+            ->latest('id')
+            ->get();
+
+        $loanPayments = LoanPayment::with('loan')
+            ->latest('payment_date')
+            ->latest('id')
+            ->get();
+
         $formattedOrders = $orders->map(fn (Order $order) => $this->formatOrderData($order))->all();
         $formattedCosts = $costs->map(fn (OrderCost $cost) => $this->formatCostData($cost))->all();
         $formattedPayments = $payments->map(fn (Payment $payment) => $this->formatPaymentData($payment))->all();
         $formattedExpenses = $expenses->map(fn (OperationalExpense $expense) => $this->formatExpenseData($expense))->all();
+        $formattedLoans = $loans->map(fn (Loan $loan) => $this->formatLoanData($loan))->all();
+        $formattedLoanPayments = $loanPayments->map(fn (LoanPayment $payment) => $this->formatLoanPaymentData($payment))->all();
 
         $payload = [
             'action' => 'sync_all',
@@ -174,6 +188,8 @@ class GoogleSheetService
             'costs' => $formattedCosts,
             'payments' => $formattedPayments,
             'expenses' => $formattedExpenses,
+            'loans' => $formattedLoans,
+            'loan_payments' => $formattedLoanPayments,
             'synced_at' => now()->translatedFormat('d F Y H:i:s'),
         ];
 
@@ -190,6 +206,8 @@ class GoogleSheetService
                     'costs' => $costs->count(),
                     'payments' => $payments->count(),
                     'expenses' => $expenses->count(),
+                    'loans' => $loans->count(),
+                    'loan_payments' => $loanPayments->count(),
                 ],
             ];
         }
@@ -298,6 +316,77 @@ class GoogleSheetService
             : $this->send(['action' => 'delete', 'entity' => 'expense', 'id' => $expense->reference_no ?: ('EXP-'.$expense->id)]);
     }
 
+    /**
+     * Add, update, or delete a single loan entry in Google Sheets.
+     */
+    public function syncLoan(Loan $loan, string $action = 'add'): bool
+    {
+        if (! $this->isAutoSync()) {
+            return false;
+        }
+
+        $loan->loadMissing(['order.customer', 'recorder', 'payments']);
+
+        return $action === 'add'
+            ? $this->send(['type' => 'loan', 'loan' => $this->formatLoanData($loan)])
+            : $this->send(['action' => 'delete', 'entity' => 'loan', 'id' => $loan->reference_no ?: ('LOAN-'.$loan->id)]);
+    }
+
+    /**
+     * Add or delete a single loan repayment entry in Google Sheets.
+     */
+    public function syncLoanPayment(LoanPayment $payment, string $action = 'add'): bool
+    {
+        if (! $this->isAutoSync()) {
+            return false;
+        }
+
+        $payment->loadMissing(['loan', 'recorder']);
+
+        $ok = $action === 'add'
+            ? $this->send(['type' => 'loan_payment', 'loan_payment' => $this->formatLoanPaymentData($payment)])
+            : $this->send(['action' => 'delete', 'entity' => 'loan_payment', 'id' => $payment->reference_no ?: ('LRP-'.$payment->id)]);
+
+        if ($payment->loan) {
+            $this->syncLoan($payment->loan->fresh(['order.customer', 'recorder', 'payments']));
+        }
+
+        return $ok;
+    }
+
+    public function deleteLoan(Loan $loan): bool
+    {
+        if (! $this->isAutoSync()) {
+            return false;
+        }
+
+        return $this->send([
+            'action' => 'delete',
+            'entity' => 'loan',
+            'id' => $loan->reference_no ?: ('LOAN-'.$loan->id),
+            'payment_ids' => $loan->payments->map(fn ($p) => $p->reference_no ?: ('LRP-'.$p->id))->values()->all(),
+        ]);
+    }
+
+    public function deleteLoanPayment(LoanPayment $payment): bool
+    {
+        if (! $this->isAutoSync()) {
+            return false;
+        }
+
+        $ok = $this->send([
+            'action' => 'delete',
+            'entity' => 'loan_payment',
+            'id' => $payment->reference_no ?: ('LRP-'.$payment->id),
+        ]);
+
+        if ($payment->loan) {
+            $this->syncLoan($payment->loan->fresh(['order.customer', 'recorder', 'payments']));
+        }
+
+        return $ok;
+    }
+
     /* ---------------------------------------------------------------------- */
     /* Formatter Helpers (ATM Structure) */
     /* ---------------------------------------------------------------------- */
@@ -387,6 +476,40 @@ class GoogleSheetService
             'expense_type' => $expense->expense_type,
             'type_label' => $expense->type_label,
             'notes' => $expense->notes ?? '-',
+        ];
+    }
+
+    public function formatLoanData(Loan $loan): array
+    {
+        return [
+            'id' => $loan->reference_no ?: ('LOAN-'.$loan->id),
+            'date' => $loan->loan_date?->format('Y-m-d') ?? now()->format('Y-m-d'),
+            'reference_no' => $loan->reference_no,
+            'lender_name' => $loan->lender_name,
+            'amount' => (int) $loan->amount,
+            'amount_paid' => (int) $loan->amount_paid,
+            'remaining_amount' => (int) $loan->remaining_amount,
+            'due_date' => $loan->due_date?->format('Y-m-d') ?? '-',
+            'status' => $loan->status_label,
+            'order_number' => $loan->order?->order_number ?? '-',
+            'purpose' => $loan->purpose ?: '-',
+            'notes' => $loan->notes ?: '-',
+            'recorded_by' => $loan->recorder?->name ?? 'Admin',
+        ];
+    }
+
+    public function formatLoanPaymentData(LoanPayment $payment): array
+    {
+        return [
+            'id' => $payment->reference_no ?: ('LRP-'.$payment->id),
+            'date' => $payment->payment_date?->format('Y-m-d') ?? now()->format('Y-m-d'),
+            'reference_no' => $payment->reference_no,
+            'loan_reference_no' => $payment->loan?->reference_no ?? '-',
+            'lender_name' => $payment->loan?->lender_name ?? '-',
+            'amount' => (int) $payment->amount,
+            'method' => $payment->method_label,
+            'notes' => $payment->notes ?: '-',
+            'recorded_by' => $payment->recorder?->name ?? 'Admin',
         ];
     }
 

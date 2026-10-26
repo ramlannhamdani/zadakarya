@@ -57,7 +57,7 @@
                         Skrip di Google masih versi {{ $liveScriptVersion ?: 'lama (belum terpasang v'.$appScriptVersion.')' }}, aplikasi sudah versi {{ $appScriptVersion }}.
                     </p>
                     <p class="mt-0.5 text-amber-800">
-                        Pembaruan terpisah (Beban Konveksi vs Beban Pribadi) memerlukan deploy skrip baru di Google Apps Script. Salin kode terbaru di bawah dan lakukan deploy ulang (Deploy &rarr; Manage deployments &rarr; Edit &rarr; Version: New version &rarr; Deploy).
+                        Pembaruan (Tab Pinjaman Pihak Luar &amp; Talangan Kas) memerlukan deploy skrip baru di Google Apps Script (v{{ $appScriptVersion }}). Salin kode terbaru di bawah dan lakukan deploy ulang (Deploy &rarr; Manage deployments &rarr; Edit &rarr; Version: New version &rarr; Deploy).
                     </p>
                 </div>
                 @endif
@@ -111,7 +111,7 @@
     </div>
 
     <!-- 2. SYNCHRONIZED COUNTERS -->
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-6 pt-6 divide-y sm:divide-y-0 sm:divide-x divide-slate-100">
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6 pt-6 divide-y sm:divide-y-0 sm:divide-x divide-slate-100">
         <!-- 1. Data Pesanan -->
         <div class="pt-4 sm:pt-0 sm:px-4 first:pt-0 first:pl-0">
             <div class="flex items-center justify-between">
@@ -120,48 +120,61 @@
             </div>
             <div class="flex items-baseline gap-2 mt-1">
                 <span class="text-2xl sm:text-3xl font-bold text-slate-900">{{ number_format($orderCount) }}</span>
-                <span class="text-[11px] text-slate-400">baris tersinkron</span>
+                <span class="text-[11px] text-slate-400">baris</span>
             </div>
-            <p class="text-[11px] text-slate-400 mt-0.5">Sheet: <span class="font-mono text-slate-600">DB_Pesanan</span></p>
+            <p class="text-[11px] text-slate-400 mt-0.5">Sheet: <span class="font-mono text-slate-600">Data Order</span></p>
         </div>
 
         <!-- 2. Pengeluaran HPP -->
         <div class="pt-4 sm:pt-0 sm:px-4">
             <div class="flex items-center justify-between">
-                <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Pengeluaran HPP</span>
+                <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Biaya HPP</span>
                 <i class="fa-solid fa-tags text-slate-300 text-xs"></i>
             </div>
             <div class="flex items-baseline gap-2 mt-1">
                 <span class="text-2xl sm:text-3xl font-bold text-slate-900">{{ number_format($costCount) }}</span>
-                <span class="text-[11px] text-slate-400">rincian bahan</span>
+                <span class="text-[11px] text-slate-400">rincian</span>
             </div>
-            <p class="text-[11px] text-slate-400 mt-0.5">Sheet: <span class="font-mono text-slate-600">HPP_Produksi</span></p>
+            <p class="text-[11px] text-slate-400 mt-0.5">Sheet: <span class="font-mono text-slate-600">Rincian Biaya HPP</span></p>
         </div>
 
         <!-- 3. Beban Operasional -->
         <div class="pt-4 sm:pt-0 sm:px-4">
             <div class="flex items-center justify-between">
-                <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Beban Operasional</span>
+                <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Beban Ops</span>
                 <i class="fa-solid fa-arrow-right-arrow-left text-slate-300 text-xs"></i>
             </div>
             <div class="flex items-baseline gap-2 mt-1">
                 <span class="text-2xl sm:text-3xl font-bold text-slate-900">{{ number_format($expenseCount ?? 0) }}</span>
-                <span class="text-[11px] text-slate-400">transaksi kas</span>
+                <span class="text-[11px] text-slate-400">transaksi</span>
             </div>
-            <p class="text-[11px] text-slate-400 mt-0.5">Sheet: <span class="font-mono text-slate-600">Beban_Konveksi & Pribadi</span></p>
+            <p class="text-[11px] text-slate-400 mt-0.5">Sheet: <span class="font-mono text-slate-600">Beban Konveksi & Pribadi</span></p>
         </div>
 
         <!-- 4. Data Pembayaran -->
         <div class="pt-4 sm:pt-0 sm:px-4">
             <div class="flex items-center justify-between">
-                <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Data Pembayaran</span>
+                <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Pembayaran</span>
                 <i class="fa-regular fa-credit-card text-slate-300 text-xs"></i>
             </div>
             <div class="flex items-baseline gap-2 mt-1">
                 <span class="text-2xl sm:text-3xl font-bold text-slate-900">{{ number_format($paymentCount) }}</span>
                 <span class="text-[11px] text-slate-400">kas masuk</span>
             </div>
-            <p class="text-[11px] text-slate-400 mt-0.5">Sheet: <span class="font-mono text-slate-600">Kas_Masuk_Pelanggan</span></p>
+            <p class="text-[11px] text-slate-400 mt-0.5">Sheet: <span class="font-mono text-slate-600">Arus Kas</span></p>
+        </div>
+
+        <!-- 5. Pinjaman Pihak Luar -->
+        <div class="pt-4 sm:pt-0 sm:px-4">
+            <div class="flex items-center justify-between">
+                <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Pinjaman</span>
+                <i class="fa-solid fa-hand-holding-dollar text-slate-300 text-xs"></i>
+            </div>
+            <div class="flex items-baseline gap-2 mt-1">
+                <span class="text-2xl sm:text-3xl font-bold text-slate-900">{{ number_format($loanCount ?? 0) }}</span>
+                <span class="text-[11px] text-slate-400">utang luar</span>
+            </div>
+            <p class="text-[11px] text-slate-400 mt-0.5">Sheet: <span class="font-mono text-slate-600">Pinjaman</span></p>
         </div>
     </div>
 </section>

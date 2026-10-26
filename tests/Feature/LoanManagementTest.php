@@ -46,7 +46,7 @@ class LoanManagementTest extends TestCase
 
         $response = $this->actingAs($this->admin)->get(route('admin.loans.index'));
         $response->assertOk();
-        $response->assertSee('Pinjaman & Dana Talangan');
+        $response->assertSee('Pinjaman');
         $response->assertSee('LOAN-202610-0001');
         $response->assertSee('Bpk. H. Rahmat');
         $response->assertSee('Rp 15.000.000');

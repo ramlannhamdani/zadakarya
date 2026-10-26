@@ -12,7 +12,7 @@
  * yang ada di aplikasi — penyebab paling sering tampilan sheet terlihat lama.
  * Naikkan setiap kali berkas ini diubah.
  */
-var SCRIPT_VERSION = '2026-10-26.02';
+var SCRIPT_VERSION = '2026-10-26.03';
 
 /**
  * Tinggi baris data di seluruh tab. Baris judul, banner, dan kartu KPI punya
@@ -68,6 +68,10 @@ function doPost(e) {
       handleAddPayment(data.payment || data.row, ss);
     } else if (data.type === 'expense' || data.action === 'add_expense') {
       handleAddExpense(data.expense || data.row, ss);
+    } else if (data.type === 'loan' || data.action === 'upsert_loan') {
+      handleUpsertLoan(data.loan || data.row, ss);
+    } else if (data.type === 'loan_payment' || data.action === 'add_loan_payment') {
+      handleAddLoanPayment(data.loan_payment || data.row, ss);
     }
 
     return respondJSON({ status: 'success', message: 'Data synced successfully' });
@@ -115,6 +119,7 @@ function setupSheet() {
   var dashSheet       = getOrCreateSheet(ss, 'Dashboard');
   var orderSheet      = getOrCreateSheet(ss, 'Data Order');
   var cashSheet       = getOrCreateSheet(ss, 'Arus Kas');
+  var pinjamanSheet   = getOrCreateSheet(ss, 'Pinjaman');
   var costSheet       = getOrCreateSheet(ss, 'Rincian Biaya HPP');
   var convectionSheet = getOrCreateSheet(ss, 'Beban Konveksi');
   var personalSheet   = getOrCreateSheet(ss, 'Beban Pribadi');
@@ -122,6 +127,7 @@ function setupSheet() {
 
   setupArusKasSheet(cashSheet);
   setupDataOrderSheet(orderSheet);
+  setupPinjamanSheet(pinjamanSheet);
   setupRincianHppSheet(costSheet);
   setupBebanKonveksiSheet(convectionSheet);
   setupBebanPribadiSheet(personalSheet);
@@ -139,7 +145,7 @@ function setupSheet() {
 
   // Tata urutan tab agar runut dan mudah dibaca
   var tabOrder = [
-    'Dashboard', 'Data Order', 'Arus Kas',
+    'Dashboard', 'Data Order', 'Arus Kas', 'Pinjaman',
     'Rincian Biaya HPP', 'Beban Konveksi', 'Beban Pribadi',
     'Rekap Bulanan'
   ];
@@ -887,6 +893,59 @@ function setupBebanPribadiSheet(sheet) {
 }
 
 /* ========================================================================== */
+/* TAB: PINJAMAN PIHAK LUAR                                                    */
+/* ========================================================================== */
+function setupPinjamanSheet(sheet) {
+  sheet.clear();
+
+  // Column widths
+  sheet.setColumnWidth(1, 95);   // A: Tanggal
+  sheet.setColumnWidth(2, 140);  // B: No. Pinjaman
+  sheet.setColumnWidth(3, 190);  // C: Pemberi Pinjaman / Kreditur
+  sheet.setColumnWidth(4, 130);  // D: Nominal Pinjaman
+  sheet.setColumnWidth(5, 120);  // E: Total Dicicil
+  sheet.setColumnWidth(6, 130);  // F: Sisa Utang
+  sheet.setColumnWidth(7, 100);  // G: Jatuh Tempo
+  sheet.setColumnWidth(8, 120);  // H: Status
+  sheet.setColumnWidth(9, 140);  // I: Pesanan Terkait
+  sheet.setColumnWidth(10, 220); // J: Keperluan / Catatan
+
+  // ROW 1: Banner
+  sheet.setRowHeight(1, 45);
+  sheet.getRange('A1:J1').merge()
+    .setValue('🤝  PINJAMAN PIHAK LUAR (MODAL & LIABILITAS)  ·  ZADA KARYA PRODUCTION')
+    .setFontFamily('Arial').setFontSize(13).setFontWeight('bold')
+    .setFontColor(CLR.white).setBackground('#1E1B4B')
+    .setHorizontalAlignment('center').setVerticalAlignment('middle');
+
+  // ROW 2: Decorative
+  sheet.setRowHeight(2, 4);
+  sheet.getRange('A2:J2').setBackground('#6366F1');
+
+  // ROW 3: Headers
+  sheet.setRowHeight(3, 28);
+  var hdrs = [
+    'Tanggal', 'No. Pinjaman', 'Pemberi Pinjaman / Kreditur', 'Nominal Pinjaman',
+    'Total Dicicil', 'Sisa Utang', 'Jatuh Tempo', 'Status', 'Pesanan Terkait', 'Keperluan / Catatan'
+  ];
+  sheet.getRange(3, 1, 1, hdrs.length).setValues([hdrs])
+    .setFontSize(9).setFontWeight('bold')
+    .setFontColor(CLR.white).setBackground('#312E81')
+    .setHorizontalAlignment('center').setVerticalAlignment('middle');
+  sheet.setFrozenRows(3);
+
+  setupIdColumn(sheet, 11);
+
+  var rows = dataRowCount(sheet);
+  sheet.getRange(4, 1, rows, 1).setNumberFormat('dd-mmm-yy');
+  sheet.getRange(4, 4, rows, 3).setNumberFormat('"Rp"#,##0');
+  sheet.getRange(4, 7, rows, 1).setNumberFormat('dd-mmm-yy');
+  sheet.getRange(4, 8, rows, 1).setHorizontalAlignment('center');
+
+  applyRowStripes(sheet, 11);
+}
+
+/* ========================================================================== */
 /* TAB: REKAP BULANAN                                                         */
 /* ========================================================================== */
 function setupRekapBulananSheet(sheet) {
@@ -1089,6 +1148,38 @@ function handleSyncAll(data, ss) {
       });
     }
 
+    if (data.loans && data.loans.length > 0) {
+      data.loans.forEach(function(l) {
+        entries.push({
+          id:      l.id || l.reference_no,
+          date:    l.date,
+          trx_no:  l.reference_no,
+          desc:    'Penerimaan Pinjaman dari ' + l.lender_name + (l.purpose && l.purpose !== '-' ? ' (' + l.purpose + ')' : ''),
+          cat:     'Pinjaman (Pihak Luar)',
+          party:   l.lender_name,
+          inflow:  l.amount || 0,
+          outflow: 0,
+          method:  'Transfer / Kas'
+        });
+      });
+    }
+
+    if (data.loan_payments && data.loan_payments.length > 0) {
+      data.loan_payments.forEach(function(lp) {
+        entries.push({
+          id:      lp.id || lp.reference_no,
+          date:    lp.date,
+          trx_no:  lp.reference_no,
+          desc:    'Bayar/Cicil Pinjaman ke ' + (lp.lender_name || 'Kreditur'),
+          cat:     'Pembayaran Utang',
+          party:   lp.lender_name || 'Kreditur',
+          inflow:  0,
+          outflow: lp.amount || 0,
+          method:  lp.method || 'Transfer Bank'
+        });
+      });
+    }
+
     entries.sort(function(a, b) { return (a.date || '').localeCompare(b.date || ''); });
 
     if (entries.length > 0) {
@@ -1152,6 +1243,30 @@ function handleSyncAll(data, ss) {
         ];
       });
       personalSheet.getRange(4, 1, persRows.length, persRows[0].length).setValues(persRows);
+    }
+  }
+
+  // 6. Pinjaman Pihak Luar
+  var pinjamanSheet = ss.getSheetByName('Pinjaman');
+  if (pinjamanSheet && data.loans) {
+    clearSheetDataRows(pinjamanSheet, 4);
+    if (data.loans.length > 0) {
+      var loanRows = data.loans.map(function(l) {
+        return [
+          l.date,
+          l.reference_no,
+          l.lender_name,
+          l.amount || 0,
+          l.amount_paid || 0,
+          l.remaining_amount || 0,
+          l.due_date || '-',
+          l.status || 'Belum Lunas',
+          l.order_number || '-',
+          l.purpose && l.purpose !== '-' ? l.purpose : (l.notes || '-'),
+          l.id || l.reference_no || ''
+        ];
+      });
+      pinjamanSheet.getRange(4, 1, loanRows.length, loanRows[0].length).setValues(loanRows);
     }
   }
 
@@ -1322,6 +1437,76 @@ function handleAddExpense(expData, ss) {
   }
 }
 
+function handleUpsertLoan(loanData, ss) {
+  var sheet = ss.getSheetByName('Pinjaman');
+  var cashSheet = ss.getSheetByName('Arus Kas');
+  if (!sheet) return;
+
+  var l = Array.isArray(loanData) ? loanData : [
+    loanData.date, loanData.reference_no, loanData.lender_name,
+    loanData.amount || 0, loanData.amount_paid || 0, loanData.remaining_amount || 0,
+    loanData.due_date || '-', loanData.status || 'Belum Lunas',
+    loanData.order_number || '-',
+    loanData.purpose && loanData.purpose !== '-' ? loanData.purpose : (loanData.notes || '-'),
+    loanData.id || loanData.reference_no || ''
+  ];
+
+  var existing = findRowById(sheet, 11, l[10]);
+  if (existing > 0) {
+    sheet.getRange(existing, 1, 1, l.length).setValues([l]);
+  } else {
+    sheet.appendRow(l);
+  }
+
+  // Rekam penerimaan pinjaman di Arus Kas sebagai Kas Masuk
+  if (cashSheet) {
+    var cashExisting = findRowById(cashSheet, 10, l[10]);
+    var nextRow = cashExisting > 0 ? cashExisting : Math.max(cashSheet.getLastRow() + 1, 4);
+    var cashRow = [
+      l[0], l[1], 'Pinjaman dari ' + l[2] + (l[9] && l[9] !== '-' ? ' (' + l[9] + ')' : ''),
+      'Pinjaman (Pihak Luar)', l[2],
+      l[3], 0,
+      '=IF(A' + nextRow + '="","",SUM($F$4:F' + nextRow + ')-SUM($G$4:G' + nextRow + '))',
+      'Transfer / Kas', l[10]
+    ];
+
+    if (cashExisting > 0) {
+      cashSheet.getRange(cashExisting, 1, 1, cashRow.length).setValues([cashRow]);
+    } else {
+      cashSheet.appendRow(cashRow);
+    }
+  }
+}
+
+function handleAddLoanPayment(lpData, ss) {
+  var cashSheet = ss.getSheetByName('Arus Kas');
+  if (!cashSheet) return;
+
+  var p = Array.isArray(lpData) ? lpData : [
+    lpData.date, lpData.reference_no,
+    'Bayar/Cicil Pinjaman ke ' + (lpData.lender_name || 'Kreditur'),
+    'Pembayaran Utang', lpData.lender_name || 'Kreditur',
+    0, lpData.amount || 0, '', lpData.method || 'Transfer Bank',
+    lpData.id || lpData.reference_no || ''
+  ];
+
+  var existing = findRowById(cashSheet, 10, p[9]);
+  var nextRow = existing > 0 ? existing : Math.max(cashSheet.getLastRow() + 1, 4);
+  var cashRow = [
+    p[0], p[1], p[2],
+    p[3], p[4],
+    0, p[6],
+    '=IF(A' + nextRow + '="","",SUM($F$4:F' + nextRow + ')-SUM($G$4:G' + nextRow + '))',
+    p[8] || 'Transfer Bank', p[9]
+  ];
+
+  if (existing > 0) {
+    cashSheet.getRange(existing, 1, 1, cashRow.length).setValues([cashRow]);
+  } else {
+    cashSheet.appendRow(cashRow);
+  }
+}
+
 /**
  * Hapus baris yang datanya dihapus di panel admin. Tanpa ini pesanan yang sudah
  * dihapus tetap menyumbang omzet dan laba, dan pembayaran yang dihapus
@@ -1358,6 +1543,16 @@ function handleDelete(data, ss) {
     if (convSheet) deleteRowById(convSheet, 9, data.id);
     var persSheet = ss.getSheetByName('Beban Pribadi');
     if (persSheet) deleteRowById(persSheet, 9, data.id);
+  } else if (data.entity === 'loan') {
+    var pinjSheet = ss.getSheetByName('Pinjaman');
+    if (pinjSheet) deleteRowById(pinjSheet, 11, data.id);
+    deleteRowById(cashSheet, 10, data.id);
+    var pIds = data.payment_ids || [];
+    for (var k = 0; k < pIds.length; k++) {
+      deleteRowById(cashSheet, 10, pIds[k]);
+    }
+  } else if (data.entity === 'loan_payment') {
+    deleteRowById(cashSheet, 10, data.id);
   }
 
   refreshSaldoFormulas(cashSheet);

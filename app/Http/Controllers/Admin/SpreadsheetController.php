@@ -33,6 +33,7 @@ class SpreadsheetController extends Controller
             'costCount' => OrderCost::count(),
             'expenseCount' => \App\Models\OperationalExpense::count(),
             'paymentCount' => Payment::count(),
+            'loanCount' => \App\Models\Loan::count(),
             'scriptCode' => GoogleAppsScriptCode::getScript(),
             'isConnected' => $sheetService->isEnabled(),
         ]);
@@ -56,7 +57,7 @@ class SpreadsheetController extends Controller
             $syncRes = $sheetService->syncAll($url);
             if ($syncRes['success']) {
                 $counts = $syncRes['counts'] ?? [];
-                $message .= ' Dan seluruh data (' . ($counts['orders'] ?? 0) . ' pesanan, ' . ($counts['costs'] ?? 0) . ' biaya HPP, ' . ($counts['payments'] ?? 0) . ' pembayaran) berhasil langsung disinkronkan ke Google Sheets!';
+                $message .= ' Dan seluruh data (' . ($counts['orders'] ?? 0) . ' pesanan, ' . ($counts['costs'] ?? 0) . ' biaya HPP, ' . ($counts['payments'] ?? 0) . ' pembayaran, ' . ($counts['loans'] ?? 0) . ' pinjaman) berhasil langsung disinkronkan ke Google Sheets!';
             }
         }
 
