@@ -180,11 +180,36 @@ class SpreadsheetScriptTest extends TestCase
 
     public function test_every_data_tab_has_a_hidden_id_column_for_deletions(): void
     {
-        foreach ([15, 10] as $col) {
+        foreach ([15, 10, 9] as $col) {
             $this->assertStringContainsString('setupIdColumn(sheet, '.$col.')', $this->script);
         }
 
         $this->assertStringContainsString('function handleDelete(', $this->script);
         $this->assertStringContainsString('function refreshSaldoFormulas(', $this->script);
+    }
+
+    public function test_dedicated_expense_sheets_are_configured_and_referenced_in_dashboard_and_recap(): void
+    {
+        // Tab baru untuk Beban Konveksi & Kantor dan Beban Pribadi (Prive Owner)
+        $this->assertStringContainsString('setupBebanKonveksiSheet(convectionSheet);', $this->script);
+        $this->assertStringContainsString('setupBebanPribadiSheet(personalSheet);', $this->script);
+        $this->assertStringContainsString("'Beban Konveksi'", $this->script);
+        $this->assertStringContainsString("'Beban Pribadi'", $this->script);
+
+        // Dashboard membaca langsung dari ketiga tab biaya/beban
+        $this->assertStringContainsString("'Rincian Biaya HPP'!\$H\$4:\$H", $this->script);
+        $this->assertStringContainsString("'Beban Konveksi'!\$E\$4:\$E", $this->script);
+        $this->assertStringContainsString("'Beban Pribadi'!\$E\$4:\$E", $this->script);
+
+        // Rekap Bulanan juga mengacu ke ketiga tab khusus
+        preg_match('/setupRekapBulananSheet.*?rows\.push\(\[(.*?)\]\);/s', $this->script, $m);
+        $this->assertNotEmpty($m, 'Loop Rekap Bulanan tidak ditemukan.');
+        $this->assertStringContainsString("'Rincian Biaya HPP'!\$H\$4:\$H", $m[1]);
+        $this->assertStringContainsString("'Beban Konveksi'!\$E\$4:\$E", $m[1]);
+        $this->assertStringContainsString("'Beban Pribadi'!\$E\$4:\$E", $m[1]);
+
+        // Handlers sinkronisasi dan delete memperbarui kedua tab beban
+        $this->assertStringContainsString('convectionSheet.getRange(4, 1, convRows.length, convRows[0].length).setValues(convRows);', $this->script);
+        $this->assertStringContainsString('personalSheet.getRange(4, 1, persRows.length, persRows[0].length).setValues(persRows);', $this->script);
     }
 }

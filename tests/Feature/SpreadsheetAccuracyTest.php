@@ -318,4 +318,45 @@ class SpreadsheetAccuracyTest extends TestCase
         Http::assertSent(fn ($r) => ($r->data()['action'] ?? '') === 'setup');
         Http::assertSent(fn ($r) => ($r->data()['action'] ?? '') === 'sync_all');
     }
+
+    public function test_expense_data_formats_convection_and_personal_expenses_with_categories(): void
+    {
+        $convExp = \App\Models\OperationalExpense::create([
+            'reference_no' => 'EXP-202609-0001',
+            'expense_type' => \App\Models\OperationalExpense::TYPE_CONVECTION,
+            'category' => 'listrik_air',
+            'title' => 'Tagihan Listrik Workshop',
+            'amount' => 850000,
+            'expense_date' => now()->toDateString(),
+            'payment_method' => 'transfer',
+            'notes' => 'Listrik konveksi bulan ini',
+            'recorded_by' => $this->admin->id,
+        ]);
+
+        $persExp = \App\Models\OperationalExpense::create([
+            'reference_no' => 'EXP-202609-0002',
+            'expense_type' => \App\Models\OperationalExpense::TYPE_PERSONAL,
+            'category' => 'prive_owner',
+            'title' => 'Prive Owner untuk Keperluan Rumah',
+            'amount' => 1500000,
+            'expense_date' => now()->toDateString(),
+            'payment_method' => 'cash',
+            'notes' => 'Tarik tunai prive',
+            'recorded_by' => $this->admin->id,
+        ]);
+
+        $service = app(GoogleSheetService::class);
+        $convFormatted = $service->formatExpenseData($convExp);
+        $persFormatted = $service->formatExpenseData($persExp);
+
+        $this->assertSame('convection', $convFormatted['expense_type']);
+        $this->assertSame('Ops. Konveksi', $convFormatted['type_label']);
+        $this->assertSame('Listrik, Air & Utilitas Workshop', $convFormatted['category_name']);
+        $this->assertSame(850000, $convFormatted['amount']);
+
+        $this->assertSame('personal', $persFormatted['expense_type']);
+        $this->assertSame('Ops. Pribadi', $persFormatted['type_label']);
+        $this->assertSame('Prive / Penarikan Pribadi Owner', $persFormatted['category_name']);
+        $this->assertSame(1500000, $persFormatted['amount']);
+    }
 }

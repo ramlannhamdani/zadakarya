@@ -377,12 +377,16 @@ class GoogleSheetService
             'date' => $expense->expense_date?->format('Y-m-d') ?? now()->format('Y-m-d'),
             'trx_no' => $expense->reference_no,
             'desc' => '['.$expense->type_label.'] '.$expense->title.($expense->notes ? ' ('.$expense->notes.')' : ''),
+            'title' => $expense->title,
             'category' => 'Beban Operasional — ['.$expense->type_label.'] '.$expense->category_label,
+            'category_name' => $expense->category_label,
             'party' => $expense->category_label,
             'amount' => (int) $expense->amount,
             'method' => $expense->method_label,
             'recorded_by' => $expense->recorder?->name ?? 'Admin',
             'expense_type' => $expense->expense_type,
+            'type_label' => $expense->type_label,
+            'notes' => $expense->notes ?? '-',
         ];
     }
 

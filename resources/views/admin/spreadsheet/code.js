@@ -12,7 +12,7 @@
  * yang ada di aplikasi — penyebab paling sering tampilan sheet terlihat lama.
  * Naikkan setiap kali berkas ini diubah.
  */
-var SCRIPT_VERSION = '2026-10-24.01';
+var SCRIPT_VERSION = '2026-10-26.01';
 
 /**
  * Tinggi baris data di seluruh tab. Baris judul, banner, dan kartu KPI punya
@@ -112,15 +112,19 @@ function setupSheet() {
     ss.setSpreadsheetTimeZone('Asia/Jakarta');
   } catch(e) {}
 
-  var cashSheet   = getOrCreateSheet(ss, 'Arus Kas');
-  var orderSheet  = getOrCreateSheet(ss, 'Data Order');
-  var costSheet   = getOrCreateSheet(ss, 'Rincian Biaya HPP');
-  var rekapSheet  = getOrCreateSheet(ss, 'Rekap Bulanan');
-  var dashSheet   = getOrCreateSheet(ss, 'Dashboard');
+  var dashSheet       = getOrCreateSheet(ss, 'Dashboard');
+  var orderSheet      = getOrCreateSheet(ss, 'Data Order');
+  var cashSheet       = getOrCreateSheet(ss, 'Arus Kas');
+  var costSheet       = getOrCreateSheet(ss, 'Rincian Biaya HPP');
+  var convectionSheet = getOrCreateSheet(ss, 'Beban Konveksi');
+  var personalSheet   = getOrCreateSheet(ss, 'Beban Pribadi');
+  var rekapSheet      = getOrCreateSheet(ss, 'Rekap Bulanan');
 
   setupArusKasSheet(cashSheet);
   setupDataOrderSheet(orderSheet);
   setupRincianHppSheet(costSheet);
+  setupBebanKonveksiSheet(convectionSheet);
+  setupBebanPribadiSheet(personalSheet);
   setupRekapBulananSheet(rekapSheet);
   setupDashboardSheet(dashSheet, rekapSheet);
   setupAnalisaSheet(ss, orderSheet, costSheet);
@@ -130,6 +134,19 @@ function setupSheet() {
     var oldSheet = ss.getSheetByName(oldTabs[i]);
     if (oldSheet && ss.getSheets().length > 1) {
       try { ss.deleteSheet(oldSheet); } catch(e) {}
+    }
+  }
+
+  // Tata urutan tab agar runut dan mudah dibaca
+  var tabOrder = [
+    'Dashboard', 'Data Order', 'Arus Kas',
+    'Rincian Biaya HPP', 'Beban Konveksi', 'Beban Pribadi',
+    'Rekap Bulanan'
+  ];
+  for (var t = 0; t < tabOrder.length; t++) {
+    var s = ss.getSheetByName(tabOrder[t]);
+    if (s) {
+      try { ss.setActiveSheet(s); ss.moveActiveSheet(t + 1); } catch(e) {}
     }
   }
 
@@ -436,20 +453,20 @@ function setupDashboardSheet(sheet, rekapSheet) {
   var outflowRows = [
     [
       '1. HPP Produksi (Biaya Order)',
-      '=IFERROR(SUMIFS(\'Arus Kas\'!$G$4:$G,\'Arus Kas\'!$D$4:$D,"<>*Beban Operasional*",\'Arus Kas\'!$A$4:$A,">="&EOMONTH(TODAY(),-1)+1,\'Arus Kas\'!$A$4:$A,"<="&EOMONTH(TODAY(),0)),0)',
-      '=IFERROR(SUMIFS(\'Arus Kas\'!$G$4:$G,\'Arus Kas\'!$D$4:$D,"<>*Beban Operasional*"),0)',
+      '=IFERROR(SUMIFS(\'Rincian Biaya HPP\'!$H$4:$H,\'Rincian Biaya HPP\'!$A$4:$A,">="&EOMONTH(TODAY(),-1)+1,\'Rincian Biaya HPP\'!$A$4:$A,"<="&EOMONTH(TODAY(),0)),0)',
+      '=IFERROR(SUM(\'Rincian Biaya HPP\'!$H$4:$H),0)',
       '=IFERROR(IF($G$15>0,G11/$G$15,0),0)'
     ],
     [
-      '2. Beban Ops. Konveksi',
-      '=IFERROR(SUMIFS(\'Arus Kas\'!$G$4:$G,\'Arus Kas\'!$D$4:$D,"*Ops. Konveksi*",\'Arus Kas\'!$A$4:$A,">="&EOMONTH(TODAY(),-1)+1,\'Arus Kas\'!$A$4:$A,"<="&EOMONTH(TODAY(),0)),0)',
-      '=IFERROR(SUMIFS(\'Arus Kas\'!$G$4:$G,\'Arus Kas\'!$D$4:$D,"*Ops. Konveksi*"),0)',
+      '2. Beban Ops. Konveksi & Kantor',
+      '=IFERROR(SUMIFS(\'Beban Konveksi\'!$E$4:$E,\'Beban Konveksi\'!$A$4:$A,">="&EOMONTH(TODAY(),-1)+1,\'Beban Konveksi\'!$A$4:$A,"<="&EOMONTH(TODAY(),0)),0)',
+      '=IFERROR(SUM(\'Beban Konveksi\'!$E$4:$E),0)',
       '=IFERROR(IF($G$15>0,G12/$G$15,0),0)'
     ],
     [
       '3. Beban Pribadi (Prive Owner)',
-      '=IFERROR(SUMIFS(\'Arus Kas\'!$G$4:$G,\'Arus Kas\'!$D$4:$D,"*Ops. Pribadi*",\'Arus Kas\'!$A$4:$A,">="&EOMONTH(TODAY(),-1)+1,\'Arus Kas\'!$A$4:$A,"<="&EOMONTH(TODAY(),0)),0)',
-      '=IFERROR(SUMIFS(\'Arus Kas\'!$G$4:$G,\'Arus Kas\'!$D$4:$D,"*Ops. Pribadi*"),0)',
+      '=IFERROR(SUMIFS(\'Beban Pribadi\'!$E$4:$E,\'Beban Pribadi\'!$A$4:$A,">="&EOMONTH(TODAY(),-1)+1,\'Beban Pribadi\'!$A$4:$A,"<="&EOMONTH(TODAY(),0)),0)',
+      '=IFERROR(SUM(\'Beban Pribadi\'!$E$4:$E),0)',
       '=IFERROR(IF($G$15>0,G13/$G$15,0),0)'
     ],
     [
@@ -498,7 +515,7 @@ function setupDashboardSheet(sheet, rekapSheet) {
 
   // Row 16: Penjelasan akuntansi kas keluar
   sheet.getRange('E16:H16').merge()
-    .setValue('Catatan: HPP & Ops. Konveksi mengurangi laba bisnis; Prive owner mengurangi saldo kas riil.')
+    .setValue('Catatan: Rincian biaya dicatat di tab "Rincian Biaya HPP", "Beban Konveksi", & "Beban Pribadi". Total mutasi di "Arus Kas".')
     .setFontSize(8).setFontColor(CLR.gray2).setBackground(CLR.gray1)
     .setHorizontalAlignment('center').setVerticalAlignment('middle');
 
@@ -771,6 +788,104 @@ function setupRincianHppSheet(sheet) {
 }
 
 /* ========================================================================== */
+/* TAB: BEBAN KONVEKSI & KANTOR (OVERHEAD)                                     */
+/* ========================================================================== */
+function setupBebanKonveksiSheet(sheet) {
+  sheet.clear();
+
+  // Column widths
+  sheet.setColumnWidth(1, 85);   // A: Tanggal
+  sheet.setColumnWidth(2, 140);  // B: No. Transaksi
+  sheet.setColumnWidth(3, 200);  // C: Kategori Beban
+  sheet.setColumnWidth(4, 260);  // D: Keterangan / Keperluan
+  sheet.setColumnWidth(5, 125);  // E: Jumlah Pengeluaran
+  sheet.setColumnWidth(6, 120);  // F: Metode Bayar
+  sheet.setColumnWidth(7, 130);  // G: Dicatat Oleh
+  sheet.setColumnWidth(8, 200);  // H: Catatan
+
+  // ROW 1: Banner
+  sheet.setRowHeight(1, 45);
+  sheet.getRange('A1:H1').merge()
+    .setValue('🏭  PENGELUARAN KONVEKSI & KANTOR (OVERHEAD)  ·  ZADA KARYA PRODUCTION')
+    .setFontFamily('Arial').setFontSize(13).setFontWeight('bold')
+    .setFontColor(CLR.white).setBackground('#1F3864')
+    .setHorizontalAlignment('center').setVerticalAlignment('middle');
+
+  // ROW 2: Decorative
+  sheet.setRowHeight(2, 4);
+  sheet.getRange('A2:H2').setBackground('#F59E0B');
+
+  // ROW 3: Headers
+  sheet.setRowHeight(3, 28);
+  var hdrs = [
+    'Tanggal', 'No. Transaksi', 'Kategori Beban', 'Keterangan / Keperluan',
+    'Jumlah Pengeluaran', 'Metode Bayar', 'Dicatat Oleh', 'Catatan'
+  ];
+  sheet.getRange(3, 1, 1, hdrs.length).setValues([hdrs])
+    .setFontSize(9).setFontWeight('bold')
+    .setFontColor(CLR.white).setBackground(CLR.blue)
+    .setHorizontalAlignment('center').setVerticalAlignment('middle');
+  sheet.setFrozenRows(3);
+
+  setupIdColumn(sheet, 9);
+
+  var rows = dataRowCount(sheet);
+  sheet.getRange(4, 1, rows, 1).setNumberFormat('dd-mmm-yy');
+  sheet.getRange(4, 5, rows, 1).setNumberFormat('"Rp"#,##0');
+
+  applyRowStripes(sheet, 9);
+}
+
+/* ========================================================================== */
+/* TAB: BEBAN PRIBADI & PRIVE OWNER                                            */
+/* ========================================================================== */
+function setupBebanPribadiSheet(sheet) {
+  sheet.clear();
+
+  // Column widths
+  sheet.setColumnWidth(1, 85);   // A: Tanggal
+  sheet.setColumnWidth(2, 140);  // B: No. Transaksi
+  sheet.setColumnWidth(3, 200);  // C: Kategori Penarikan
+  sheet.setColumnWidth(4, 260);  // D: Keterangan / Keperluan
+  sheet.setColumnWidth(5, 125);  // E: Jumlah Penarikan (Prive)
+  sheet.setColumnWidth(6, 120);  // F: Metode Bayar
+  sheet.setColumnWidth(7, 130);  // G: Dicatat Oleh
+  sheet.setColumnWidth(8, 200);  // H: Catatan
+
+  // ROW 1: Banner
+  sheet.setRowHeight(1, 45);
+  sheet.getRange('A1:H1').merge()
+    .setValue('👤  PENGELUARAN PRIBADI & PRIVE OWNER  ·  ZADA KARYA PRODUCTION')
+    .setFontFamily('Arial').setFontSize(13).setFontWeight('bold')
+    .setFontColor(CLR.white).setBackground('#881337')
+    .setHorizontalAlignment('center').setVerticalAlignment('middle');
+
+  // ROW 2: Decorative
+  sheet.setRowHeight(2, 4);
+  sheet.getRange('A2:H2').setBackground('#F59E0B');
+
+  // ROW 3: Headers
+  sheet.setRowHeight(3, 28);
+  var hdrs = [
+    'Tanggal', 'No. Transaksi', 'Kategori Penarikan', 'Keterangan / Keperluan',
+    'Jumlah Penarikan (Prive)', 'Metode Bayar', 'Dicatat Oleh', 'Catatan'
+  ];
+  sheet.getRange(3, 1, 1, hdrs.length).setValues([hdrs])
+    .setFontSize(9).setFontWeight('bold')
+    .setFontColor(CLR.white).setBackground('#9F1239')
+    .setHorizontalAlignment('center').setVerticalAlignment('middle');
+  sheet.setFrozenRows(3);
+
+  setupIdColumn(sheet, 9);
+
+  var rows = dataRowCount(sheet);
+  sheet.getRange(4, 1, rows, 1).setNumberFormat('dd-mmm-yy');
+  sheet.getRange(4, 5, rows, 1).setNumberFormat('"Rp"#,##0');
+
+  applyRowStripes(sheet, 9);
+}
+
+/* ========================================================================== */
 /* TAB: REKAP BULANAN                                                         */
 /* ========================================================================== */
 function setupRekapBulananSheet(sheet) {
@@ -834,9 +949,9 @@ function setupRekapBulananSheet(sheet) {
       MONTHS_ID[m - 1] + ' ' + yr,
       "=SUMIFS('Arus Kas'!$F$4:$F,'Arus Kas'!$A$4:$A,\">=\"&" + from + ",'Arus Kas'!$A$4:$A,\"<\"&" + to + ")",
       "=SUMIFS('Arus Kas'!$G$4:$G,'Arus Kas'!$A$4:$A,\">=\"&" + from + ",'Arus Kas'!$A$4:$A,\"<\"&" + to + ")",
-      "=IFERROR(SUMIFS('Arus Kas'!$G$4:$G,'Arus Kas'!$D$4:$D,\"<>*Beban Operasional*\",'Arus Kas'!$A$4:$A,\">=\"&" + from + ",'Arus Kas'!$A$4:$A,\"<\"&" + to + "),0)",
-      "=IFERROR(SUMIFS('Arus Kas'!$G$4:$G,'Arus Kas'!$D$4:$D,\"*Ops. Konveksi*\",'Arus Kas'!$A$4:$A,\">=\"&" + from + ",'Arus Kas'!$A$4:$A,\"<\"&" + to + "),0)",
-      "=IFERROR(SUMIFS('Arus Kas'!$G$4:$G,'Arus Kas'!$D$4:$D,\"*Ops. Pribadi*\",'Arus Kas'!$A$4:$A,\">=\"&" + from + ",'Arus Kas'!$A$4:$A,\"<\"&" + to + "),0)",
+      "=IFERROR(SUMIFS('Rincian Biaya HPP'!$H$4:$H,'Rincian Biaya HPP'!$A$4:$A,\">=\"&" + from + ",'Rincian Biaya HPP'!$A$4:$A,\"<\"&" + to + "),0)",
+      "=IFERROR(SUMIFS('Beban Konveksi'!$E$4:$E,'Beban Konveksi'!$A$4:$A,\">=\"&" + from + ",'Beban Konveksi'!$A$4:$A,\"<\"&" + to + "),0)",
+      "=IFERROR(SUMIFS('Beban Pribadi'!$E$4:$E,'Beban Pribadi'!$A$4:$A,\">=\"&" + from + ",'Beban Pribadi'!$A$4:$A,\"<\"&" + to + "),0)",
       '=B' + r + '-C' + r,
       "=SUMIFS('Data Order'!$G$4:$G,'Data Order'!$A$4:$A,\">=\"&" + from + ",'Data Order'!$A$4:$A,\"<\"&" + to + ")",
       "=SUMIFS('Data Order'!$K$4:$K,'Data Order'!$A$4:$A,\">=\"&" + from + ",'Data Order'!$A$4:$A,\"<\"&" + to + ")",
@@ -989,6 +1104,56 @@ function handleSyncAll(data, ss) {
     }
   }
 
+  // 4. Beban Konveksi & Kantor (Overhead)
+  var convectionSheet = ss.getSheetByName('Beban Konveksi');
+  if (convectionSheet && data.expenses) {
+    clearSheetDataRows(convectionSheet, 4);
+    var convExpenses = data.expenses.filter(function(e) {
+      return e.expense_type === 'convection' || (!e.expense_type && (e.desc || '').indexOf('Konveksi') !== -1);
+    });
+    if (convExpenses.length > 0) {
+      var convRows = convExpenses.map(function(e) {
+        return [
+          e.date,
+          e.trx_no || e.reference_no,
+          e.category_name || e.party || e.category,
+          e.title || e.desc,
+          e.amount || 0,
+          e.method || 'Transfer / Kas',
+          e.recorded_by || 'Admin',
+          e.notes || '-',
+          e.id || ''
+        ];
+      });
+      convectionSheet.getRange(4, 1, convRows.length, convRows[0].length).setValues(convRows);
+    }
+  }
+
+  // 5. Beban Pribadi & Prive Owner
+  var personalSheet = ss.getSheetByName('Beban Pribadi');
+  if (personalSheet && data.expenses) {
+    clearSheetDataRows(personalSheet, 4);
+    var persExpenses = data.expenses.filter(function(e) {
+      return e.expense_type === 'personal' || (!e.expense_type && (e.desc || '').indexOf('Pribadi') !== -1);
+    });
+    if (persExpenses.length > 0) {
+      var persRows = persExpenses.map(function(e) {
+        return [
+          e.date,
+          e.trx_no || e.reference_no,
+          e.category_name || e.party || e.category,
+          e.title || e.desc,
+          e.amount || 0,
+          e.method || 'Transfer / Kas',
+          e.recorded_by || 'Admin',
+          e.notes || '-',
+          e.id || ''
+        ];
+      });
+      personalSheet.getRange(4, 1, persRows.length, persRows[0].length).setValues(persRows);
+    }
+  }
+
   // Grafik dibangun ulang di sini, bukan hanya saat Setup: waktu Setup berjalan
   // tab Arus Kas baru dikosongkan, sehingga seluruh angka Rekap masih nol.
   buildCashChart(ss);
@@ -1090,7 +1255,8 @@ function handleAddPayment(payData, ss) {
 
 function handleAddExpense(expData, ss) {
   var cashSheet = ss.getSheetByName('Arus Kas');
-  if (!cashSheet) return;
+  var convSheet = ss.getSheetByName('Beban Konveksi');
+  var persSheet = ss.getSheetByName('Beban Pribadi');
 
   var e = Array.isArray(expData) ? expData : [
     expData.date, expData.trx_no || expData.reference_no, expData.desc || expData.title,
@@ -1098,20 +1264,60 @@ function handleAddExpense(expData, ss) {
     0, expData.amount || 0, '', expData.method || 'Transfer / Kas', expData.id || ''
   ];
 
-  var existing = findRowById(cashSheet, 10, e[9]);
-  var nextRow = existing > 0 ? existing : Math.max(cashSheet.getLastRow() + 1, 4);
-  var cashRow = [
-    e[0], e[1], e[2],
-    e[3], e[4],
-    0, e[6],
-    '=IF(A' + nextRow + '="","",SUM($F$4:F' + nextRow + ')-SUM($G$4:G' + nextRow + '))',
-    e[8], e[9]
-  ];
+  var expId = Array.isArray(expData) ? expData[9] : (expData.id || expData.reference_no || '');
+  var expType = Array.isArray(expData) ? '' : (expData.expense_type || '');
+  if (!expType) {
+    var descStr = String(Array.isArray(expData) ? expData[2] : (expData.desc || expData.title || ''));
+    expType = (descStr.indexOf('Pribadi') !== -1 || descStr.indexOf('Prive') !== -1) ? 'personal' : 'convection';
+  }
 
-  if (existing > 0) {
-    cashSheet.getRange(existing, 1, 1, cashRow.length).setValues([cashRow]);
-  } else {
-    cashSheet.appendRow(cashRow);
+  // 1. Simpan ke tab khusus sesuai jenis pengeluaran
+  var targetSheet = (expType === 'personal') ? persSheet : convSheet;
+  var otherSheet  = (expType === 'personal') ? convSheet : persSheet;
+
+  if (targetSheet) {
+    var specificRow = [
+      Array.isArray(expData) ? expData[0] : expData.date,
+      Array.isArray(expData) ? expData[1] : (expData.trx_no || expData.reference_no),
+      Array.isArray(expData) ? expData[3] : (expData.category_name || expData.party || expData.category || 'Operasional'),
+      Array.isArray(expData) ? expData[2] : (expData.title || expData.desc),
+      Array.isArray(expData) ? expData[6] : (expData.amount || 0),
+      Array.isArray(expData) ? expData[8] : (expData.method || 'Transfer / Kas'),
+      Array.isArray(expData) ? 'Admin' : (expData.recorded_by || 'Admin'),
+      Array.isArray(expData) ? '-' : (expData.notes || '-'),
+      expId
+    ];
+
+    var exTarget = findRowById(targetSheet, 9, expId);
+    if (exTarget > 0) {
+      targetSheet.getRange(exTarget, 1, 1, specificRow.length).setValues([specificRow]);
+    } else {
+      targetSheet.appendRow(specificRow);
+    }
+  }
+
+  // Jika diedit berpindah jenis, hapus dari sheet pasangannya
+  if (otherSheet && expId) {
+    deleteRowById(otherSheet, 9, expId);
+  }
+
+  // 2. Simpan ke tab master Arus Kas
+  if (cashSheet) {
+    var existing = findRowById(cashSheet, 10, e[9]);
+    var nextRow = existing > 0 ? existing : Math.max(cashSheet.getLastRow() + 1, 4);
+    var cashRow = [
+      e[0], e[1], e[2],
+      e[3], e[4],
+      0, e[6],
+      '=IF(A' + nextRow + '="","",SUM($F$4:F' + nextRow + ')-SUM($G$4:G' + nextRow + '))',
+      e[8], e[9]
+    ];
+
+    if (existing > 0) {
+      cashSheet.getRange(existing, 1, 1, cashRow.length).setValues([cashRow]);
+    } else {
+      cashSheet.appendRow(cashRow);
+    }
   }
 }
 
@@ -1147,6 +1353,10 @@ function handleDelete(data, ss) {
     deleteRowById(cashSheet, 10, data.id);
   } else if (data.entity === 'expense') {
     deleteRowById(cashSheet, 10, data.id);
+    var convSheet = ss.getSheetByName('Beban Konveksi');
+    if (convSheet) deleteRowById(convSheet, 9, data.id);
+    var persSheet = ss.getSheetByName('Beban Pribadi');
+    if (persSheet) deleteRowById(persSheet, 9, data.id);
   }
 
   refreshSaldoFormulas(cashSheet);
