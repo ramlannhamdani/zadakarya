@@ -8,6 +8,8 @@
     <title>@yield('title', 'Admin') — Zada Karya Production</title>
     @if(setting('favicon'))
         <link rel="icon" href="{{ asset('storage/'.setting('favicon')) }}">
+    @else
+        <link rel="icon" type="image/png" href="{{ asset('images/brand/emblem.png') }}">
     @endif
 
     <!-- Google Font: Plus Jakarta Sans -->
@@ -53,15 +55,23 @@
         <div class="min-h-0 flex-1 flex flex-col">
             <!-- Brand Header -->
             <div class="h-20 flex items-center justify-between px-6 shrink-0 border-b border-slate-50 lg:border-b-0">
-                <div class="flex items-center gap-3.5">
-                    <div class="w-9 h-9 rounded-xl bg-brand-600 text-white flex items-center justify-center font-bold text-sm tracking-wider shadow-xs">
-                        ZK
-                    </div>
+                <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-3.5 group">
+                    @if(setting('logo'))
+                        <img src="{{ asset('storage/'.setting('logo')) }}" alt="Zada Karya" class="h-9 w-auto max-w-[130px] object-contain">
+                    @elseif(setting('favicon'))
+                        <div class="w-9 h-9 rounded-xl bg-brand-600 flex items-center justify-center p-1.5 shadow-xs shrink-0">
+                            <img src="{{ asset('storage/'.setting('favicon')) }}" alt="Zada Karya" class="w-full h-full object-contain">
+                        </div>
+                    @else
+                        <div class="w-9 h-9 rounded-xl bg-brand-600 flex items-center justify-center p-1.5 shadow-xs shrink-0 transition-transform group-hover:scale-105">
+                            <img src="{{ asset('images/brand/emblem-white.png') }}" alt="Zada Karya" class="w-full h-full object-contain">
+                        </div>
+                    @endif
                     <div>
-                        <h1 class="text-sm font-bold text-slate-900 leading-snug">Zada Karya</h1>
+                        <h1 class="text-sm font-bold text-slate-900 leading-snug group-hover:text-brand-700 transition-colors">Zada Karya</h1>
                         <span class="text-[10px] font-semibold text-slate-400 tracking-wider uppercase">Admin Workspace</span>
                     </div>
-                </div>
+                </a>
                 <button type="button" @click="sidebar = false" class="lg:hidden text-slate-400 hover:text-slate-600 p-1.5 rounded-lg -mr-1" aria-label="Tutup Menu">
                     <i class="fa-solid fa-xmark text-sm"></i>
                 </button>
@@ -171,8 +181,8 @@
                 @endphp
 
                 <div class="flex items-center gap-2 sm:gap-2.5 pl-1 border-l border-slate-100">
-                    <div class="w-8 h-8 rounded-full bg-slate-100 text-slate-700 font-bold flex items-center justify-center text-xs shrink-0">
-                        {{ $initials }}
+                    <div class="w-8 h-8 rounded-full bg-brand-50 text-brand-700 border border-brand-100/80 font-bold flex items-center justify-center text-xs shrink-0 overflow-hidden shadow-2xs">
+                        <img src="{{ asset('images/brand/emblem.png') }}" alt="{{ $userName }}" class="w-5 h-5 object-contain">
                     </div>
                     <div class="text-left hidden sm:block">
                         <span class="text-xs font-semibold text-slate-800 block leading-tight">{{ $userName }}</span>
