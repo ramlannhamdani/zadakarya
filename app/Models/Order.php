@@ -88,6 +88,11 @@ class Order extends Model
         return $this->hasMany(OrderCost::class)->orderBy('spent_at', 'desc')->orderBy('id', 'desc');
     }
 
+    public function loans(): HasMany
+    {
+        return $this->hasMany(Loan::class)->latest('loan_date');
+    }
+
     /* ------------------------------------------------------------------ */
 
     public function createInitialStages(): void

@@ -109,6 +109,17 @@ class DashboardController extends Controller
             $deficitOrdersCount = 0;
         }
 
+        $totalActiveDebt = 0;
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasTable('loans')) {
+                $totalActiveDebt = (int) \App\Models\Loan::whereIn('status', [\App\Models\Loan::STATUS_UNPAID, \App\Models\Loan::STATUS_PARTIAL])
+                    ->get()
+                    ->sum(fn ($l) => $l->remaining_amount);
+            }
+        } catch (\Throwable) {
+            $totalActiveDebt = 0;
+        }
+
         $financials = [
             'total_hpp' => $totalHpp,
             'this_month_hpp' => $thisMonthHpp,
@@ -127,6 +138,7 @@ class DashboardController extends Controller
             'net_profit' => $netProfit,
             'total_cash_advances' => $totalCashAdvances,
             'deficit_orders_count' => $deficitOrdersCount,
+            'total_active_debt' => $totalActiveDebt,
         ];
 
         // Grafik 6 bulan terakhir (pembayaran per bulan).

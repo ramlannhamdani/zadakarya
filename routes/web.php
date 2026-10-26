@@ -153,6 +153,11 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::resource('expenses', Admin\OperationalExpenseController::class)->except(['show']);
         Route::get('expenses/{expense}/receipt', [Admin\OperationalExpenseController::class, 'receipt'])->name('expenses.receipt');
 
+        // Loans & Talangan (Pinjaman)
+        Route::resource('loans', Admin\LoanController::class);
+        Route::post('loans/{loan}/payments', [Admin\LoanController::class, 'storePayment'])->name('loans.payments.store');
+        Route::delete('loans/{loan}/payments/{payment}', [Admin\LoanController::class, 'destroyPayment'])->name('loans.payments.destroy');
+
         // Spreadsheet Integration
         Route::get('spreadsheet', [Admin\SpreadsheetController::class, 'index'])->name('spreadsheet.index');
         Route::patch('spreadsheet', [Admin\SpreadsheetController::class, 'update'])->name('spreadsheet.update');

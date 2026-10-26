@@ -175,7 +175,7 @@
         <p class="text-xs text-neutral-500 mt-1.5 leading-relaxed">Perhitungan keuntungan riil setelah dikurangi biaya produksi (HPP) dan beban konveksi (OPEX).</p>
     </div>
 
-    <div class="grid gap-5 sm:grid-cols-3">
+    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {{-- Laba Kotor Pesanan --}}
         <div class="admin-card !p-5 sm:!p-6 border-l-4 !border-l-emerald-500 bg-emerald-50/15 flex flex-col justify-between">
             <div>
@@ -189,7 +189,7 @@
                 <p class="mt-2 text-xs text-neutral-600">Nilai Order − Total HPP</p>
             </div>
             <p class="mt-5 pt-3.5 border-t border-neutral-100 text-xs text-neutral-500 leading-relaxed">
-                Keuntungan kotor langsung dari seluruh pesanan non-batal sebelum dipotong biaya operasional.
+                Keuntungan kotor dari seluruh pesanan non-batal sebelum dipotong operasional.
             </p>
         </div>
 
@@ -208,7 +208,7 @@
                 <p class="mt-2 text-xs text-neutral-600">Laba Kotor − Ops. Konveksi</p>
             </div>
             <p class="mt-5 pt-3.5 border-t border-neutral-100 text-xs text-neutral-500 leading-relaxed">
-                Keuntungan bersih operasional konveksi (beban pribadi owner tidak memotong laba ini).
+                Keuntungan operasional (beban pribadi owner tidak memotong laba ini).
             </p>
         </div>
 
@@ -235,7 +235,28 @@
                 </p>
             </div>
             <p class="mt-5 pt-3.5 border-t border-neutral-100 text-xs text-neutral-500 leading-relaxed">
-                Uang kas kantor yang saat ini terpakai belanja bahan karena DP pelanggan belum cukup.
+                Uang kas kantor yang terpakai belanja bahan karena DP pelanggan belum cukup.
+            </p>
+        </div>
+
+        {{-- Sisa Hutang / Pinjaman Aktif --}}
+        <div class="admin-card !p-5 sm:!p-6 border-l-4 {{ ($financials['total_active_debt'] ?? 0) > 0 ? '!border-l-rose-500 bg-rose-50/20' : '!border-l-neutral-300' }} flex flex-col justify-between">
+            <div>
+                <div class="flex items-center justify-between">
+                    <p class="text-xs font-bold uppercase tracking-wider text-neutral-600">Hutang / Pinjaman</p>
+                    <a href="{{ route('admin.loans.index') }}" class="text-[10px] font-bold text-rose-700 bg-rose-100 hover:bg-rose-200 px-2 py-0.5 rounded transition">
+                        Kelola &rarr;
+                    </a>
+                </div>
+                <p class="mt-3 text-xl sm:text-2xl font-black {{ ($financials['total_active_debt'] ?? 0) > 0 ? 'text-rose-600' : 'text-neutral-700' }}">
+                    {{ rupiah($financials['total_active_debt'] ?? 0) }}
+                </p>
+                <p class="mt-2 text-xs text-neutral-600">
+                    Kewajiban yang belum lunas
+                </p>
+            </div>
+            <p class="mt-5 pt-3.5 border-t border-neutral-100 text-xs text-neutral-500 leading-relaxed">
+                Pinjaman dana talangan pihak lain untuk menalangi biaya selagi piutang belum cair.
             </p>
         </div>
     </div>

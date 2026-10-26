@@ -68,6 +68,47 @@
             <p class="mt-1 text-amber-800">Grand Total dihitung dari <strong>Item Produk</strong> di tab Overview, bukan dari invoice. Selama keduanya berbeda, kolom <strong>Sisa</strong> dan status pembayaran di atas ikut tidak akurat. Samakan itemnya lewat <a href="{{ route('admin.orders.edit', $order) }}" class="font-semibold underline">Edit Pesanan</a>, atau pisahkan pekerjaan yang berbeda menjadi pesanan tersendiri.</p>
         </div>
     @endif
+
+    @if($order->loans && $order->loans->isNotEmpty())
+        @php
+            $activeLoans = $order->loans->whereIn('status', [\App\Models\Loan::STATUS_UNPAID, \App\Models\Loan::STATUS_PARTIAL]);
+            $totalLoanAmount = $order->loans->sum('amount');
+            $totalLoanRemaining = $order->loans->sum(fn ($l) => $l->remaining_amount);
+        @endphp
+        <div class="mt-4 rounded-xl border border-indigo-200 bg-indigo-50/70 p-4 text-xs text-indigo-950">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <span class="flex h-6 w-6 items-center justify-center rounded-lg bg-indigo-600 text-white font-bold text-xs">💳</span>
+                    <span class="font-extrabold text-sm text-indigo-900">Dana Talangan / Pinjaman Terkait Pesanan Ini</span>
+                </div>
+                <a href="{{ route('admin.loans.index', ['q' => $order->order_number]) }}" class="font-bold text-indigo-700 hover:underline">
+                    Kelola Pinjaman &rarr;
+                </a>
+            </div>
+            <div class="mt-2.5 flex flex-wrap gap-4 text-xs">
+                <div>
+                    <span class="text-neutral-500">Total Pinjaman:</span>
+                    <strong class="font-bold text-ink ml-1">{{ rupiah($totalLoanAmount) }}</strong>
+                </div>
+                <div>
+                    <span class="text-neutral-500">Sisa Hutang:</span>
+                    <strong class="font-extrabold {{ $totalLoanRemaining > 0 ? 'text-rose-600' : 'text-emerald-700' }} ml-1">{{ rupiah($totalLoanRemaining) }}</strong>
+                </div>
+                <div>
+                    <span class="text-neutral-500">Pemberi Pinjaman:</span>
+                    <span class="font-semibold text-neutral-800 ml-1">{{ $order->loans->pluck('lender_name')->unique()->join(', ') }}</span>
+                </div>
+            </div>
+            @if($order->remaining <= 0 && $totalLoanRemaining > 0)
+                <div class="mt-2.5 pt-2.5 border-t border-indigo-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-indigo-950">
+                    <span class="font-medium">⚠️ <strong>Pengingat:</strong> Piutang pesanan ini sudah Lunas dari customer! Segera kembalikan dana talangan ke pemberi pinjaman.</span>
+                    <a href="{{ route('admin.loans.index', ['q' => $order->order_number]) }}" class="rounded-lg bg-indigo-600 px-3 py-1.5 text-center text-xs font-bold text-white hover:bg-indigo-700 shrink-0 shadow-xs">
+                        Bayar Pinjaman Sekarang
+                    </a>
+                </div>
+            @endif
+        </div>
+    @endif
 </div>
 
 {{-- Tabs --}}
