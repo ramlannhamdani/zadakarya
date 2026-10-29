@@ -106,6 +106,7 @@ class OrderCostController extends Controller
         app(\App\Services\GoogleSheetService::class)->syncCost($cost, 'delete');
 
         $cost->delete();
+        app(\App\Services\GoogleSheetService::class)->syncOrder($order->fresh(['customer', 'items', 'costs', 'payments', 'stages']));
 
         $order->logActivity(
             'Biaya '.$categoryLabel.' sebesar '.rupiah($amount).' ("'.$description.'") dihapus'

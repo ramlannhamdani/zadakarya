@@ -136,6 +136,7 @@ class PaymentController extends Controller
         $payment->delete();
         $order->refreshPaymentStatus();
         $order->logActivity('Pembayaran '.rupiah($amount).' dihapus — status: '.$order->payment_status_label);
+        app(\App\Services\GoogleSheetService::class)->syncOrder($order->fresh(['customer', 'items', 'costs', 'payments', 'stages']));
 
         return back()->with('success', 'Pembayaran dihapus.');
     }

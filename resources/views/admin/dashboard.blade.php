@@ -457,7 +457,7 @@
                 <div class="bg-slate-800 text-white px-5 py-3 flex items-center justify-between">
                     <div class="flex items-center gap-2">
                         <i class="fa-solid fa-chart-simple text-blue-400 text-xs"></i>
-                        <h3 class="text-xs font-bold uppercase tracking-wider">KOMPOSISI BIAYA PRODUKSI (HPP) &amp; OPS</h3>
+                        <h3 class="text-xs font-bold uppercase tracking-wider">KOMPOSISI BIAYA PRODUKSI (HPP)</h3>
                     </div>
                     <span class="text-[11px] text-slate-300 font-mono">Porsi Belanja</span>
                 </div>

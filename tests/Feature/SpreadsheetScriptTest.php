@@ -22,50 +22,30 @@ class SpreadsheetScriptTest extends TestCase
         $this->script = GoogleAppsScriptCode::getScript();
     }
 
-    public function test_hpp_categories_come_from_the_data_and_are_ranked_by_size(): void
+    public function test_hpp_categories_follow_the_admin_and_include_legacy_costs(): void
     {
-        // Dulu dashboard memakai daftar kategori tetap di dalam kode dan
-        // mencocokkannya dengan SUMIF. Begitu label Laravel berbunyi "Jasa
-        // Makloon (Bordir/Sablon)" sementara kode menulis "Jasa Makloon",
-        // kategori itu diam-diam tampil Rp0. Dibaca dari datanya, label tidak
-        // mungkin meleset lagi — dan sekaligus bisa diurutkan menurut besarnya.
-        $this->assertStringNotContainsString('var cats = [', $this->script);
-
-        preg_match('/getRange\(\'A17\'\)\.setFormula\((.*?)\);/s', $this->script, $m);
-        $this->assertNotEmpty($m, 'Rumus komposisi HPP tidak ditemukan.');
-
-        $formula = $m[1];
-        $this->assertStringContainsString('Rincian Biaya HPP', $formula);
-        $this->assertStringContainsString('group by C', $formula);
-        $this->assertStringContainsString('order by sum(H) desc', $formula);
-        $this->assertStringContainsString('limit 5', $formula);
-
-        // Batasnya harus menampung seluruh kategori yang mungkin dikirim Laravel,
-        // kalau tidak kategori paling kecil hilang dari laporan.
-        $this->assertGreaterThanOrEqual(count(OrderCost::CATEGORIES), 5);
+        foreach (OrderCost::CATEGORIES as $label) {
+            $this->assertStringContainsString($label, $this->script);
+        }
+        $this->assertStringContainsString('Biaya Lainnya', $this->script);
+        $this->assertStringNotContainsString('limit 5', $this->script);
+        $this->assertStringContainsString("order.status !== 'cancelled'", $this->script);
     }
 
-    public function test_orders_are_ranked_by_margin_from_largest(): void
+    public function test_dashboard_contains_the_same_six_detail_blocks_as_admin(): void
     {
-        preg_match('/getRange\(\'A26\'\)\.setFormula\((.*?)\);/s', $this->script, $m);
-        $this->assertNotEmpty($m, 'Rumus peringkat margin tidak ditemukan.');
-
-        $formula = $m[1];
-        $this->assertStringContainsString('Data Order', $formula);
-        $this->assertStringContainsString('order by K/G desc', $formula);
-
-        // Tanpa syarat ini, pesanan bernilai nol membuat margin dibagi nol.
-        $this->assertStringContainsString('G > 0', $formula);
+        foreach (['PIUTANG KRITIS & JATUH TEMPO', 'STATUS ORDER BERJALAN (WIP)',
+            'KOMPOSISI BIAYA PRODUKSI (HPP)', 'BEBAN PRIBADI PER BULAN (OWNER / PRIVE)',
+            'TREN ARUS KAS BULANAN', 'TREN LABA BERSIH & ESTIMASI LABA'] as $title) {
+            $this->assertStringContainsString($title, $this->script);
+        }
+        $this->assertStringNotContainsString('MARGIN PER PESANAN', $this->script);
     }
 
-    public function test_margin_reads_the_left_cell_of_each_merged_kpi_card(): void
+    public function test_metrics_are_written_to_the_left_cell_of_each_merged_card(): void
     {
-        // Kartu KPI menggabungkan dua kolom; nilainya hanya ada di sel kiri
-        // (A, C, E, G). Rumus yang menunjuk B/D/F/H selalu membaca sel kosong
-        // dan menghasilkan 0 — itulah sebabnya margin sempat tampil 0,0%.
-        $this->assertStringContainsString('IFERROR(E10/A10,0)', $this->script);
-        $this->assertStringNotContainsString('F7/D7', $this->script);
-        $this->assertStringNotContainsString('=IFERROR(C16/D7,0)', $this->script);
+        $this->assertStringContainsString('getRange(4 + row * 3, 1 + col * 3).setValue(f[key])', $this->script);
+        $this->assertStringContainsString('DASHBOARD_CARD_KEYS', $this->script);
     }
 
     public function test_no_formula_is_capped_at_a_fixed_row(): void
@@ -96,7 +76,7 @@ class SpreadsheetScriptTest extends TestCase
         preg_match('/for \(var gr = (\d+); gr <= (\d+); gr\+\+\) \{ sheet\.setRowHeight\(gr, ROW_H\); \}/', $this->script, $rows);
         // Pola ditulis dengan kutip tunggal: di kutip ganda, \1 dibaca PHP
         // sebagai escape oktal, bukan backreference.
-        preg_match('/getRange\(\'A(\d+):H\1\'\)\s*\.merge\(\)\s*\.setFormula\(\'="Data terakhir/', $this->script, $stamp);
+        preg_match('/getRange\(\'A(\d+):L\\1\'\)\.merge\(\)/', substr($this->script, strpos($this->script, 'for (var gr =')), $stamp);
         preg_match('/var ROW_H = (\d+);/', $this->script, $rowHeight);
 
         $this->assertNotEmpty($rows, 'Baris cadangan untuk grafik tidak ditemukan.');
@@ -136,7 +116,8 @@ class SpreadsheetScriptTest extends TestCase
 
         // Dipanggil dari dua sisi supaya petunjuknya muncul dan hilang tepat waktu.
         $syncAll = substr($this->script, strpos($this->script, 'function handleSyncAll('));
-        $this->assertStringContainsString('buildCashChart(ss);', $syncAll);
+        $this->assertStringContainsString('refreshDashboard(ss);', $syncAll);
+        $this->assertStringNotContainsString('newChart(', $this->script);
     }
 
     public function test_data_rows_share_one_height_across_every_tab(): void
@@ -223,21 +204,14 @@ class SpreadsheetScriptTest extends TestCase
         $this->assertStringContainsString('pinjamanSheet.getRange(4, 1, loanRows.length, loanRows[0].length).setValues(loanRows);', $this->script);
     }
 
-    public function test_dashboard_has_kpi_cards_for_hpp_overhead_prive_talangan_and_pinjaman(): void
+    public function test_dashboard_keeps_all_sixteen_financial_metrics(): void
     {
-        // 5 blok metrik yang diminta di dashboard spreadsheet
-        $this->assertStringContainsString('BIAYA OPERASIONAL', $this->script);
-        $this->assertStringContainsString('Beban Kantor & Konveksi', $this->script);
-        $this->assertStringContainsString('Beban Pribadi (Prive Owner)', $this->script);
-        $this->assertStringContainsString('Talangan Kas (Nombok DP)', $this->script);
-        $this->assertStringContainsString('SISA PINJAMAN', $this->script);
-
-        // Rumus-rumus metrik kartu KPI
-        $this->assertStringContainsString("'Data Order'!\$J\$4:\$J", $this->script);
-        $this->assertStringContainsString("SUM('Beban Konveksi'!\$E\$4:\$E)", $this->script);
-        $this->assertStringContainsString("SUM('Beban Pribadi'!\$E\$4:\$E)", $this->script);
-        $this->assertStringContainsString("'Data Order'!\$J\$4:\$J-'Data Order'!\$H\$4:\$H-'Data Order'!\$I\$4:\$I", $this->script);
-        $this->assertStringContainsString("=IFERROR(SUM('Pinjaman'!\$F\$4:\$F),0)", $this->script);
+        foreach (['current_cash_balance', 'total_cash_advances', 'total_active_debt', 'kas_bersih',
+            'this_month_cash_inflow', 'this_month_global_outflow', 'critical_receivable', 'active_receivable',
+            'order_value', 'operating_cost', 'net_profit', 'retained_earnings',
+            'aset_mesin', 'aset_lain', 'total_aset_investasi', 'total_equity'] as $key) {
+            $this->assertStringContainsString("'".$key."'", $this->script);
+        }
     }
 
     public function test_data_order_sheet_has_realisasi_dp_vs_hpp_column(): void

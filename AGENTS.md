@@ -114,7 +114,7 @@ membandingkannya dengan versi di aplikasi dan memperingatkan kalau tertinggal. N
 nilainya setiap kali berkas itu diubah, kalau tidak peringatannya tidak berguna.
 
 **Di sel gabungan, nilainya hanya ada di sel kiri-atas.** Kartu KPI dashboard
-menggabung dua kolom (A:B, C:D, …), jadi rumus yang menunjuk kolom kanan membaca sel
+menggabung tiga kolom (A:C, D:F, G:I, J:L), jadi nilai dibaca dari A/D/G/J. Rumus yang menunjuk kolom kanan membaca sel
 kosong dan menghasilkan 0 tanpa error. Pernah membuat Margin Keuntungan dan % Porsi
 total tampil 0,0% padahal datanya ada.
 
@@ -136,6 +136,17 @@ petunjuk pemasangan selagi grafiknya belum ada.
 
 **Tidak boleh ada `removeChart` di mana pun.** Grafiknya buatan tangan; sekali terhapus
 harus dipasang ulang manual. Dijaga oleh `SpreadsheetScriptTest`.
+
+**Dashboard spreadsheet mengikuti dashboard admin.** Enam blok rincian, 16 kartu, dan
+tren delapan bulan dihitung ulang oleh `refreshDashboard()` setelah webhook, saat sheet
+dibuka, atau lewat menu Zada Karya > Segarkan Dashboard. Data grafik berada di tab
+`Tren Dashboard` (A3:C11 untuk kas, E3:G11 untuk laba). Grafik manual yang sudah ada
+hanya diperbarui sumber dan posisinya, tidak dibuat ulang. Kolom ID pesanan tetap P;
+Q:V menyimpan deadline, tahap, progres, tanggal dibuat, pembayaran masuk, dan status
+pembayaran. Setelah upgrade skrip, jalankan Tata Ulang dari panel agar metadata terisi.
+`SpreadsheetDashboardParityTest` menjalankan skrip aktual dalam mock API Google dengan
+Node.js lalu membandingkan angka dan daftar terhadap controller Laravel; tes ini
+tidak menggantikan verifikasi langsung setelah deploy di Google.
 
 **Di Apps Script, sel berisi rumus terhitung "ada isinya" oleh `getLastRow()`.**
 Pernah membuat rumus Saldo dipra-isi sampai baris 500, sehingga `appendRow` mendarat di

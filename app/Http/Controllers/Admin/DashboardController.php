@@ -174,7 +174,7 @@ class DashboardController extends Controller
                 $query->where('status', 'completed')->orWhereDate('deadline', '<=', today());
             });
         $criticalReceivable = (int) (clone $criticalQuery)->get(['grand_total', 'amount_paid'])->sum('remaining');
-        $criticalOrders = (clone $criticalQuery)->with('customer')->orderBy('deadline')->limit(6)->get();
+        $criticalOrders = (clone $criticalQuery)->with('customer')->orderBy('deadline')->orderBy('id')->limit(6)->get();
         $runningReceivable = (int) Order::where('status', 'active')
             ->where(fn ($query) => $query->whereNull('deadline')->orWhereDate('deadline', '>', today()))
             ->get(['grand_total', 'amount_paid'])->sum('remaining');
@@ -194,7 +194,7 @@ class DashboardController extends Controller
         }
 
         $totalWipPelunasan = $activeReceivable;
-        $wipOrders = Order::with(['customer', 'stages'])->where('status', 'active')->latest()->limit(6)->get()
+        $wipOrders = Order::with(['customer', 'stages'])->where('status', 'active')->latest()->latest('id')->limit(6)->get()
             ->map(function ($order) {
                 // Progres berasal dari tahap yang benar-benar selesai, bukan angka rekaan per tahap.
                 $percentage = (int) round($order->stages->where('status', Stages::STATUS_COMPLETED)->count() / Stages::count() * 100);
@@ -206,7 +206,7 @@ class DashboardController extends Controller
             });
 
         $personalExpensesList = OperationalExpense::where('expense_type', OperationalExpense::TYPE_PERSONAL)
-            ->whereBetween('expense_date', [$nowStart, $nowEnd])->latest('expense_date')->limit(7)->get();
+            ->whereBetween('expense_date', [$nowStart, $nowEnd])->latest('expense_date')->latest('id')->limit(7)->get();
         $totalPriveMonth = $personalExpensesThisMonth;
 
         $historyStart = now()->startOfMonth()->subMonths(7);

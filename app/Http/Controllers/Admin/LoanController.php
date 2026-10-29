@@ -215,6 +215,7 @@ class LoanController extends Controller
         app(GoogleSheetService::class)->deleteLoanPayment($payment);
         $payment->delete();
         $loan->refresh();
+        app(GoogleSheetService::class)->syncLoan($loan);
 
         return redirect()->back()->with('success', 'Riwayat pembayaran pinjaman berhasil dihapus.');
     }

@@ -10,6 +10,7 @@ use App\Models\Order;
 use App\Models\OrderCost;
 use App\Models\Payment;
 use App\Models\Setting;
+use App\Support\Stages;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Throwable;
@@ -164,7 +165,7 @@ class GoogleSheetService
             ];
         }
 
-        $orders = Order::with(['customer', 'items', 'costs', 'payments'])
+        $orders = Order::with(['customer', 'items', 'costs', 'payments', 'stages'])
             ->latest('created_at')
             ->get();
 
@@ -253,7 +254,7 @@ class GoogleSheetService
             return false;
         }
 
-        $order->loadMissing(['customer', 'items', 'costs', 'payments']);
+        $order->loadMissing(['customer', 'items', 'costs', 'payments', 'stages']);
 
         return $this->send([
             'type' => 'order',
@@ -276,8 +277,8 @@ class GoogleSheetService
             ? $this->send(['type' => 'cost', 'cost' => $this->formatCostData($cost)])
             : $this->send(['action' => 'delete', 'entity' => 'cost', 'id' => 'CST-'.$cost->id]);
 
-        // Baris pesanan selalu disegarkan supaya Total HPP dan Estimasi Laba ikut berubah.
-        if ($cost->order) {
+        // Saat dihapus, controller menyegarkan pesanan setelah record benar-benar hilang.
+        if ($action === 'add' && $cost->order) {
             $this->syncOrder($cost->order->fresh(['customer', 'items', 'costs', 'payments']));
         }
 
@@ -299,8 +300,8 @@ class GoogleSheetService
             ? $this->send(['type' => 'payment', 'payment' => $this->formatPaymentData($payment)])
             : $this->send(['action' => 'delete', 'entity' => 'payment', 'id' => 'PAY-'.$payment->id]);
 
-        // Baris pesanan selalu disegarkan supaya DP, Pelunasan, dan Sisa Tagihan ikut berubah.
-        if ($payment->order) {
+        // Saat dihapus, tunggu controller menghitung ulang pembayaran sebelum menyinkronkan pesanan.
+        if ($action === 'add' && $payment->order) {
             $this->syncOrder($payment->order->fresh(['customer', 'items', 'costs', 'payments']));
         }
 
@@ -400,17 +401,11 @@ class GoogleSheetService
             return false;
         }
 
-        $ok = $this->send([
+        return $this->send([
             'action' => 'delete',
             'entity' => 'loan_payment',
             'id' => $payment->reference_no ?: ('LRP-'.$payment->id),
         ]);
-
-        if ($payment->loan) {
-            $this->syncLoan($payment->loan->fresh(['order.customer', 'recorder', 'payments']));
-        }
-
-        return $ok;
     }
 
     /**
@@ -448,6 +443,7 @@ class GoogleSheetService
 
     public function formatOrderData(Order $order): array
     {
+        $order->loadMissing('stages');
         $dp = $order->dp_paid;
         $settlement = $order->settlement_paid;
         $qty = (int) $order->total_quantity;
@@ -475,6 +471,11 @@ class GoogleSheetService
             'cash_advance' => (int) $order->cash_deficit, // Kompatibilitas dengan skrip lama yang membaca defisit positif.
             'dp_vs_hpp' => $order->dp_vs_hpp,
             'deadline' => $order->deadline?->format('Y-m-d') ?? '',
+            'created_at' => $order->created_at?->format('Y-m-d H:i:s') ?? '',
+            'amount_paid' => (int) $order->amount_paid,
+            'payment_status' => $order->payment_status,
+            'stage_name' => $order->current_stage_name,
+            'progress_pct' => (int) round($order->stages->where('status', Stages::STATUS_COMPLETED)->count() / Stages::count() * 100),
             'estimated_profit' => (int) $order->gross_profit,
             'remaining' => (int) $order->remaining,
             'status' => $statusText,
@@ -515,6 +516,7 @@ class GoogleSheetService
             // atau nama produk yang dibayar.
             'desc' => $payment->note ?: ($payment->order?->name ?: $payment->type_label),
             'category' => $payment->isDp() ? 'Penjualan/DP' : 'Pelunasan',
+            'type' => $payment->type,
             'customer' => $payment->order?->customer?->name ?? '-',
             'amount' => (int) $payment->amount,
             'method' => $payment->method_label,
@@ -525,6 +527,7 @@ class GoogleSheetService
     {
         return [
             'id' => $expense->reference_no ?: ('EXP-'.$expense->id),
+            'sort_id' => $expense->id,
             'date' => $expense->expense_date?->format('Y-m-d') ?? now()->format('Y-m-d'),
             'trx_no' => $expense->reference_no,
             'desc' => '['.$expense->type_label.'] '.$expense->title.($expense->notes ? ' ('.$expense->notes.')' : ''),
