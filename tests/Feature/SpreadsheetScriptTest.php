@@ -63,7 +63,7 @@ class SpreadsheetScriptTest extends TestCase
         // Kartu KPI menggabungkan dua kolom; nilainya hanya ada di sel kiri
         // (A, C, E, G). Rumus yang menunjuk B/D/F/H selalu membaca sel kosong
         // dan menghasilkan 0 — itulah sebabnya margin sempat tampil 0,0%.
-        $this->assertStringContainsString('=IFERROR(IF(C7>0,E7/C7,0),0)', $this->script);
+        $this->assertStringContainsString('IFERROR(E10/A10,0)', $this->script);
         $this->assertStringNotContainsString('F7/D7', $this->script);
         $this->assertStringNotContainsString('=IFERROR(C16/D7,0)', $this->script);
     }
@@ -226,18 +226,26 @@ class SpreadsheetScriptTest extends TestCase
     public function test_dashboard_has_kpi_cards_for_hpp_overhead_prive_talangan_and_pinjaman(): void
     {
         // 5 blok metrik yang diminta di dashboard spreadsheet
-        $this->assertStringContainsString('Total Biaya HPP (Produksi)', $this->script);
+        $this->assertStringContainsString('BIAYA OPERASIONAL', $this->script);
         $this->assertStringContainsString('Beban Kantor & Konveksi', $this->script);
         $this->assertStringContainsString('Beban Pribadi (Prive Owner)', $this->script);
         $this->assertStringContainsString('Talangan Kas (Nombok DP)', $this->script);
-        $this->assertStringContainsString('Sisa Pinjaman (Pihak Luar)', $this->script);
+        $this->assertStringContainsString('SISA PINJAMAN', $this->script);
 
         // Rumus-rumus metrik kartu KPI
-        $this->assertStringContainsString("=IFERROR(SUM('Rincian Biaya HPP'!\$H\$4:\$H),0)", $this->script);
-        $this->assertStringContainsString("=IFERROR(SUM('Beban Konveksi'!\$E\$4:\$E),0)", $this->script);
-        $this->assertStringContainsString("=IFERROR(SUM('Beban Pribadi'!\$E\$4:\$E),0)", $this->script);
-        $this->assertStringContainsString("=IFERROR(SUM('Data Order'!\$M\$4:\$M),0)", $this->script);
+        $this->assertStringContainsString("'Data Order'!\$J\$4:\$J", $this->script);
+        $this->assertStringContainsString("SUM('Beban Konveksi'!\$E\$4:\$E)", $this->script);
+        $this->assertStringContainsString("SUM('Beban Pribadi'!\$E\$4:\$E)", $this->script);
+        $this->assertStringContainsString("'Data Order'!\$J\$4:\$J-'Data Order'!\$H\$4:\$H-'Data Order'!\$I\$4:\$I", $this->script);
         $this->assertStringContainsString("=IFERROR(SUM('Pinjaman'!\$F\$4:\$F),0)", $this->script);
     }
-}
 
+    public function test_data_order_sheet_has_realisasi_dp_vs_hpp_column(): void
+    {
+        $this->assertStringContainsString('Realisasi DP vs HPP', $this->script);
+        $this->assertStringContainsString('ruleSurplus', $this->script);
+        $this->assertStringContainsString('ruleDefisit', $this->script);
+        $this->assertStringContainsString("setNumberFormat('+\"Rp\"#,##0;[Red]-\"Rp\"#,##0;\"Rp\"0')", $this->script);
+        $this->assertStringNotContainsString('o.cash_advance !== undefined', $this->script);
+    }
+}

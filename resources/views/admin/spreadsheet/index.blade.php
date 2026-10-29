@@ -57,7 +57,7 @@
                         Skrip di Google masih versi {{ $liveScriptVersion ?: 'lama (belum terpasang v'.$appScriptVersion.')' }}, aplikasi sudah versi {{ $appScriptVersion }}.
                     </p>
                     <p class="mt-0.5 text-amber-800">
-                        Pembaruan (Tab Aset, Laba Rugi &amp; Neraca Bentuk Skontro) memerlukan deploy skrip baru di Google Apps Script (v{{ $appScriptVersion }}). Salin kode terbaru di bawah dan lakukan deploy ulang (Deploy &rarr; Manage deployments &rarr; Edit &rarr; Version: New version &rarr; Deploy), lalu tekan <strong>Tata Ulang</strong>.
+                        Pembaruan dashboard keuangan dan kolom Realisasi DP vs HPP memerlukan deploy skrip baru di Google Apps Script (v{{ $appScriptVersion }}). Salin kode terbaru di bawah dan lakukan deploy ulang (Deploy &rarr; Manage deployments &rarr; Edit &rarr; Version: New version &rarr; Deploy), lalu tekan <strong>Tata Ulang</strong> untuk menata tampilan dan mengisi ulang seluruh data.
                     </p>
                 </div>
                 @endif

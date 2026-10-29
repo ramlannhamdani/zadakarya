@@ -7,10 +7,12 @@ use App\Models\Customer;
 use App\Models\Invoice;
 use App\Models\Order;
 use App\Models\Payment;
+use App\Services\GoogleSheetService;
 use App\Support\ImageUploader;
 use App\Support\Sequence;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rule;
 
 class OrderController extends Controller
@@ -23,19 +25,20 @@ class OrderController extends Controller
 
         $deficitCount = 0;
         try {
-            if (\Illuminate\Support\Facades\Schema::hasTable('order_costs')) {
+            if (Schema::hasTable('order_costs')) {
                 $deficitCount = Order::where('status', 'active')
                     ->where('payment_status', '!=', 'paid')
                     ->whereRaw('(SELECT COALESCE(SUM(amount), 0) FROM order_costs WHERE order_costs.order_id = orders.id) > orders.amount_paid')
                     ->count();
             }
-        } catch (\Throwable) {}
+        } catch (\Throwable) {
+        }
 
         $completedUnpaid = Order::where('status', 'completed')->where('payment_status', '!=', 'paid');
         $readyToBillCount = (clone $completedUnpaid)->count();
         $readyToBillReceivable = (int) (clone $completedUnpaid)->get(['grand_total', 'amount_paid'])->sum(fn ($o) => max(0, $o->grand_total - $o->amount_paid));
 
-        $orders = Order::with(['customer', 'items', 'costs'])
+        $orders = Order::with(['customer', 'items', 'costs', 'payments'])
             ->when($filter === 'ready_to_bill', fn ($q) => $q->where('status', 'completed')->where('payment_status', '!=', 'paid'))
             ->when(! $filter && in_array($status, ['active', 'completed', 'cancelled']), fn ($q) => $q->where('status', $status))
             ->when($cashStatus === 'deficit', function ($q) {
@@ -131,7 +134,7 @@ class OrderController extends Controller
                 $order->payments()->create([
                     'invoice_id' => $invoice?->id,
                     'amount' => (int) $data['dp_amount'],
-                    'type' => \App\Models\Payment::TYPE_DP,
+                    'type' => Payment::TYPE_DP,
                     'payment_date' => $data['dp_date'] ?? now()->toDateString(),
                     'method' => $data['dp_method'] ?? 'transfer',
                     'note' => 'DP',
@@ -144,7 +147,7 @@ class OrderController extends Controller
             return $order;
         });
 
-        app(\App\Services\GoogleSheetService::class)->syncOrder($order);
+        app(GoogleSheetService::class)->syncOrder($order);
 
         return redirect()
             ->route('admin.orders.show', $order)
@@ -207,7 +210,7 @@ class OrderController extends Controller
             $order->logActivity('Data pesanan diperbarui');
         });
 
-        app(\App\Services\GoogleSheetService::class)->syncOrder($order);
+        app(GoogleSheetService::class)->syncOrder($order);
 
         return redirect()
             ->route('admin.orders.show', $order)
@@ -223,7 +226,7 @@ class OrderController extends Controller
         $order->update(['status' => $data['status']]);
         $order->logActivity('Status pesanan diubah menjadi '.$order->status_label);
 
-        app(\App\Services\GoogleSheetService::class)->syncOrder($order);
+        app(GoogleSheetService::class)->syncOrder($order);
 
         return back()->with('success', 'Status pesanan diperbarui.');
     }
@@ -252,7 +255,7 @@ class OrderController extends Controller
         // Dikirim selagi id-nya masih ada; tanpa ini baris pesanan beserta omzet
         // dan labanya tertinggal selamanya di spreadsheet.
         $order->loadMissing(['costs', 'payments']);
-        app(\App\Services\GoogleSheetService::class)->deleteOrder($order);
+        app(GoogleSheetService::class)->deleteOrder($order);
 
         DB::transaction(function () use ($order) {
             foreach ($order->productionPhotos as $photo) {

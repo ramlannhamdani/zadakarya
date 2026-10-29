@@ -12,7 +12,7 @@
  * yang ada di aplikasi — penyebab paling sering tampilan sheet terlihat lama.
  * Naikkan setiap kali berkas ini diubah.
  */
-var SCRIPT_VERSION = '2026-10-26.06';
+var SCRIPT_VERSION = '2026-10-29.01';
 
 /**
  * Tinggi baris data di seluruh tab. Baris judul, banner, dan kartu KPI punya
@@ -344,75 +344,34 @@ function setupDashboardSheet(sheet, rekapSheet) {
   // ── ROW 3–4 & 6–7: KARTU KPI ─────────────────────────────────────────────
   // Nilai kartu berada di sel KIRI dari pasangan yang digabung (A4, C4, E4, G4).
   // Rumus yang menunjuk sel kanan (B, D, F, H) selalu membaca sel kosong.
+  var moneyFormat = '"Rp"#,##0;[Red]-"Rp"#,##0';
+  // Defisit kas memakai seluruh pembayaran; surplus satu pesanan tidak menghapus defisit pesanan lain.
+  var cashAdvanceFormula = "=IFERROR(SUM(FILTER('Data Order'!$J$4:$J-'Data Order'!$H$4:$H-'Data Order'!$I$4:$I,REGEXMATCH('Data Order'!$N$4:$N,\"^Aktif\"),'Data Order'!$L$4:$L>0,'Data Order'!$J$4:$J>'Data Order'!$H$4:$H+'Data Order'!$I$4:$I)),0)";
   var kpiRows = [
-    {
-      labelRow: 3, valueRow: 4,
-      cards: [
-        { col: 'A', label: 'Saldo Kas Saat Ini',
-          formula: "=IFERROR(SUM('Arus Kas'!F4:F)-SUM('Arus Kas'!G4:G),0)",
-          bg: CLR.blueCard, fg: CLR.blue, fmt: '"Rp"#,##0;[Red]-"Rp"#,##0' },
-        { col: 'C', label: 'Kas Masuk Bulan Ini',
-          formula: "=IFERROR(SUMIFS('Arus Kas'!F4:F,'Arus Kas'!A4:A,\">=\"&EOMONTH(TODAY(),-1)+1,'Arus Kas'!A4:A,\"<=\"&EOMONTH(TODAY(),0)),0)",
-          bg: CLR.greenCard, fg: CLR.green, fmt: '"Rp"#,##0' },
-        { col: 'E', label: 'Kas Keluar Bulan Ini',
-          formula: "=IFERROR(SUMIFS('Arus Kas'!G4:G,'Arus Kas'!A4:A,\">=\"&EOMONTH(TODAY(),-1)+1,'Arus Kas'!A4:A,\"<=\"&EOMONTH(TODAY(),0)),0)",
-          bg: CLR.redCard, fg: CLR.red, fmt: '"Rp"#,##0' },
-        { col: 'G', label: 'Arus Kas Bersih Bulan Ini',
-          formula: '=C4-E4',
-          bg: CLR.slateCard, fg: CLR.slate, fmt: '"Rp"#,##0;[Red]-"Rp"#,##0' }
-      ]
-    },
-    {
-      labelRow: 6, valueRow: 7,
-      cards: [
-        { col: 'A', label: 'Total Sisa Piutang',
-          formula: "=IFERROR(SUM('Data Order'!L4:L),0)",
-          bg: CLR.amberCard, fg: CLR.amber, fmt: '"Rp"#,##0' },
-        { col: 'C', label: 'Total Nilai Order',
-          formula: "=IFERROR(SUM('Data Order'!G4:G),0)",
-          bg: CLR.blueCard, fg: CLR.blue, fmt: '"Rp"#,##0' },
-        { col: 'E', label: 'Estimasi Laba Kotor',
-          formula: "=IFERROR(SUM('Data Order'!K4:K),0)",
-          bg: CLR.greenCard, fg: CLR.green, fmt: '"Rp"#,##0;[Red]-"Rp"#,##0' },
-        { col: 'G', label: 'Margin Keuntungan',
-          formula: '=IFERROR(IF(C7>0,E7/C7,0),0)',
-          bg: CLR.purpleCard, fg: CLR.purple, fmt: '0.0%' }
-      ]
-    },
-    {
-      labelRow: 9, valueRow: 10,
-      cards: [
-        { col: 'A', label: 'Total Biaya HPP (Produksi)',
-          formula: "=IFERROR(SUM('Rincian Biaya HPP'!$H$4:$H),0)",
-          bg: CLR.redCard, fg: CLR.red, fmt: '"Rp"#,##0' },
-        { col: 'C', label: 'Beban Kantor & Konveksi',
-          formula: "=IFERROR(SUM('Beban Konveksi'!$E$4:$E),0)",
-          bg: CLR.redCard, fg: CLR.red, fmt: '"Rp"#,##0' },
-        { col: 'E', label: 'Beban Pribadi (Prive Owner)',
-          formula: "=IFERROR(SUM('Beban Pribadi'!$E$4:$E),0)",
-          bg: CLR.purpleCard, fg: CLR.purple, fmt: '"Rp"#,##0' },
-        { col: 'G', label: 'Talangan Kas (Nombok DP)',
-          formula: "=IFERROR(SUM('Data Order'!$M$4:$M),0)",
-          bg: CLR.amberCard, fg: CLR.amber, fmt: '"Rp"#,##0' }
-      ]
-    },
-    {
-      labelRow: 12, valueRow: 13,
-      cards: [
-        { col: 'A', label: 'Sisa Pinjaman (Pihak Luar)',
-          formula: "=IFERROR(SUM('Pinjaman'!$F$4:$F),0)",
-          bg: CLR.purpleCard, fg: CLR.purple, fmt: '"Rp"#,##0' },
-        { col: 'C', label: 'Piutang Selesai (Siap Tagih)',
-          formula: "=IFERROR(SUMIF('Data Order'!$N$4:$N,\"*Selesai*\",'Data Order'!$L$4:$L),0)",
-          bg: CLR.redCard, fg: CLR.red, fmt: '"Rp"#,##0' },
-        { col: 'E', label: 'Piutang Berjalan (WIP)',
-          formula: "=IFERROR(SUMIF('Data Order'!$N$4:$N,\"*Aktif*\",'Data Order'!$L$4:$L),0)",
-          bg: CLR.blueCard, fg: CLR.blue, fmt: '"Rp"#,##0' },
-        { col: 'G', label: 'Laba Bersih Operasional',
-          formula: '=IFERROR(E7-C10,0)',
-          bg: CLR.greenCard, fg: CLR.green, fmt: '"Rp"#,##0;[Red]-"Rp"#,##0' }
-      ]
-    }
+    {labelRow: 3, valueRow: 4, cards: [
+      {col: 'A', label: 'KAS RIIL', formula: "=IFERROR(SUM('Arus Kas'!F4:F)-SUM('Arus Kas'!G4:G),0)", bg: CLR.blueCard, fg: CLR.blue},
+      {col: 'C', label: 'TALANGAN KAS', formula: cashAdvanceFormula, bg: CLR.redCard, fg: CLR.red},
+      {col: 'E', label: 'SISA PINJAMAN', formula: "=IFERROR(SUM('Pinjaman'!$F$4:$F),0)", bg: CLR.slateCard, fg: CLR.slate},
+      {col: 'G', label: 'KAS BERSIH', formula: '=A4-C4', bg: CLR.greenCard, fg: CLR.green}
+    ]},
+    {labelRow: 6, valueRow: 7, cards: [
+      {col: 'A', label: 'KAS MASUK BLN INI', formula: "=IFERROR(SUMIFS('Arus Kas'!F4:F,'Arus Kas'!A4:A,\">=\"&EOMONTH(TODAY(),-1)+1,'Arus Kas'!A4:A,\"<=\"&EOMONTH(TODAY(),0)),0)", bg: CLR.greenCard, fg: CLR.green},
+      {col: 'C', label: 'KAS KELUAR BLN INI', formula: "=IFERROR(SUMIFS('Arus Kas'!G4:G,'Arus Kas'!A4:A,\">=\"&EOMONTH(TODAY(),-1)+1,'Arus Kas'!A4:A,\"<=\"&EOMONTH(TODAY(),0)),0)", bg: CLR.redCard, fg: CLR.red},
+      {col: 'E', label: 'PIUTANG JT / SIAP TAGIH', formula: "=IFERROR(SUMIF('Data Order'!$N$4:$N,\"Selesai\",'Data Order'!$L$4:$L)+SUMIFS('Data Order'!$L$4:$L,'Data Order'!$N$4:$N,\"Aktif*\",'Data Order'!$Q$4:$Q,\">0\",'Data Order'!$Q$4:$Q,\"<=\"&TODAY()),0)", bg: CLR.amberCard, fg: CLR.amber},
+      {col: 'G', label: 'PIUTANG BERJALAN', formula: "=IFERROR(SUMIF('Data Order'!$N$4:$N,\"<>Dibatalkan\",'Data Order'!$L$4:$L)-E7,0)", bg: CLR.blueCard, fg: CLR.blue}
+    ]},
+    {labelRow: 9, valueRow: 10, cards: [
+      {col: 'A', label: 'TOTAL NILAI ORDER', formula: "=IFERROR(SUMIF('Data Order'!$N$4:$N,\"<>Dibatalkan\",'Data Order'!$G$4:$G),0)", bg: CLR.blueCard, fg: CLR.blue},
+      {col: 'C', label: 'BIAYA OPERASIONAL', formula: "=IFERROR(SUMIF('Data Order'!$N$4:$N,\"<>Dibatalkan\",'Data Order'!$J$4:$J)+SUM('Beban Konveksi'!$E$4:$E),0)", bg: CLR.redCard, fg: CLR.red},
+      {col: 'E', label: 'LABA BERSIH & MARGIN', formula: '=A10-C10', bg: CLR.greenCard, fg: CLR.green},
+      {col: 'G', label: 'ALOKASI LABA / SISA LABA', formula: "=E10-IFERROR(SUM('Beban Pribadi'!$E$4:$E),0)", bg: CLR.navy, fg: CLR.white}
+    ]},
+    {labelRow: 12, valueRow: 13, cards: [
+      {col: 'A', label: 'ASET MESIN', formula: "=IFERROR(SUM(FILTER('Aset'!$H$4:$H,REGEXMATCH('Aset'!$D$4:$D,\"Mesin Jahit|Mesin Potong|Sablon, Heatpress|Setrika Uap\"))),0)", bg: CLR.slateCard, fg: CLR.slate},
+      {col: 'C', label: 'ASET LAIN', formula: "=IFERROR(SUM('Aset'!$H$4:$H),0)-A13", bg: CLR.slateCard, fg: CLR.slate},
+      {col: 'E', label: 'TOTAL ASET & INVESTASI', formula: '=A13+C13', bg: CLR.blueCard, fg: CLR.blue},
+      {col: 'G', label: 'TOTAL EKUITAS', formula: '=A4+E7+G7+E13-E4', bg: CLR.greenCard, fg: CLR.green}
+    ]}
   ];
 
   for (var g = 0; g < kpiRows.length; g++) {
@@ -426,22 +385,36 @@ function setupDashboardSheet(sheet, rekapSheet) {
 
       sheet.getRange(k.col + group.labelRow + ':' + right + group.labelRow).merge()
         .setValue(k.label)
-        .setFontSize(9).setFontWeight('bold').setFontColor(CLR.gray2).setBackground(k.bg)
+        .setFontSize(9).setFontWeight('bold').setFontColor(k.fg).setBackground(k.bg)
         .setHorizontalAlignment('center').setVerticalAlignment('middle');
 
       sheet.getRange(k.col + group.valueRow + ':' + right + group.valueRow).merge()
         .setFormula(k.formula)
         .setFontSize(17).setFontWeight('bold').setFontColor(k.fg).setBackground(k.bg)
         .setHorizontalAlignment('center').setVerticalAlignment('middle')
-        .setNumberFormat(k.fmt)
+        .setNumberFormat(moneyFormat)
         .setBorder(null, null, true, null, null, null, k.fg, SpreadsheetApp.BorderStyle.SOLID_THICK);
     }
   }
 
-  sheet.setRowHeight(5, 12);
-  sheet.setRowHeight(8, 12);
-  sheet.setRowHeight(11, 12);
-  sheet.setRowHeight(14, 18);
+  var cardDetails = [
+    {row: 5, values: ['Saldo mutasi kas masuk − keluar', 'HPP yang belum tertutup pembayaran', 'Sisa pokok utang pihak luar', 'Estimasi kas riil − talangan']},
+    {row: 8, values: ['Pembayaran pelanggan + pinjaman', 'HPP + ops + prive + cicilan', 'Selesai / deadline sampai hari ini', 'Sisa tagihan selain piutang JT']},
+    {row: 11, values: ['Seluruh order selain dibatalkan', '', '', '']},
+    {row: 14, values: ['Nilai buku aset mesin', 'Nilai buku aset selain mesin', 'Total nilai buku seluruh aset', 'Kas + piutang + aset − utang']}
+  ];
+  cardDetails.forEach(function(detail) {
+    sheet.setRowHeight(detail.row, 34);
+    detail.values.forEach(function(value, i) {
+      var col = String.fromCharCode(65 + i * 2);
+      var right = String.fromCharCode(66 + i * 2);
+      sheet.getRange(col + detail.row + ':' + right + detail.row).merge().setValue(value)
+        .setFontSize(8).setFontColor(CLR.gray2).setHorizontalAlignment('center').setVerticalAlignment('middle').setWrap(true);
+    });
+  });
+  sheet.getRange('C11').setFormula('="HPP: "&TEXT(SUMIF(\'Data Order\'!$N$4:$N,"<>Dibatalkan",\'Data Order\'!$J$4:$J),"Rp#,##0")&CHAR(10)&"Ops: "&TEXT(SUM(\'Beban Konveksi\'!$E$4:$E),"Rp#,##0")');
+  sheet.getRange('E11').setFormula('="Margin: "&TEXT(IFERROR(E10/A10,0),"0.0%")');
+  sheet.getRange('G11').setFormula('="Prive: "&TEXT(SUM(\'Beban Pribadi\'!$E$4:$E),"Rp#,##0")');
 
   /* ── ROW 15–22: KOMPOSISI HPP (kiri) & RINGKASAN PESANAN (kanan) ────────── */
 
@@ -523,7 +496,7 @@ function setupDashboardSheet(sheet, rekapSheet) {
     [
       '↳ Talangan Kas (Nombok DP)',
       'Kas talangi DP',
-      '=IFERROR(SUM(\'Data Order\'!$M$4:$M),0)',
+      cashAdvanceFormula,
       'Kas Kantor'
     ]
   ];
@@ -649,7 +622,7 @@ function setupDataOrderSheet(sheet) {
   sheet.setColumnWidth(10, 115); // J: Total HPP
   sheet.setColumnWidth(11, 115); // K: Estimasi Laba
   sheet.setColumnWidth(12, 115); // L: Sisa Tagihan
-  sheet.setColumnWidth(13, 125); // M: Dana Talangan
+  sheet.setColumnWidth(13, 145); // M: Realisasi DP vs HPP
   sheet.setColumnWidth(14, 140); // N: Status
   sheet.setColumnWidth(15, 200); // O: Catatan
 
@@ -670,7 +643,7 @@ function setupDataOrderSheet(sheet) {
   var headers = [
     'Tanggal', 'No. Order', 'Customer', 'Nama Produk / Item', 'Qty',
     'Harga / pcs', 'Nilai Order', 'DP Diterima', 'Pelunasan',
-    'Total HPP', 'Estimasi Laba', 'Sisa Tagihan', 'Dana Talangan', 'Status', 'Catatan'
+    'Total HPP', 'Estimasi Laba', 'Sisa Tagihan', 'Realisasi DP vs HPP', 'Status', 'Catatan'
   ];
   sheet.getRange(3, 1, 1, headers.length).setValues([headers])
     .setFontSize(9).setFontWeight('bold')
@@ -679,6 +652,9 @@ function setupDataOrderSheet(sheet) {
   sheet.setFrozenRows(3);
 
   setupIdColumn(sheet, 16);
+  if (sheet.getMaxColumns() < 17) { sheet.insertColumnsAfter(sheet.getMaxColumns(), 17 - sheet.getMaxColumns()); }
+  sheet.getRange('Q3').setValue('Deadline');
+  sheet.hideColumns(17);
 
   // Format dipasang untuk seluruh kolom, bukan sampai baris tertentu.
   var rows = dataRowCount(sheet);
@@ -687,22 +663,30 @@ function setupDataOrderSheet(sheet) {
   sheet.getRange(4, 6, rows, 7).setNumberFormat('"Rp"#,##0');
   // Estimasi laba bisa minus kalau HPP melampaui nilai order.
   sheet.getRange(4, 11, rows, 1).setNumberFormat('"Rp"#,##0;[Red]-"Rp"#,##0');
-  sheet.getRange(4, 13, rows, 1).setNumberFormat('"Rp"#,##0'); // Dana Talangan
+  // Realisasi DP vs HPP: Positif (+) Hijau = Aman tercover DP, Negatif (-) Merah = Nombok kas
+  sheet.getRange(4, 13, rows, 1).setNumberFormat('+"Rp"#,##0;[Red]-"Rp"#,##0;"Rp"0');
   sheet.getRange(4, 14, rows, 1).setHorizontalAlignment('center').setWrap(false); // Status
   sheet.getRange(4, 15, rows, 1).setWrap(true); // Catatan
 
   applyRowStripes(sheet, 16);
 
-  // Sorotan visual: Dana Talangan jika > 0, dan Status jika Selesai
+  // Sorotan visual: Realisasi DP vs HPP (> 0 hijau/aman, < 0 merah/nombok), dan Status jika Selesai
   try {
-    var talanganRange = sheet.getRange(4, 13, rows, 1);
+    var dpHppRange = sheet.getRange(4, 13, rows, 1);
     var statusRange = sheet.getRange(4, 14, rows, 1);
-    var ruleTalangan = SpreadsheetApp.newConditionalFormatRule()
+    var ruleSurplus = SpreadsheetApp.newConditionalFormatRule()
       .whenNumberGreaterThan(0)
+      .setBackground(CLR.greenCard)
+      .setFontColor(CLR.green)
+      .setBold(true)
+      .setRanges([dpHppRange])
+      .build();
+    var ruleDefisit = SpreadsheetApp.newConditionalFormatRule()
+      .whenNumberLessThan(0)
       .setBackground(CLR.redCard)
       .setFontColor(CLR.red)
       .setBold(true)
-      .setRanges([talanganRange])
+      .setRanges([dpHppRange])
       .build();
     var ruleSelesai = SpreadsheetApp.newConditionalFormatRule()
       .whenTextContains('Selesai')
@@ -711,7 +695,7 @@ function setupDataOrderSheet(sheet) {
       .setBold(true)
       .setRanges([statusRange])
       .build();
-    sheet.setConditionalFormatRules([ruleTalangan, ruleSelesai]);
+    sheet.setConditionalFormatRules([ruleSurplus, ruleDefisit, ruleSelesai]);
   } catch (e) {}
 }
 
@@ -1539,9 +1523,9 @@ function handleSyncAll(data, ss) {
           (o.product || '-'),   // Pastikan product string, bukan angka
           o.qty, o.price_per_unit, o.total_order, o.dp, o.settlement,
           o.total_cost, o.estimated_profit, o.remaining,
-          (o.cash_advance !== undefined ? o.cash_advance : (o.cash_deficit || 0)),
+          (o.dp_vs_hpp !== undefined ? o.dp_vs_hpp : ((o.dp || 0) - (o.total_cost || 0))),
           o.status, o.notes,
-          o.id || ''
+          o.id || '', o.deadline ? new Date(o.deadline + 'T00:00:00') : ''
         ];
       });
       orderSheet.getRange(4, 1, orderRows.length, orderRows[0].length).setValues(orderRows);
@@ -1785,9 +1769,9 @@ function handleUpsertOrder(orderData, ss) {
     orderData.qty, orderData.price_per_unit, orderData.total_order,
     orderData.dp, orderData.settlement, orderData.total_cost,
     orderData.estimated_profit, orderData.remaining,
-    (orderData.cash_advance !== undefined ? orderData.cash_advance : (orderData.cash_deficit || 0)),
+    (orderData.dp_vs_hpp !== undefined ? orderData.dp_vs_hpp : ((orderData.dp || 0) - (orderData.total_cost || 0))),
     orderData.status, orderData.notes,
-    orderData.id || ''
+    orderData.id || '', orderData.deadline ? new Date(orderData.deadline + 'T00:00:00') : ''
   ];
 
   var lastRow = sheet.getLastRow();

@@ -17,6 +17,7 @@ use Throwable;
 class GoogleSheetService
 {
     public const DEFAULT_TIMEOUT = 30;
+
     public const BATCH_TIMEOUT = 90;
 
     public function getWebhookUrl(): ?string
@@ -452,7 +453,7 @@ class GoogleSheetService
         $qty = (int) $order->total_quantity;
         $unitPrice = $qty > 0 ? (int) round($order->grand_total / $qty) : (int) $order->grand_total;
 
-        // Status murni (Aktif / Selesai / Dibatalkan), label nombok kas dipisah ke kolom Dana Talangan
+        // Status pesanan dipisah dari realisasi DP terhadap HPP.
         $statusText = match ($order->status) {
             'completed' => 'Selesai',
             'cancelled' => 'Dibatalkan',
@@ -471,7 +472,9 @@ class GoogleSheetService
             'dp' => $dp,
             'settlement' => $settlement,
             'total_cost' => (int) $order->total_cost,
-            'cash_advance' => (int) $order->cash_deficit, // Kolom Khusus: Dana Talangan / Nombok Kas
+            'cash_advance' => (int) $order->cash_deficit, // Kompatibilitas dengan skrip lama yang membaca defisit positif.
+            'dp_vs_hpp' => $order->dp_vs_hpp,
+            'deadline' => $order->deadline?->format('Y-m-d') ?? '',
             'estimated_profit' => (int) $order->gross_profit,
             'remaining' => (int) $order->remaining,
             'status' => $statusText,

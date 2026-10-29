@@ -688,94 +688,31 @@
             </div>
         </div>
 
-        {{-- Card Posisi Arus Kas & Ketahanan DP Pesanan --}}
-        @php
-            $cashMeta = $order->cash_status_meta;
-            $cashDeficit = $order->cash_deficit;
-            $cashSurplus = $order->cash_surplus;
-            $netCashFlow = $order->net_cash_flow;
-        @endphp
-        <div class="admin-card mt-5 border-l-4 {{ $order->is_cash_deficit ? '!border-l-rose-500 bg-rose-50/20' : ($order->payment_status === 'paid' ? '!border-l-emerald-500 bg-emerald-50/20' : '!border-l-blue-500 bg-blue-50/10') }}">
+        <div class="admin-card mt-5">
             <div class="flex flex-wrap items-center justify-between gap-3">
-                <div>
-                    <div class="flex flex-wrap items-center gap-2">
-                        <h2 class="font-extrabold text-ink">Posisi Arus Kas &amp; Ketahanan DP Pesanan</h2>
-                        <span class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-bold {{ $cashMeta['badge'] }}">
-                            {{ $cashMeta['label'] }}
-                        </span>
-                    </div>
-                    <p class="text-xs text-neutral-500 mt-0.5">Membandingkan pembayaran masuk (DP) dengan belanja HPP untuk memantau dana talangan kas kantor.</p>
-                </div>
-                <a href="{{ route('admin.orders.show', ['order' => $order, 'tab' => 'payments']) }}" class="text-xs font-semibold text-brand-600 hover:underline inline-flex items-center gap-1">
-                    <span>Lihat Riwayat Pembayaran</span>
-                    <span>&rarr;</span>
-                </a>
+                <h2 class="font-extrabold text-ink">Realisasi DP vs HPP</h2>
+                <x-dp-vs-hpp :order="$order" />
             </div>
-
+            <p class="mt-2 text-xs text-neutral-500">DP yang benar-benar diterima dikurangi belanja HPP. Plus hijau berarti HPP masih tercover DP; minus merah berarti DP belum mencukupi HPP. Pembayaran pelunasan dihitung terpisah.</p>
             <div class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
-                <div class="rounded-lg border border-line bg-white p-3.5 shadow-sm">
-                    <span class="text-xs font-bold uppercase tracking-wider text-neutral-500">1. Pembayaran Masuk (DP)</span>
-                    <p class="mt-1 text-xl font-extrabold text-emerald-600">{{ rupiah($order->amount_paid) }}</p>
-                    <p class="mt-0.5 text-xs text-neutral-500">
-                        @if($order->remaining > 0)
-                            Sisa tagihan: <strong class="text-ink">{{ rupiah($order->remaining) }}</strong>
-                        @else
-                            <strong class="text-emerald-600">Lunas 100%</strong>
-                        @endif
-                    </p>
+                <div class="rounded-lg border border-line bg-white p-3.5">
+                    <span class="text-xs text-neutral-500">DP Diterima</span>
+                    <p class="mt-1 text-xl font-extrabold text-emerald-600">{{ rupiah($order->dp_paid) }}</p>
                 </div>
-
-                <div class="rounded-lg border border-line bg-white p-3.5 shadow-sm">
-                    <span class="text-xs font-bold uppercase tracking-wider text-neutral-500">2. Belanja HPP Dikeluarkan</span>
-                    <p class="mt-1 text-xl font-extrabold text-brand-600">{{ rupiah($totalCost) }}</p>
-                    <p class="mt-0.5 text-xs text-neutral-500">{{ $order->costs->count() }} transaksi pengeluaran</p>
+                <div class="rounded-lg border border-line bg-white p-3.5">
+                    <span class="text-xs text-neutral-500">Belanja HPP</span>
+                    <p class="mt-1 text-xl font-extrabold text-rose-600">{{ rupiah($totalCost) }}</p>
                 </div>
-
-                <div class="rounded-lg border border-line bg-white p-3.5 shadow-sm">
-                    <span class="text-xs font-bold uppercase tracking-wider text-neutral-500">3. Posisi Kas Pesanan (DP − HPP)</span>
-                    <p class="mt-1 text-xl font-extrabold {{ $netCashFlow >= 0 ? 'text-blue-600' : 'text-rose-600' }}">
-                        {{ $netCashFlow >= 0 ? '+' : '' }}{{ rupiah($netCashFlow) }}
-                    </p>
-                    <p class="mt-0.5 text-xs {{ $netCashFlow >= 0 ? 'text-blue-600' : 'text-rose-600 font-semibold' }}">
-                        @if($order->payment_status === 'paid')
-                            Laba bersih kas terealisasi
-                        @elseif($cashDeficit > 0)
-                            ⚠️ Nombok Kas Kantor: {{ rupiah($cashDeficit) }}
-                        @elseif($totalCost > 0)
-                            Sisa dana DP: {{ rupiah($cashSurplus) }}
-                        @else
-                            Belum ada belanja HPP
-                        @endif
-                    </p>
+                <div class="rounded-lg border border-line bg-white p-3.5">
+                    <span class="text-xs text-neutral-500">Realisasi DP − HPP</span>
+                    <p class="mt-1 text-xl font-extrabold {{ $order->dp_vs_hpp < 0 ? 'text-rose-600' : ($order->dp_vs_hpp > 0 ? 'text-emerald-600' : 'text-slate-600') }}">{{ $order->dp_vs_hpp > 0 ? '+' : ($order->dp_vs_hpp < 0 ? '-' : '') }}{{ rupiah(abs($order->dp_vs_hpp)) }}</p>
                 </div>
             </div>
-
+            <p class="mt-3 text-xs text-neutral-600">Pelunasan diterima: <strong>{{ rupiah($order->settlement_paid) }}</strong> · Sisa tagihan: <strong>{{ rupiah($order->remaining) }}</strong> · Posisi kas seluruh pembayaran − HPP: <strong>{{ rupiah($order->net_cash_flow) }}</strong>.</p>
             @if($order->is_cash_deficit)
-                <div class="mt-4 rounded-lg border border-rose-200 bg-rose-50/80 p-3.5 text-sm text-rose-900">
-                    <div class="flex items-start gap-2.5">
-                        <span class="mt-0.5 text-base">⚠️</span>
-                        <div class="flex-1">
-                            <p class="font-bold text-rose-900">Kas Kantor Sedang Menalangi {{ rupiah($cashDeficit) }}</p>
-                            <p class="mt-1 text-xs text-rose-800 leading-relaxed">
-                                Uang muka (DP) yang diterima sebesar <strong>{{ rupiah($order->amount_paid) }}</strong> belum cukup menutup total pengeluaran belanja bahan &amp; jasa produksi saat ini (<strong>{{ rupiah($totalCost) }}</strong>).
-                                Kekurangan sebesar <strong>{{ rupiah($cashDeficit) }}</strong> saat ini ditalangi oleh uang kas kantor.
-                            </p>
-                            <div class="mt-2.5 rounded border border-rose-200 bg-white/70 px-3 py-2 text-xs text-rose-900">
-                                <strong>💡 Alur Pemulihan Kas saat Pelunasan:</strong>
-                                Saat customer melunasi sisa tagihan <strong>{{ rupiah($order->remaining) }}</strong>, dana talangan <strong>{{ rupiah($cashDeficit) }}</strong> otomatis kembali utuh memulihkan saldo kas kantor, dan sisa <strong>{{ rupiah($grossProfit) }}</strong> menjadi laba kotor riil Anda.
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            @elseif($order->total_cost > 0 && $order->payment_status !== 'paid')
-                <div class="mt-4 rounded-lg border border-blue-200 bg-blue-50/70 p-3 text-xs text-blue-900">
-                    <strong>🛡️ DP Mandiri (Kas Aman):</strong> Uang muka yang diterima ({{ rupiah($order->amount_paid) }}) mencukupi seluruh belanja HPP sejauh ini ({{ rupiah($totalCost) }}), dan masih tersisa <strong>{{ rupiah($cashSurplus) }}</strong> dari dana DP. Kas kantor tidak perlu menombok.
-                </div>
-            @elseif($order->payment_status === 'paid')
-                <div class="mt-4 rounded-lg border border-emerald-200 bg-emerald-50/70 p-3 text-xs text-emerald-900">
-                    <strong>✅ Pesanan Telah Lunas:</strong> Seluruh tagihan {{ rupiah($order->grand_total) }} telah dibayarkan. Seluruh belanja HPP {{ rupiah($totalCost) }} telah tertutup penuh dan laba kotor {{ rupiah($grossProfit) }} telah terealisasi ke dalam saldo kas.
-                </div>
+                <p class="mt-3 rounded-lg bg-rose-50 p-3 text-sm font-semibold text-rose-800">Kas kantor sedang menalangi {{ rupiah($order->cash_deficit) }} setelah seluruh pembayaran masuk diperhitungkan.</p>
             @endif
+            <a href="{{ route('admin.orders.show', ['order' => $order, 'tab' => 'payments']) }}" class="mt-3 inline-block text-xs font-semibold text-brand-600 hover:underline">Lihat Riwayat Pembayaran &rarr;</a>
         </div>
 
         {{-- Breakdown per Komponen Biaya --}}

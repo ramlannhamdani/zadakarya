@@ -133,7 +133,7 @@
                     <th class="py-3.5 px-3.5 sm:px-5 font-normal">PRODUK</th>
                     <th class="py-3.5 px-3.5 sm:px-5 font-normal text-right">TOTAL</th>
                     <th class="py-3.5 px-3.5 sm:px-5 font-normal text-center">PEMBAYARAN</th>
-                    <th class="py-3.5 px-3.5 sm:px-5 font-normal text-center">TALANGAN KAS</th>
+                    <th class="py-3.5 px-3.5 sm:px-5 font-normal text-center">REALISASI DP VS HPP</th>
                     <th class="py-3.5 px-3.5 sm:px-5 font-normal">TAHAP</th>
                     <th class="py-3.5 px-3.5 sm:px-5 font-normal text-center">DEADLINE</th>
                     <th class="py-3.5 px-3.5 sm:px-5 font-normal text-center">STATUS</th>
@@ -170,7 +170,7 @@
                                 <span class="text-[10px] text-rose-600 font-semibold">Sisa {{ rupiah($order->remaining) }}</span>
                             @elseif($order->payment_status === 'paid')
                                 <span class="inline-block px-2.5 py-0.5 rounded-md bg-emerald-50 text-emerald-700 font-semibold text-[11px]">Lunas</span>
-                            @elseif($order->payment_status === 'dp')
+                            @elseif($order->payment_status === 'partial')
                                 <span class="inline-block px-2.5 py-0.5 rounded-md bg-amber-50 text-amber-700 font-semibold text-[11px]">DP Terbayar</span>
                                 <span class="text-[10px] text-slate-400">Sisa {{ rupiah($order->remaining) }}</span>
                             @else
@@ -179,19 +179,7 @@
                         </div>
                     </td>
                     <td class="py-3.5 px-5 text-center">
-                        @if($order->is_cash_deficit)
-                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 text-[10px] font-bold" title="HPP Belanja {{ rupiah($order->total_cost) }} > Uang Masuk {{ rupiah($order->amount_paid) }}">
-                                <i class="fa-solid fa-triangle-exclamation text-[9px]"></i>
-                                <span>Nombok {{ rupiah($order->cash_deficit) }}</span>
-                            </span>
-                        @elseif($order->total_cost > 0)
-                            <span class="inline-flex items-center gap-1 text-[11px] text-emerald-700 font-medium">
-                                <i class="fa-solid fa-check text-[9px]"></i>
-                                <span>Aman (Tertutup DP)</span>
-                            </span>
-                        @else
-                            <span class="text-[11px] text-slate-400">—</span>
-                        @endif
+                        <x-dp-vs-hpp :order="$order" />
                     </td>
                     <td class="py-3.5 px-5 text-slate-600">
                         <span class="block">{{ $order->current_stage_name }}</span>

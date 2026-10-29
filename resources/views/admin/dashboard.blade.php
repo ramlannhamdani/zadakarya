@@ -1,588 +1,875 @@
 @extends('layouts.admin')
 
-@section('title', 'Ikhtisar Bisnis')
+@section('title', 'Dashboard Keuangan')
+
+@section('header-actions')
+<div class="hidden md:flex items-center gap-2">
+    <a href="{{ route('admin.finance.index') }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition-all">
+        <i class="fa-solid fa-scale-balanced text-[11px]"></i>
+        <span class="hidden sm:inline">Neraca Skontro</span>
+        <span class="sm:hidden">Neraca</span>
+    </a>
+    <a href="{{ route('admin.assets.index') }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition-all">
+        <i class="fa-solid fa-boxes-stacked text-[11px]"></i>
+        <span class="hidden sm:inline">Inventaris Aset</span>
+        <span class="sm:hidden">Aset</span>
+    </a>
+    <a href="{{ route('admin.spreadsheet.index') }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-xl text-xs font-semibold transition-all">
+        <i class="fa-solid fa-file-excel text-[11px]"></i>
+        <span>Spreadsheet</span>
+    </a>
+</div>
+@endsection
 
 @section('content')
-<!-- 1. TOP STATS BAR (Sleek Flat Container) -->
-<section class="bg-white rounded-2xl p-4 sm:p-6 shadow-sm">
-    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 lg:gap-6">
-        <!-- Total Pesanan -->
-        <div class="bg-slate-50/70 rounded-xl p-3.5 sm:p-4">
-            <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Total Pesanan</p>
-            <div class="flex items-baseline gap-2 mt-1">
-                <span class="text-2xl sm:text-3xl font-bold text-slate-900">{{ $stats['total_orders'] }}</span>
-                <span class="text-[11px] text-slate-400">transaksi</span>
-            </div>
-        </div>
+<div class="min-w-0 space-y-6">
 
-        <!-- Pesanan Aktif -->
-        <div class="bg-slate-50/70 rounded-xl p-3.5 sm:p-4">
-            <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Pesanan Aktif</p>
-            <div class="flex items-baseline gap-2 mt-1">
-                <span class="text-2xl sm:text-3xl font-bold text-amber-600">{{ $stats['active_orders'] }}</span>
-                <span class="text-[11px] text-amber-600/80 font-medium">berjalan</span>
-            </div>
-        </div>
-
-        <!-- Pesanan Selesai -->
-        <div class="bg-slate-50/70 rounded-xl p-3.5 sm:p-4">
-            <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Pesanan Selesai</p>
-            <div class="flex items-baseline gap-2 mt-1">
-                <span class="text-2xl sm:text-3xl font-bold text-emerald-600">{{ $stats['completed_orders'] }}</span>
-                <span class="text-[11px] text-emerald-600/80 font-medium">terkirim</span>
-            </div>
-        </div>
-
-        <!-- Belum Lunas -->
-        <div class="bg-slate-50/70 rounded-xl p-3.5 sm:p-4">
-            <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Belum Lunas</p>
-            <div class="flex items-baseline gap-2 mt-1">
-                <span class="text-2xl sm:text-3xl font-bold text-slate-700">{{ $stats['unpaid_orders'] }}</span>
-                <span class="text-[11px] text-slate-400 font-medium">sisa DP</span>
-            </div>
-        </div>
-
-        <!-- Inquiry Baru -->
-        <div class="bg-slate-50/70 rounded-xl p-3.5 sm:p-4 col-span-2 sm:col-span-1">
-            <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Inquiry Baru</p>
-            <div class="flex items-baseline gap-2 mt-1">
-                <span class="text-2xl sm:text-3xl font-bold text-slate-400">{{ $stats['new_inquiries'] }}</span>
-                <span class="text-[11px] text-slate-400">calon klien</span>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- 2. FINANCIAL TILES (Soft Flat Surface, No Harsh Strokes) -->
-<section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
-    <div class="bg-white rounded-2xl p-4 sm:p-5 shadow-sm flex flex-col justify-between">
-        <div>
-            <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Total Nilai Pesanan</span>
-            <h3 class="text-xl sm:text-2xl font-bold text-slate-900 mt-1.5 sm:mt-2">{{ rupiah($revenue['order_value']) }}</h3>
-        </div>
-        <p class="text-xs text-slate-400 mt-3 sm:mt-4">Grand total semua pesanan non-batal</p>
-    </div>
-
-    <div class="bg-white rounded-2xl p-4 sm:p-5 shadow-sm flex flex-col justify-between">
-        <div>
-            <div class="flex items-center justify-between">
-                <span class="text-[11px] font-semibold uppercase tracking-wider text-emerald-600">Total Pendapatan Terbayar</span>
-                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-            </div>
-            <h3 class="text-xl sm:text-2xl font-bold text-emerald-600 mt-1.5 sm:mt-2">{{ rupiah($revenue['total']) }}</h3>
-        </div>
-        <p class="text-xs text-slate-400 mt-3 sm:mt-4">Seluruh pembayaran yang sudah masuk</p>
-    </div>
-
-    <div class="bg-white rounded-2xl p-4 sm:p-5 shadow-sm flex flex-col justify-between">
-        <div>
-            <div class="flex items-center justify-between">
-                <span class="text-[11px] font-semibold uppercase tracking-wider text-brand-700">Pendapatan Bulan Ini</span>
-                <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-brand-50 text-brand-700">{{ now()->translatedFormat('F Y') }}</span>
-            </div>
-            <h3 class="text-xl sm:text-2xl font-bold text-brand-700 mt-1.5 sm:mt-2">{{ rupiah($revenue['this_month']) }}</h3>
-        </div>
-        <p class="text-xs text-slate-400 mt-3 sm:mt-4">Penerimaan kas masuk bulan berjalan</p>
-    </div>
-
-    <div class="bg-white rounded-2xl p-4 sm:p-5 shadow-sm flex flex-col justify-between">
-        <div>
-            <div class="flex items-center justify-between">
-                <span class="text-[11px] font-semibold uppercase tracking-wider text-amber-600">Total Piutang Tagihan</span>
-                <span class="w-2 h-2 rounded-full bg-amber-400"></span>
-            </div>
-            <h3 class="text-xl sm:text-2xl font-bold text-amber-600 mt-1.5 sm:mt-2">{{ rupiah($revenue['receivable']) }}</h3>
-        </div>
-        <div class="mt-3 sm:mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px]">
-            <a href="{{ route('admin.orders.index', ['filter' => 'ready_to_bill']) }}" class="text-rose-600 font-semibold hover:underline flex items-center gap-1" title="Pesanan selesai tapi belum lunas">
-                <span>Siap Tagih:</span>
-                <span>{{ rupiah($revenue['completed_receivable']) }}</span>
-            </a>
-            <span class="text-slate-400 font-medium" title="Pesanan aktif dalam produksi">WIP: {{ rupiah($revenue['active_receivable']) }}</span>
-        </div>
-    </div>
-</section>
-
-<!-- 2B. PETA ALOKASI DANA (DI MANA POSISI UANG SAAT INI?) -->
-<section class="bg-white rounded-2xl p-5 sm:p-7 shadow-sm space-y-5">
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-100">
-        <div>
-            <div class="flex items-center gap-2">
-                <span class="w-2.5 h-2.5 rounded-full bg-brand-600"></span>
-                <h3 class="text-base font-bold text-slate-900 tracking-tight">Peta Alokasi Dana (Di Mana Uang Berada?)</h3>
-            </div>
-            <p class="text-xs text-slate-400 mt-1">Pemetaan transparan posisi kas riil, uang tertahan menombok produksi, dan tagihan yang siap ditarik.</p>
-        </div>
-        <div class="flex items-center gap-3 self-start md:self-auto text-xs">
-            <span class="text-slate-400">Total Piutang:</span>
-            <span class="font-bold text-slate-800">{{ rupiah($revenue['receivable']) }}</span>
-        </div>
-    </div>
-
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5 sm:gap-4">
-        <!-- 1. Kas Bebas Likuid -->
-        <div class="bg-slate-50/80 hover:bg-slate-50 rounded-2xl p-4 sm:p-5 flex flex-col justify-between transition-colors border border-transparent hover:border-slate-100">
+    <!-- ========================================================================= -->
+    <!-- BAGIAN ATAS: DASHBOARD KEUANGAN — PEMETAAN UANG (16 KARTU METRIK)          -->
+    <!-- Referensi Desain: Format & Layout Dashboard Keuangan - Zada Karya (Gambar 2)-->
+    <!-- ========================================================================= -->
+    <section class="space-y-4">
+        <!-- Dashboard Header Banner -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-white rounded-2xl p-4 sm:p-5 shadow-xs border border-slate-100">
             <div>
-                <div class="flex items-center justify-between gap-2 mb-3">
-                    <span class="text-[11px] font-bold uppercase tracking-wider text-slate-600">1. Kas Bebas Likuid</span>
-                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-md {{ $financials['current_cash_balance'] >= 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700' }}">
-                        {{ $financials['current_cash_balance'] >= 0 ? 'Tersedia' : 'Defisit Kas' }}
-                    </span>
+                <div class="flex items-center gap-2">
+                    <span class="w-3 h-3 rounded-full bg-brand-700"></span>
+                    <h2 class="text-base sm:text-lg font-bold text-slate-900 tracking-tight">DASHBOARD KEUANGAN - ZADA KARYA</h2>
                 </div>
-                <div class="text-xl sm:text-2xl font-bold {{ $financials['current_cash_balance'] >= 0 ? 'text-slate-900' : 'text-rose-600' }} tracking-tight">
-                    {{ rupiah($financials['current_cash_balance']) }}
-                </div>
-                <div class="text-[11px] text-slate-400 mt-1">Saldo Kas di Rekening / Laci</div>
+                <p class="text-xs text-slate-500 mt-0.5">Daftar Ringkasan Metrik Keuangan · Pemetaan Posisi Kas, Piutang, Biaya &amp; Valuasi</p>
             </div>
-            <p class="text-[11px] text-slate-500 mt-4 leading-relaxed">
-                Uang tunai &amp; bank yang siap dipakai tanpa terikat beban produksi yang belum dibayar.
-            </p>
-        </div>
-
-        <!-- 2. Uang Tertahan di Produksi (Dana Talangan HPP) -->
-        <div class="bg-amber-50/50 hover:bg-amber-50/80 rounded-2xl p-4 sm:p-5 flex flex-col justify-between transition-colors border border-amber-100/50">
-            <div>
-                <div class="flex items-center justify-between gap-2 mb-3">
-                    <span class="text-[11px] font-bold uppercase tracking-wider text-amber-800">2. Talangan Kas HPP</span>
-                    @if(($financials['deficit_orders_count'] ?? 0) > 0)
-                        <a href="{{ route('admin.orders.index', ['cash_status' => 'deficit']) }}" class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-100 text-amber-800 hover:bg-amber-200 transition-colors">
-                            {{ $financials['deficit_orders_count'] }} Order &rarr;
-                        </a>
-                    @else
-                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800">Rp0 Aman</span>
-                    @endif
-                </div>
-                <div class="text-xl sm:text-2xl font-bold {{ ($financials['total_cash_advances'] ?? 0) > 0 ? 'text-amber-600' : 'text-slate-900' }} tracking-tight">
-                    {{ rupiah($financials['total_cash_advances'] ?? 0) }}
-                </div>
-                <div class="text-[11px] text-amber-700/80 mt-1">Nombok Belanja Produksi</div>
-            </div>
-            <p class="text-[11px] text-amber-900/70 mt-4 leading-relaxed">
-                Uang kas yang menalangi belanja kain/makloon (HPP &gt; DP). Cair kembali saat customer bayar.
-            </p>
-        </div>
-
-        <!-- 3. Piutang Siap Tagih (Pesanan Selesai) -->
-        <div class="bg-rose-50/50 hover:bg-rose-50/80 rounded-2xl p-4 sm:p-5 flex flex-col justify-between transition-colors border border-rose-100/60">
-            <div>
-                <div class="flex items-center justify-between gap-2 mb-3">
-                    <span class="text-[11px] font-bold uppercase tracking-wider text-rose-800">3. Siap Ditagih</span>
-                    @if(($financials['completed_unpaid_count'] ?? 0) > 0)
-                        <a href="{{ route('admin.orders.index', ['filter' => 'ready_to_bill']) }}" class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-rose-200 text-rose-900 hover:bg-rose-300 transition-colors">
-                            🚨 {{ $financials['completed_unpaid_count'] }} Order
-                        </a>
-                    @else
-                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800">Lunas Semua</span>
-                    @endif
-                </div>
-                <div class="text-xl sm:text-2xl font-bold text-rose-600 tracking-tight">
-                    {{ rupiah($financials['completed_receivable'] ?? 0) }}
-                </div>
-                <div class="text-[11px] text-rose-700/80 mt-1">Pesanan Selesai Belum Lunas</div>
-            </div>
-            <p class="text-[11px] text-rose-900/70 mt-4 leading-relaxed">
-                Barang sudah tuntas 100% &amp; siap kirim. Prioritas tagih utama via WA / Invoice pelunasan.
-            </p>
-        </div>
-
-        <!-- 4. Piutang Pesanan Berjalan (WIP) -->
-        <div class="bg-blue-50/40 hover:bg-blue-50/70 rounded-2xl p-4 sm:p-5 flex flex-col justify-between transition-colors border border-blue-100/50">
-            <div>
-                <div class="flex items-center justify-between gap-2 mb-3">
-                    <span class="text-[11px] font-bold uppercase tracking-wider text-blue-800">4. Piutang Berjalan</span>
-                    <a href="{{ route('admin.orders.index', ['status' => 'active']) }}" class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-blue-100 text-blue-800 hover:bg-blue-200 transition-colors">
-                        {{ $financials['active_unpaid_count'] ?? 0 }} Order
-                    </a>
-                </div>
-                <div class="text-xl sm:text-2xl font-bold text-blue-600 tracking-tight">
-                    {{ rupiah($financials['active_receivable'] ?? 0) }}
-                </div>
-                <div class="text-[11px] text-blue-700/80 mt-1">Masih Dalam Pengerjaan</div>
-            </div>
-            <p class="text-[11px] text-blue-900/70 mt-4 leading-relaxed">
-                Sisa tagihan pesanan aktif di workshop (potong/jahit/finishing). Ditagih saat barang selesai.
-            </p>
-        </div>
-
-        <!-- 5. Kewajiban Pinjaman Pihak Luar -->
-        <div class="bg-purple-50/40 hover:bg-purple-50/70 rounded-2xl p-4 sm:p-5 flex flex-col justify-between transition-colors border border-purple-100/50">
-            <div>
-                <div class="flex items-center justify-between gap-2 mb-3">
-                    <span class="text-[11px] font-bold uppercase tracking-wider text-purple-800">5. Utang Luar</span>
-                    <a href="{{ route('admin.loans.index') }}" class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-purple-100 text-purple-800 hover:bg-purple-200 transition-colors">
-                        Kelola &rarr;
-                    </a>
-                </div>
-                <div class="text-xl sm:text-2xl font-bold {{ ($financials['total_active_debt'] ?? 0) > 0 ? 'text-purple-700' : 'text-slate-900' }} tracking-tight">
-                    {{ rupiah($financials['total_active_debt'] ?? 0) }}
-                </div>
-                <div class="text-[11px] text-purple-700/80 mt-1">Sisa Pokok Pinjaman Luar</div>
-            </div>
-            <p class="text-[11px] text-purple-900/70 mt-4 leading-relaxed">
-                Pinjaman eksternal yang menambah saldo kas dan harus diangsur ke kreditur.
-            </p>
-        </div>
-    </div>
-</section>
-
-<!-- 3. STRUKTUR PENGELUARAN KAS (Clean Soft Cards) -->
-<section class="bg-white rounded-2xl p-5 sm:p-7 shadow-sm">
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-slate-100">
-        <div>
-            <h3 class="text-base font-bold text-slate-900 tracking-tight">Struktur Pengeluaran Kas</h3>
-            <p class="text-xs text-slate-400 mt-0.5">Pemetaan seluruh uang kas keluar: HPP belanja pesanan, operasional konveksi, dan penarikan pribadi (prive).</p>
-        </div>
-        <div class="flex flex-wrap sm:flex-nowrap items-center gap-3 sm:gap-6 self-start md:self-auto">
-            <div>
-                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Total Kas Keluar</span>
-                <span class="text-sm sm:text-base font-bold text-rose-600">{{ rupiah($financials['total_global_outflow']) }}</span>
-            </div>
-            <div class="h-7 w-px bg-slate-100 hidden sm:block"></div>
-            <div>
-                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Keluar Bulan Ini</span>
-                <span class="text-sm sm:text-base font-bold text-rose-600">{{ rupiah($financials['this_month_global_outflow']) }}</span>
-            </div>
-            @if(\Illuminate\Support\Facades\Route::has('admin.expenses.index'))
-            <a href="{{ route('admin.expenses.index') }}" class="px-3.5 py-1.5 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-semibold transition-colors flex items-center gap-1.5">
-                <span>Kelola</span>
-                <i class="fa-solid fa-chevron-right text-[9px]"></i>
-            </a>
-            @endif
-        </div>
-    </div>
-
-    <!-- Minimalist Segmented Bar -->
-    @if($financials['total_global_outflow'] > 0)
-    <div class="my-6">
-        <div class="h-2 w-full bg-slate-100 rounded-full overflow-hidden flex gap-0.5">
-            <div class="bg-rose-500 h-full rounded-l-full" style="width: {{ $financials['hpp_share'] }}%;" title="HPP Produksi ({{ $financials['hpp_share'] }}%)"></div>
-            <div class="bg-rose-400 h-full" style="width: {{ $financials['convection_share'] }}%;" title="Ops Konveksi ({{ $financials['convection_share'] }}%)"></div>
-            <div class="bg-rose-300 h-full rounded-r-full" style="width: {{ $financials['personal_share'] }}%;" title="Ops Pribadi ({{ $financials['personal_share'] }}%)"></div>
-        </div>
-        <div class="flex flex-wrap gap-3 sm:gap-6 mt-3 text-xs text-slate-500">
-            <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-rose-500"></span><span>HPP Produksi ({{ $financials['hpp_share'] }}%)</span></div>
-            <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-rose-400"></span><span>Ops Konveksi ({{ $financials['convection_share'] }}%)</span></div>
-            <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-rose-300"></span><span>Ops Pribadi ({{ $financials['personal_share'] }}%)</span></div>
-        </div>
-    </div>
-    @endif
-
-    <!-- 3 Outflow Breakdown Columns -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 {{ $financials['total_global_outflow'] > 0 ? '' : 'mt-6' }}">
-        <!-- HPP Produksi -->
-        <div class="bg-slate-50/70 rounded-2xl p-5 flex flex-col justify-between">
-            <div class="flex justify-between items-center mb-4">
-                <span class="text-xs font-semibold text-slate-700">Total HPP Produksi</span>
-                <span class="text-[11px] font-bold text-rose-700 bg-rose-50 px-2 py-0.5 rounded-full">{{ $financials['hpp_share'] }}%</span>
-            </div>
-            <div>
-                <div class="text-2xl font-bold text-rose-600 tracking-tight">{{ rupiah($financials['total_hpp']) }}</div>
-                <div class="text-xs text-slate-500 mt-1"><span class="text-slate-400">Bulan Ini:</span> <span class="font-medium text-rose-600">{{ rupiah($financials['this_month_hpp']) }}</span></div>
-            </div>
-            <p class="text-xs text-slate-400 mt-4 leading-relaxed">
-                Belanja kain, makloon, CMT, sablon & bordir. Mengurangi laba kotor pesanan.
-            </p>
-        </div>
-
-        <!-- Ops Konveksi -->
-        <div class="bg-slate-50/70 rounded-2xl p-5 flex flex-col justify-between">
-            <div class="flex justify-between items-center mb-4">
-                <span class="text-xs font-semibold text-slate-700">Ops. Konveksi</span>
-                <span class="text-[11px] font-bold text-rose-700 bg-rose-50 px-2 py-0.5 rounded-full">{{ $financials['convection_share'] }}%</span>
-            </div>
-            <div>
-                <div class="text-2xl font-bold text-rose-600 tracking-tight">{{ rupiah($financials['convection_expenses_total']) }}</div>
-                <div class="text-xs text-slate-500 mt-1"><span class="text-slate-400">Bulan Ini:</span> <span class="font-medium text-rose-600">{{ rupiah($financials['convection_expenses_this_month']) }}</span></div>
-            </div>
-            <p class="text-xs text-slate-400 mt-4 leading-relaxed">
-                Overhead workshop (listrik, sewa, gaji tim, servis mesin). Mengurangi laba bersih.
-            </p>
-        </div>
-
-        <!-- Ops Pribadi -->
-        <div class="bg-slate-50/70 rounded-2xl p-5 flex flex-col justify-between">
-            <div class="flex justify-between items-center mb-4">
-                <span class="text-xs font-semibold text-slate-700">Ops. Pribadi</span>
-                <span class="text-[11px] font-bold text-rose-700 bg-rose-50 px-2 py-0.5 rounded-full">{{ $financials['personal_share'] }}%</span>
-            </div>
-            <div>
-                <div class="text-2xl font-bold text-rose-600 tracking-tight">{{ rupiah($financials['personal_expenses_total']) }}</div>
-                <div class="text-xs text-slate-500 mt-1"><span class="text-slate-400">Bulan Ini:</span> <span class="font-medium text-rose-600">{{ rupiah($financials['personal_expenses_this_month']) }}</span></div>
-            </div>
-            <p class="text-xs text-slate-400 mt-4 leading-relaxed">
-                Penarikan uang kas keperluan pribadi/keluarga owner. Mengurangi saldo kas riil.
-            </p>
-        </div>
-    </div>
-</section>
-
-<!-- 4. LABA PERUSAHAAN & BEBAN OPERASIONAL (Soft Clean Surfaces) -->
-<section class="space-y-4">
-    <div>
-        <h3 class="text-base font-bold text-slate-900 tracking-tight">Laba Perusahaan &amp; Beban Operasional</h3>
-        <p class="text-xs text-slate-400 mt-0.5">Perhitungan keuntungan riil setelah dikurangi biaya produksi (HPP) dan beban konveksi (OPEX).</p>
-    </div>
-
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
-        <!-- Laba Kotor Pesanan -->
-        <div class="bg-white rounded-2xl p-4 sm:p-5 shadow-sm flex flex-col justify-between">
-            <div class="flex justify-between items-center mb-3">
-                <span class="text-xs font-semibold text-slate-600">Laba Kotor Pesanan</span>
-                <span class="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md">
-                    {{ $revenue['order_value'] > 0 ? round(($financials['gross_profit'] / $revenue['order_value']) * 100, 1) : 0 }}% Margin
+            <div class="flex items-center gap-2 text-xs">
+                <span class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 font-medium flex items-center gap-1.5">
+                    <i class="fa-regular fa-calendar text-[10px]"></i>
+                    {{ now()->translatedFormat('d F Y') }}
+                </span>
+                <span class="px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 font-semibold border border-emerald-200/60">
+                    <i class="fa-solid fa-circle-check text-[9px]"></i> Data Terkini
                 </span>
             </div>
-            <div>
-                <div class="text-xl sm:text-2xl font-bold text-emerald-600">{{ rupiah($financials['gross_profit']) }}</div>
-                <div class="text-xs text-slate-400 mt-0.5">Nilai Order — Total HPP</div>
-            </div>
-            <p class="text-xs text-slate-400 mt-3 sm:mt-4 leading-relaxed">
-                Keuntungan kotor langsung dari seluruh pesanan non-batal sebelum dipotong biaya operasional.
-            </p>
         </div>
 
-        <!-- Laba Bersih Bisnis -->
-        <div class="bg-white rounded-2xl p-4 sm:p-5 shadow-sm flex flex-col justify-between">
-            <div class="flex justify-between items-center mb-3">
-                <span class="text-xs font-semibold text-slate-600">Laba Bersih Bisnis</span>
-                <span class="text-[11px] font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md">
-                    {{ $revenue['order_value'] > 0 ? round(($financials['net_profit'] / $revenue['order_value']) * 100, 1) : 0 }}% Margin
-                </span>
-            </div>
-            <div>
-                <div class="text-xl sm:text-2xl font-bold {{ $financials['net_profit'] >= 0 ? 'text-slate-900' : 'text-rose-600' }}">{{ rupiah($financials['net_profit']) }}</div>
-                <div class="text-xs text-slate-400 mt-0.5">Laba Kotor — Ops. Konveksi</div>
-            </div>
-            <p class="text-xs text-slate-400 mt-3 sm:mt-4 leading-relaxed">
-                Keuntungan bersih operasional konveksi (beban pribadi owner tidak memotong laba ini).
-            </p>
-        </div>
+        <!-- 16 Metric Cards Grid (4 Rows x 4 Columns) -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3.5 sm:gap-4">
 
-        <!-- Talangan Kas -->
-        <div class="bg-white rounded-2xl p-4 sm:p-5 shadow-sm flex flex-col justify-between">
-            <div class="flex justify-between items-center mb-3">
-                <span class="text-xs font-semibold text-slate-600">Talangan Kas (Nombok)</span>
-                @if(($financials['deficit_orders_count'] ?? 0) > 0)
-                    <a href="{{ route('admin.orders.index', ['cash_status' => 'deficit']) }}" class="text-[11px] font-bold text-amber-700 bg-amber-50 hover:bg-amber-100 px-2 py-0.5 rounded-md transition-colors">
-                        {{ $financials['deficit_orders_count'] }} Order &rarr;
-                    </a>
-                @else
-                    <span class="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md">Aman</span>
-                @endif
-            </div>
-            <div>
-                <div class="text-xl sm:text-2xl font-bold {{ ($financials['total_cash_advances'] ?? 0) > 0 ? 'text-amber-600' : 'text-slate-900' }}">{{ rupiah($financials['total_cash_advances'] ?? 0) }}</div>
-                <div class="text-xs text-slate-400 mt-0.5">Kas kantor menombok DP</div>
-            </div>
-            <p class="text-xs text-slate-400 mt-3 sm:mt-4 leading-relaxed">
-                Uang kas kantor yang saat ini terpakai belanja bahan karena DP pelanggan belum cukup.
-            </p>
-        </div>
+            <!-- ===================== BARIS 1: KAS UTAMA & KEWAJIBAN ===================== -->
 
-        <!-- Hutang / Pinjaman -->
-        <div class="bg-white rounded-2xl p-4 sm:p-5 shadow-sm flex flex-col justify-between">
-            <div class="flex justify-between items-center mb-3">
-                <span class="text-xs font-semibold text-slate-600">Pinjaman (Pihak Luar)</span>
-                <a href="{{ route('admin.loans.index') }}" class="text-[11px] font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 px-2 py-0.5 rounded-md transition-colors">
-                    Kelola &rarr;
-                </a>
-            </div>
-            <div>
-                <div class="text-xl sm:text-2xl font-bold {{ ($financials['total_active_debt'] ?? 0) > 0 ? 'text-rose-600' : 'text-slate-900' }}">{{ rupiah($financials['total_active_debt'] ?? 0) }}</div>
-                <div class="text-xs text-slate-400 mt-0.5">Sisa pokok utang pinjaman</div>
-            </div>
-            <p class="text-xs text-slate-400 mt-3 sm:mt-4 leading-relaxed">
-                Pinjaman dana dari kreditur/pihak lain yang menambah kas kantor dan wajib dicicil.
-            </p>
-        </div>
-    </div>
-</section>
-
-<!-- 5. PERLU TINDAKAN & TABEL PESANAN TERBARU -->
-<section class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-    <!-- LEFT SIDE: ACTIONS & INQUIRY (4 COLS) -->
-    <div class="lg:col-span-4 space-y-4">
-        <!-- Perlu Tindakan -->
-        <div class="bg-white rounded-2xl p-5 shadow-sm">
-            <h4 class="text-sm font-bold text-slate-900 mb-3 flex items-center gap-2">
-                <i class="fa-solid fa-bell text-amber-500 text-xs"></i>
-                <span>Perlu Tindakan</span>
-            </h4>
-
-            <div class="space-y-2">
-                @if($actionRequired['awaiting_dp'] > 0)
-                <a href="{{ route('admin.orders.index', ['status' => 'active']) }}" class="p-3.5 rounded-xl bg-slate-50 hover:bg-slate-100/80 transition-colors flex items-center justify-between text-xs">
-                    <div class="flex items-center gap-2.5">
-                        <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
-                        <span class="font-medium text-slate-700">{{ $actionRequired['awaiting_dp'] }} pesanan belum menerima DP</span>
+            <!-- 1. KAS RIIL -->
+            <div class="bg-white rounded-2xl shadow-xs border border-slate-200/80 overflow-hidden flex flex-col justify-between hover:shadow-md transition-shadow">
+                <div class="bg-slate-800 text-white px-4 py-2.5 flex items-center justify-between">
+                    <span class="text-[11px] font-bold tracking-wider uppercase">KAS RIIL</span>
+                    <i class="fa-solid fa-wallet text-slate-300 text-xs"></i>
+                </div>
+                <div class="p-4 sm:p-5">
+                    <div class="text-lg xl:text-2xl font-black tabular-nums break-words text-slate-900 tracking-tight">
+                        {{ rupiah($financials['current_cash_balance']) }}
                     </div>
-                    <i class="fa-solid fa-chevron-right text-slate-400 text-[10px]"></i>
-                </a>
-                @endif
-
-                @if($actionRequired['near_deadline'] > 0)
-                <a href="{{ route('admin.orders.index', ['status' => 'active']) }}" class="p-3.5 rounded-xl bg-slate-50 hover:bg-slate-100/80 transition-colors flex items-center justify-between text-xs">
-                    <div class="flex items-center gap-2.5">
-                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-                        <span class="font-medium text-slate-700">{{ $actionRequired['near_deadline'] }} pesanan mendekati deadline (≤7 hari)</span>
+                    <div class="mt-2 text-[11px] text-slate-500 flex items-center justify-between">
+                        <span>Saldo Kas di Bank &amp; Laci</span>
+                        <span class="text-slate-400 font-mono text-[10px]">Likuid</span>
                     </div>
-                    <i class="fa-solid fa-chevron-right text-slate-400 text-[10px]"></i>
-                </a>
-                @endif
+                </div>
+            </div>
 
-                @if(($actionRequired['cash_deficits'] ?? 0) > 0)
-                <a href="{{ route('admin.orders.index', ['cash_status' => 'deficit']) }}" class="p-3.5 rounded-xl bg-slate-50 hover:bg-slate-100/80 transition-colors block text-xs">
-                    <div class="flex items-center justify-between mb-1">
-                        <span class="font-medium text-slate-800">{{ $actionRequired['cash_deficits'] }} pesanan nombok kas</span>
-                        <span class="font-bold text-amber-600">{{ rupiah($actionRequired['cash_deficits_amount'] ?? 0) }}</span>
+            <!-- 2. TALANGAN KAS (NOMBOK DP) -->
+            <div class="bg-white rounded-2xl shadow-xs border border-slate-200/80 overflow-hidden flex flex-col justify-between hover:shadow-md transition-shadow">
+                <div class="bg-slate-800 text-white px-4 py-2.5 flex items-center justify-between">
+                    <div class="flex items-center gap-1.5">
+                        <span class="text-[11px] font-bold tracking-wider uppercase">TALANGAN KAS</span>
                     </div>
-                    <p class="text-[11px] text-slate-400">Belanja HPP > DP masuk • kas kantor menalangi</p>
-                </a>
-                @endif
+                    <i class="fa-solid fa-hand-holding-dollar text-slate-300 text-xs"></i>
+                </div>
+                <div class="p-4 sm:p-5">
+                    <div class="text-lg xl:text-2xl font-black tabular-nums break-words {{ $financials['total_cash_advances'] > 0 ? 'text-rose-600' : 'text-slate-900' }} tracking-tight">
+                        {{ rupiah($financials['total_cash_advances']) }}
+                    </div>
+                    <div class="mt-2 text-[11px] text-slate-500 flex items-center justify-between">
+                        @if($financials['deficit_orders_count'] > 0)
+                            <a href="{{ route('admin.orders.index', ['cash_status' => 'deficit']) }}" class="text-rose-600 font-semibold hover:underline flex items-center gap-1">
+                                <span>{{ $financials['deficit_orders_count'] }} Order Nombok</span>
+                                <i class="fa-solid fa-chevron-right text-[8px]"></i>
+                            </a>
+                        @else
+                            <span class="text-emerald-600 font-semibold">Kas Aman (Rp0 Nombok)</span>
+                        @endif
+                        <span class="text-slate-400 font-mono text-[10px]">Talangan Kas (Nombok)</span>
+                    </div>
+                </div>
+            </div>
 
-                @if(($actionRequired['completed_unpaid'] ?? 0) > 0)
-                <a href="{{ route('admin.orders.index', ['filter' => 'ready_to_bill']) }}" class="p-3.5 rounded-xl bg-rose-50/80 hover:bg-rose-100/80 transition-colors block text-xs">
-                    <div class="flex items-center justify-between mb-1">
-                        <span class="font-bold text-rose-800 flex items-center gap-1.5">
-                            <span class="w-1.5 h-1.5 rounded-full bg-rose-600"></span>
-                            {{ $actionRequired['completed_unpaid'] }} pesanan selesai siap ditagih!
+            <!-- 3. SISA PINJAMAN -->
+            <div class="bg-white rounded-2xl shadow-xs border border-slate-200/80 overflow-hidden flex flex-col justify-between hover:shadow-md transition-shadow">
+                <div class="bg-slate-800 text-white px-4 py-2.5 flex items-center justify-between">
+                    <div class="flex items-center gap-1.5">
+                        <span class="text-[11px] font-bold tracking-wider uppercase">SISA PINJAMAN</span>
+                    </div>
+                    <i class="fa-solid fa-handshake text-slate-300 text-xs"></i>
+                </div>
+                <div class="p-4 sm:p-5">
+                    <div class="text-lg xl:text-2xl font-black tabular-nums break-words {{ $financials['total_active_debt'] > 0 ? 'text-purple-700' : 'text-slate-900' }} tracking-tight">
+                        {{ rupiah($financials['total_active_debt']) }}
+                    </div>
+                    <div class="mt-2 text-[11px] text-slate-500 flex items-center justify-between">
+                        <a href="{{ route('admin.loans.index') }}" class="text-purple-700 font-semibold hover:underline flex items-center gap-1">
+                            <span>Utang Luar Kreditur</span>
+                            <i class="fa-solid fa-chevron-right text-[8px]"></i>
+                        </a>
+                        <span class="text-slate-400 font-mono text-[10px]">Kewajiban</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. KAS BERSIH (EMERALD ACCENT CARD) -->
+            <div class="bg-gradient-to-br from-emerald-600 to-teal-700 rounded-2xl shadow-sm text-white overflow-hidden flex flex-col justify-between hover:shadow-md transition-shadow">
+                <div class="bg-emerald-800/60 px-4 py-2.5 flex items-center justify-between border-b border-emerald-500/30">
+                    <div class="flex items-center gap-1.5">
+                        <span class="text-[11px] font-bold tracking-wider uppercase">KAS BERSIH</span>
+                    </div>
+                    <i class="fa-solid fa-shield-halved text-emerald-200 text-xs"></i>
+                </div>
+                <div class="p-4 sm:p-5">
+                    <div class="text-lg xl:text-2xl font-black tabular-nums break-words text-white tracking-tight">
+                        {{ rupiah($financials['kas_bersih']) }}
+                    </div>
+                    <div class="mt-2 text-[11px] text-emerald-100/90 flex items-center justify-between">
+                        <span>Kas Riil − Talangan (Estimasi)</span>
+                        <span class="text-emerald-200 font-mono text-[10px]">Murni</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===================== BARIS 2: ARUS KAS & PIUTANG ===================== -->
+
+            <!-- 5. KAS MASUK BLN INI -->
+            <div class="bg-white rounded-2xl shadow-xs border border-slate-200/80 overflow-hidden flex flex-col justify-between hover:shadow-md transition-shadow">
+                <div class="bg-slate-700 text-white px-4 py-2.5 flex items-center justify-between">
+                    <div class="flex items-center gap-1.5">
+                        <span class="text-[11px] font-bold tracking-wider uppercase">KAS MASUK BLN INI</span>
+                    </div>
+                    <i class="fa-solid fa-arrow-down-left text-emerald-300 text-xs"></i>
+                </div>
+                <div class="p-4 sm:p-5">
+                    <div class="text-lg xl:text-2xl font-black tabular-nums break-words text-slate-900 tracking-tight">
+                        {{ rupiah($financials['this_month_cash_inflow']) }}
+                    </div>
+                    <div class="mt-2 text-[11px] text-slate-500 flex items-center justify-between">
+                        <span>{{ now()->translatedFormat('F Y') }}</span>
+                        <span class="text-emerald-600 font-bold text-[10px]">Masuk</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 6. KAS KELUAR BLN INI -->
+            <div class="bg-white rounded-2xl shadow-xs border border-slate-200/80 overflow-hidden flex flex-col justify-between hover:shadow-md transition-shadow">
+                <div class="bg-slate-700 text-white px-4 py-2.5 flex items-center justify-between">
+                    <span class="text-[11px] font-bold tracking-wider uppercase">KAS KELUAR BLN INI</span>
+                    <i class="fa-solid fa-arrow-up-right text-rose-300 text-xs"></i>
+                </div>
+                <div class="p-4 sm:p-5">
+                    <div class="text-lg xl:text-2xl font-black tabular-nums break-words text-rose-600 tracking-tight">
+                        {{ rupiah($financials['this_month_global_outflow']) }}
+                    </div>
+                    <div class="mt-2 text-[11px] text-slate-500 flex items-center justify-between">
+                        <span>HPP + Ops + Prive + Cicilan</span>
+                        <span class="text-rose-600 font-bold text-[10px]">Keluar</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 7. PIUTANG JT (JATUH TEMPO) -->
+            <div class="bg-white rounded-2xl shadow-xs border border-slate-200/80 overflow-hidden flex flex-col justify-between hover:shadow-md transition-shadow">
+                <div class="bg-slate-700 text-white px-4 py-2.5 flex items-center justify-between">
+                    <div class="flex items-center gap-1.5">
+                        <span class="text-[11px] font-bold tracking-wider uppercase">PIUTANG JT (JATUH TEMPO)</span>
+                    </div>
+                    <i class="fa-solid fa-clock-rotate-left text-amber-300 text-xs"></i>
+                </div>
+                <div class="p-4 sm:p-5">
+                    <div class="text-lg xl:text-2xl font-black tabular-nums break-words {{ $financials['critical_receivable'] > 0 ? 'text-rose-600' : 'text-slate-900' }} tracking-tight">
+                        {{ rupiah($financials['critical_receivable']) }}
+                    </div>
+                    <div class="mt-2 text-[11px] text-slate-500 flex items-center justify-between">
+                        <a href="{{ route('admin.orders.index', ['filter' => 'ready_to_bill']) }}" class="text-rose-600 font-semibold hover:underline">
+                            Selesai &amp; Lewat Deadline
+                        </a>
+                        <span class="text-rose-500 font-mono text-[10px]">Siap Tagih</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 8. PIUTANG BERJALAN -->
+            <div class="bg-white rounded-2xl shadow-xs border border-slate-200/80 overflow-hidden flex flex-col justify-between hover:shadow-md transition-shadow">
+                <div class="bg-slate-700 text-white px-4 py-2.5 flex items-center justify-between">
+                    <div class="flex items-center gap-1.5">
+                        <span class="text-[11px] font-bold tracking-wider uppercase">PIUTANG BERJALAN</span>
+                    </div>
+                    <i class="fa-solid fa-file-invoice-dollar text-slate-300 text-xs"></i>
+                </div>
+                <div class="p-4 sm:p-5">
+                    <div class="text-lg xl:text-2xl font-black tabular-nums break-words text-blue-600 tracking-tight">
+                        {{ rupiah($financials['active_receivable']) }}
+                    </div>
+                    <div class="mt-2 text-[11px] text-slate-500 flex items-center justify-between">
+                        <span>Pesanan belum jatuh tempo</span>
+                        <span class="text-blue-500 font-mono text-[10px]">WIP</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===================== BARIS 3: OPERASIONAL & PROFITABILITAS ===================== -->
+
+            <!-- 9. TOTAL NILAI ORDER -->
+            <div class="bg-white rounded-2xl shadow-xs border border-slate-200/80 overflow-hidden flex flex-col justify-between hover:shadow-md transition-shadow">
+                <div class="bg-slate-700 text-white px-4 py-2.5 flex items-center justify-between">
+                    <div class="flex items-center gap-1.5">
+                        <span class="text-[11px] font-bold tracking-wider uppercase">TOTAL NILAI ORDER</span>
+                    </div>
+                    <i class="fa-solid fa-cart-shopping text-slate-300 text-xs"></i>
+                </div>
+                <div class="p-4 sm:p-5">
+                    <div class="text-lg xl:text-2xl font-black tabular-nums break-words text-slate-900 tracking-tight">
+                        {{ rupiah($revenue['order_value']) }}
+                    </div>
+                    <div class="mt-2 text-[11px] text-slate-500 flex items-center justify-between">
+                        <span>Grand Total Semua Order</span>
+                        <span class="text-slate-400 font-mono text-[10px]">Omset</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 10. BIAYA OPERASIONAL (MULTI-ROW) -->
+            <div class="bg-white rounded-2xl shadow-xs border border-slate-200/80 overflow-hidden flex flex-col justify-between hover:shadow-md transition-shadow">
+                <div class="bg-slate-700 text-white px-4 py-2.5 flex items-center justify-between">
+                    <span class="text-[11px] font-bold tracking-wider uppercase">BIAYA OPERASIONAL</span>
+                    <i class="fa-solid fa-calculator text-slate-300 text-xs"></i>
+                </div>
+                <div class="p-3.5 sm:p-4 text-xs space-y-1.5">
+                    <div class="flex justify-between items-center text-slate-600">
+                        <span>HPP:</span>
+                        <span class="font-bold text-slate-900 font-mono">{{ rupiah($financials['total_hpp']) }}</span>
+                    </div>
+                    <div class="flex justify-between items-center text-slate-600">
+                        <span>Ops. Konveksi:</span>
+                        <span class="font-bold text-slate-900 font-mono">{{ rupiah($financials['convection_expenses_total']) }}</span>
+                    </div>
+                    <div class="pt-1.5 border-t border-slate-100 flex justify-between items-center text-rose-600 font-bold">
+                        <span>TOTAL:</span>
+                        <span class="font-black text-sm font-mono">{{ rupiah($financials['total_hpp'] + $financials['convection_expenses_total']) }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 11. LABA BERSIH & MARGIN (MULTI-ROW) -->
+            <div class="bg-white rounded-2xl shadow-xs border border-slate-200/80 overflow-hidden flex flex-col justify-between hover:shadow-md transition-shadow">
+                <div class="bg-slate-700 text-white px-4 py-2.5 flex items-center justify-between">
+                    <span class="text-[11px] font-bold tracking-wider uppercase">LABA BERSIH &amp; MARGIN</span>
+                    <i class="fa-solid fa-chart-pie text-slate-300 text-xs"></i>
+                </div>
+                <div class="p-3.5 sm:p-4 text-xs space-y-1.5">
+                    <div class="flex justify-between items-center text-slate-600">
+                        <span>Laba Bersih:</span>
+                        <span class="font-black {{ $financials['net_profit'] < 0 ? 'text-rose-600' : 'text-emerald-600' }} font-mono text-sm whitespace-nowrap">{{ rupiah($financials['net_profit']) }}</span>
+                    </div>
+                    <div class="flex justify-between items-center text-slate-600">
+                        <span>% Margin:</span>
+                        <span class="font-black {{ $financials['net_profit'] < 0 ? 'text-rose-700 bg-rose-50 border-rose-200/60' : 'text-emerald-700 bg-emerald-50 border-emerald-200/60' }} px-2 py-0.5 rounded-md border font-mono text-xs">
+                            {{ $financials['profit_margin_pct'] }}%
                         </span>
-                        <span class="font-bold text-rose-700">{{ rupiah($actionRequired['completed_receivable'] ?? 0) }}</span>
                     </div>
-                    <p class="text-[11px] text-rose-600/90">Produksi tuntas tapi belum lunas • Segera push penagihan</p>
-                </a>
-                @endif
-
-                @if($actionRequired['new_inquiries'] > 0)
-                <a href="{{ route('admin.inquiries.index', ['status' => 'new']) }}" class="p-3.5 rounded-xl bg-slate-50 hover:bg-slate-100/80 transition-colors flex items-center justify-between text-xs">
-                    <div class="flex items-center gap-2.5">
-                        <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
-                        <span class="font-medium text-slate-700">{{ $actionRequired['new_inquiries'] }} inquiry baru belum ditindaklanjuti</span>
+                    <div class="pt-1.5 border-t border-slate-100 flex justify-between items-center text-[10px] text-slate-400">
+                        <span>Laba Kotor Pesanan: {{ rupiah($financials['gross_profit']) }}</span>
                     </div>
-                    <i class="fa-solid fa-chevron-right text-slate-400 text-[10px]"></i>
-                </a>
-                @endif
-
-                @if(array_sum(array_filter($actionRequired, fn ($k) => !in_array($k, ['cash_deficits_amount', 'completed_receivable']), ARRAY_FILTER_USE_KEY)) === 0)
-                <div class="p-3.5 rounded-xl bg-slate-50 text-slate-500 text-xs flex items-center gap-2">
-                    <i class="fa-solid fa-check text-emerald-500"></i>
-                    <span>Semua beres — tidak ada tindakan mendesak.</span>
                 </div>
-                @endif
             </div>
-        </div>
 
-        <!-- Inquiry Terbaru -->
-        <div class="bg-white rounded-2xl p-5 shadow-sm">
-            <h4 class="text-sm font-bold text-slate-900 mb-3">Inquiry Terbaru</h4>
-            <div class="space-y-2.5">
-                @forelse($recentInquiries as $inquiry)
-                <a href="{{ route('admin.inquiries.show', $inquiry) }}" class="p-3.5 rounded-xl bg-slate-50 hover:bg-slate-100/80 transition-colors flex items-center justify-between block">
-                    <div>
-                        <h5 class="text-xs font-bold text-slate-900">{{ $inquiry->name }}</h5>
-                        <p class="text-[11px] text-slate-400 mt-0.5">{{ $inquiry->service_name ?: 'Umum' }} • {{ $inquiry->created_at->diffForHumans() }}</p>
+            <!-- 12. ALOKASI LABA (NAVY SOLID CARD) -->
+            <div class="bg-slate-900 text-white rounded-2xl shadow-xs border border-slate-800 overflow-hidden flex flex-col justify-between hover:shadow-md transition-shadow">
+                <div class="bg-slate-950 px-4 py-2.5 flex items-center justify-between border-b border-slate-800">
+                    <span class="text-[11px] font-bold tracking-wider uppercase text-slate-200">ALOKASI LABA</span>
+                    <i class="fa-solid fa-scale-balanced text-amber-400 text-xs"></i>
+                </div>
+                <div class="p-3.5 sm:p-4 text-xs space-y-1.5">
+                    <div class="flex justify-between items-center text-slate-300">
+                        <span>Beban Pribadi (Prive):</span>
+                        <span class="font-bold text-rose-400 font-mono">{{ rupiah($financials['personal_expenses_total']) }}</span>
                     </div>
-                    <span class="text-[11px] font-medium text-slate-600 bg-white px-2.5 py-1 rounded-lg shadow-xs">
-                        {{ $inquiry->status_label }}
-                    </span>
+                    <div class="flex justify-between items-center text-slate-300">
+                        <span>Sisa Laba:</span>
+                        <span class="font-black {{ $financials['retained_earnings'] < 0 ? 'text-rose-400' : 'text-emerald-400' }} font-mono text-sm whitespace-nowrap">{{ rupiah($financials['retained_earnings']) }}</span>
+                    </div>
+                    <div class="pt-1.5 border-t border-slate-800 flex justify-between items-center text-[10px] text-slate-400">
+                        <span>Laba Ditahan untuk Usaha</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===================== BARIS 4: ASET & TOTAL EKUITAS ===================== -->
+
+            <!-- 13. ASET MESIN -->
+            <div class="bg-white rounded-2xl shadow-xs border border-slate-200/80 overflow-hidden flex flex-col justify-between hover:shadow-md transition-shadow">
+                <div class="bg-slate-700 text-white px-4 py-2.5 flex items-center justify-between">
+                    <span class="text-[11px] font-bold tracking-wider uppercase">ASET MESIN</span>
+                    <i class="fa-solid fa-scissors text-slate-300 text-xs"></i>
+                </div>
+                <div class="p-4 sm:p-5">
+                    <div class="text-lg xl:text-2xl font-black tabular-nums break-words text-slate-900 tracking-tight">
+                        {{ rupiah($financials['aset_mesin']) }}
+                    </div>
+                    <div class="mt-2 text-[11px] text-slate-500 flex items-center justify-between">
+                        <span>Jahit, Obras, Bordir &amp; Steam</span>
+                        <span class="text-indigo-600 font-mono text-[10px]">Produksi</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 14. ASET LAIN -->
+            <div class="bg-white rounded-2xl shadow-xs border border-slate-200/80 overflow-hidden flex flex-col justify-between hover:shadow-md transition-shadow">
+                <div class="bg-slate-700 text-white px-4 py-2.5 flex items-center justify-between">
+                    <span class="text-[11px] font-bold tracking-wider uppercase">ASET LAIN</span>
+                    <i class="fa-solid fa-laptop text-slate-300 text-xs"></i>
+                </div>
+                <div class="p-4 sm:p-5">
+                    <div class="text-lg xl:text-2xl font-black tabular-nums break-words text-slate-900 tracking-tight">
+                        {{ rupiah($financials['aset_lain']) }}
+                    </div>
+                    <div class="mt-2 text-[11px] text-slate-500 flex items-center justify-between">
+                        <span>Komputer, Kendaraan &amp; Kantor</span>
+                        <span class="text-slate-400 font-mono text-[10px]">Fasilitas</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 15. TOTAL ASET & INVESTASI -->
+            <div class="bg-white rounded-2xl shadow-xs border border-slate-200/80 overflow-hidden flex flex-col justify-between hover:shadow-md transition-shadow">
+                <div class="bg-slate-700 text-white px-4 py-2.5 flex items-center justify-between">
+                    <span class="text-[11px] font-bold tracking-wider uppercase">TOTAL ASET &amp; INVESTASI</span>
+                    <i class="fa-solid fa-boxes-stacked text-slate-300 text-xs"></i>
+                </div>
+                <div class="p-4 sm:p-5">
+                    <div class="text-lg xl:text-2xl font-black tabular-nums break-words text-slate-900 tracking-tight">
+                        {{ rupiah($financials['total_aset_investasi']) }}
+                    </div>
+                    <div class="mt-2 text-[11px] text-slate-500 flex items-center justify-between">
+                        <span>Nilai Buku Seluruh Aset Tetap</span>
+                        <a href="{{ route('admin.assets.index') }}" class="text-brand-600 font-bold text-[10px] hover:underline">Kelola &rarr;</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 16. TOTAL EQUITY (TEAL ACCENT CARD) -->
+            <div class="bg-gradient-to-br from-teal-700 to-cyan-900 rounded-2xl shadow-sm text-white overflow-hidden flex flex-col justify-between hover:shadow-md transition-shadow">
+                <div class="bg-teal-900/60 px-4 py-2.5 flex items-center justify-between border-b border-teal-500/30">
+                    <span class="text-[11px] font-bold tracking-wider uppercase text-cyan-200">TOTAL EKUITAS</span>
+                    <i class="fa-solid fa-gem text-cyan-300 text-xs"></i>
+                </div>
+                <div class="p-4 sm:p-5">
+                    <div class="text-lg xl:text-2xl font-black tabular-nums break-words text-white tracking-tight">
+                        {{ rupiah($financials['total_equity']) }}
+                    </div>
+                    <div class="mt-2 text-[11px] text-cyan-100/90 flex items-center justify-between">
+                        <span>Valuasi Bersih (Aktiva - Pasiva)</span>
+                        <span class="text-cyan-200 font-mono text-[10px]">Kekayaan</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- BAGIAN BAWAH: RINCIAN & TREN KEUANGAN OPERASIONAL (2 KOLOM SEIMBANG)       -->
+    <!-- Referensi Desain: Dashboard Keuangan Zada Karya - Developer Preview (Gbr 3)-->
+    <!-- ========================================================================= -->
+    <section class="grid grid-cols-1 xl:grid-cols-2 gap-6 items-start">
+
+        <!-- ======================= KOLOM KIRI ======================= -->
+        <div class="min-w-0 space-y-6">
+
+            <!-- 1. TABEL: PIUTANG KRITIS & JATUH TEMPO -->
+            <div class="bg-white rounded-2xl shadow-xs border border-slate-200/80 overflow-hidden">
+                <div class="bg-slate-800 text-white px-5 py-3 flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-triangle-exclamation text-amber-400 text-xs"></i>
+                        <h3 class="text-xs font-bold uppercase tracking-wider">PIUTANG KRITIS &amp; JATUH TEMPO</h3>
+                    </div>
+                    <a href="{{ route('admin.orders.index', ['filter' => 'ready_to_bill']) }}" class="text-[11px] text-slate-300 hover:text-white font-medium hover:underline">
+                        Lihat Semua &rarr;
+                    </a>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs whitespace-nowrap">
+                        <thead class="bg-slate-50 text-slate-600 font-semibold border-b border-slate-100 text-[11px]">
+                            <tr>
+                                <th class="py-2.5 px-4 font-semibold">No. Order</th>
+                                <th class="py-2.5 px-4 font-semibold">Pelanggan</th>
+                                <th class="py-2.5 px-4 font-semibold text-right">Nilai Tagihan</th>
+                                <th class="py-2.5 px-4 font-semibold text-center">Jatuh Tempo</th>
+                                <th class="py-2.5 px-4 font-semibold text-center">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            @forelse($criticalOrders as $order)
+                            <tr class="hover:bg-slate-50/70 transition-colors">
+                                <td class="py-2.5 px-4 font-mono font-bold text-brand-700">
+                                    <a href="{{ route('admin.orders.show', $order) }}" class="hover:underline">{{ $order->order_number }}</a>
+                                </td>
+                                <td class="py-2.5 px-4 font-medium text-slate-800 max-w-[140px] truncate" title="{{ $order->customer?->name }}">
+                                    {{ $order->customer?->name ?? 'Pelanggan' }}
+                                </td>
+                                <td class="py-2.5 px-4 text-right font-bold text-rose-600 font-mono">
+                                    {{ rupiah($order->remaining) }}
+                                </td>
+                                <td class="py-2.5 px-4 text-center text-slate-500 {{ $order->deadline && $order->deadline->isPast() ? 'text-rose-600 font-semibold' : '' }}">
+                                    {{ $order->deadline?->format('d/m/Y') ?? '—' }}
+                                </td>
+                                <td class="py-2.5 px-4 text-center">
+                                    @if($order->status === 'completed')
+                                        <span class="px-2 py-0.5 rounded-md bg-rose-50 text-rose-700 font-bold text-[10px] border border-rose-200/60">Siap Tagih</span>
+                                    @else
+                                        <span class="px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 font-bold text-[10px] border border-amber-200/60">Belum lunas</span>
+                                    @endif
+                                </td>
+                            </tr>
+                            @empty
+                            <tr>
+                                <td colspan="5" class="py-6 text-center text-slate-400">
+                                    <i class="fa-solid fa-circle-check text-emerald-500 mb-1 block text-base"></i>
+                                    Tidak ada piutang jatuh tempo. Seluruh tagihan aman terkendali.
+                                </td>
+                            </tr>
+                            @endforelse
+                        </tbody>
+                        <tfoot class="bg-slate-800 text-white font-bold text-xs">
+                            <tr>
+                                <td class="py-2.5 px-4 font-bold" colspan="2">TOTAL SELURUH PIUTANG KRITIS</td>
+                                <td class="py-2.5 px-4 text-right font-mono font-black text-white">
+                                    {{ rupiah($financials['critical_receivable']) }}
+                                </td>
+                                <td class="py-2.5 px-4" colspan="2"></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 2. TABEL: KOMPOSISI BIAYA PRODUKSI (HPP) & OPS -->
+            <div class="bg-white rounded-2xl shadow-xs border border-slate-200/80 overflow-hidden">
+                <div class="bg-slate-800 text-white px-5 py-3 flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-chart-simple text-blue-400 text-xs"></i>
+                        <h3 class="text-xs font-bold uppercase tracking-wider">KOMPOSISI BIAYA PRODUKSI (HPP) &amp; OPS</h3>
+                    </div>
+                    <span class="text-[11px] text-slate-300 font-mono">Porsi Belanja</span>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs whitespace-nowrap">
+                        <thead class="bg-slate-50 text-slate-600 font-semibold border-b border-slate-100 text-[11px]">
+                            <tr>
+                                <th class="py-2.5 px-4 font-semibold">Kategori HPP</th>
+                                <th class="py-2.5 px-4 font-semibold text-right">Total Biaya</th>
+                                <th class="py-2.5 px-4 font-semibold text-left w-44">Porsi Biaya</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            @foreach($costComposition as $costItem)
+                            <tr class="hover:bg-slate-50/70 transition-colors">
+                                <td class="py-2 px-4 font-medium text-slate-800">{{ $costItem['name'] }}</td>
+                                <td class="py-2 px-4 text-right font-mono text-slate-900 font-bold">{{ rupiah($costItem['amount']) }}</td>
+                                <td class="py-2 px-4">
+                                    <div class="flex items-center gap-2">
+                                        <div class="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
+                                            <div class="bg-blue-600 h-full rounded-full transition-all" style="width: {{ $costItem['percentage'] }}%;"></div>
+                                        </div>
+                                        <span class="font-mono text-[11px] font-semibold text-slate-600 w-12 text-right">{{ $costItem['percentage'] }}%</span>
+                                    </div>
+                                </td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                        <tfoot class="bg-slate-800 text-white font-bold text-xs">
+                            <tr>
+                                <td class="py-2.5 px-4 font-bold">TOTAL</td>
+                                <td class="py-2.5 px-4 text-right font-mono font-black text-white">
+                                    {{ rupiah($financials['total_hpp']) }}
+                                </td>
+                                <td class="py-2.5 px-4 text-right font-mono">{{ $financials['total_hpp'] > 0 ? '100.0%' : '0.0%' }}</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 3. GRAFIK: TREN ARUS KAS BULANAN -->
+            <div class="bg-white rounded-2xl shadow-xs border border-slate-200/80 p-5">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-800">Tren Arus Kas Bulanan</h3>
+                    <div class="flex items-center gap-4 text-xs font-medium">
+                        <span class="flex items-center gap-1.5 text-slate-600">
+                            <span class="w-3 h-3 rounded-sm bg-emerald-600"></span>
+                            <span>Kas Masuk</span>
+                        </span>
+                        <span class="flex items-center gap-1.5 text-slate-600">
+                            <span class="w-3 h-3 rounded-sm bg-rose-500"></span>
+                            <span>Kas Keluar</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="relative h-60 w-full">
+                    <canvas id="cashflowBarChart"></canvas>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ======================= KOLOM KANAN ======================= -->
+        <div class="min-w-0 space-y-6">
+
+            <!-- 4. TABEL: STATUS ORDER BERJALAN (WIP) -->
+            <div class="bg-white rounded-2xl shadow-xs border border-slate-200/80 overflow-hidden">
+                <div class="bg-slate-800 text-white px-5 py-3 flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-spinner text-teal-300 text-xs"></i>
+                        <h3 class="text-xs font-bold uppercase tracking-wider">STATUS ORDER BERJALAN (WIP)</h3>
+                    </div>
+                    <a href="{{ route('admin.orders.index', ['status' => 'active']) }}" class="text-[11px] text-slate-300 hover:text-white font-medium hover:underline">
+                        Lihat Semua &rarr;
+                    </a>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs whitespace-nowrap">
+                        <thead class="bg-slate-50 text-slate-600 font-semibold border-b border-slate-100 text-[11px]">
+                            <tr>
+                                <th class="py-2.5 px-4 font-semibold">No. Order</th>
+                                <th class="py-2.5 px-4 font-semibold">Pelanggan</th>
+                                <th class="py-2.5 px-4 font-semibold text-center">Progres Produksi</th>
+                                <th class="py-2.5 px-4 font-semibold text-right">Nilai Pelunasan</th>
+                                <th class="py-2.5 px-4 font-semibold text-center">Status Tahap</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            @forelse($wipOrders as $wip)
+                            <tr class="hover:bg-slate-50/70 transition-colors">
+                                <td class="py-2.5 px-4 font-mono font-bold text-brand-700">
+                                    <a href="{{ route('admin.orders.show', $wip['order']) }}" class="hover:underline">{{ $wip['order_number'] }}</a>
+                                </td>
+                                <td class="py-2.5 px-4 font-medium text-slate-800 max-w-[130px] truncate" title="{{ $wip['customer'] }}">
+                                    {{ $wip['customer'] }}
+                                </td>
+                                <td class="py-2.5 px-4 text-center">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-teal-600 text-white shadow-2xs">
+                                        {{ $wip['progress_label'] }}
+                                    </span>
+                                </td>
+                                <td class="py-2.5 px-4 text-right font-mono font-bold text-slate-900">
+                                    {{ rupiah($wip['pelunasan']) }}
+                                </td>
+                                <td class="py-2.5 px-4 text-center text-slate-600 text-[11px]">
+                                    {{ $wip['stage_name'] }}
+                                </td>
+                            </tr>
+                            @empty
+                            <tr>
+                                <td colspan="5" class="py-6 text-center text-slate-400">
+                                    Tidak ada order dalam pengerjaan saat ini.
+                                </td>
+                            </tr>
+                            @endforelse
+                        </tbody>
+                        <tfoot class="bg-slate-800 text-white font-bold text-xs">
+                            <tr>
+                                <td class="py-2.5 px-4 font-bold" colspan="3">TOTAL SELURUH WIP</td>
+                                <td class="py-2.5 px-4 text-right font-mono font-black text-white">
+                                    {{ rupiah($financials['total_wip_pelunasan']) }}
+                                </td>
+                                <td class="py-2.5 px-4"></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 5. TABEL: BEBAN PRIBADI PER BULAN (OWNER / PRIVE) -->
+            <div class="bg-white rounded-2xl shadow-xs border border-slate-200/80 overflow-hidden">
+                <div class="bg-slate-800 text-white px-5 py-3 flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-user-tie text-purple-300 text-xs"></i>
+                        <h3 class="text-xs font-bold uppercase tracking-wider">BEBAN PRIBADI PER BULAN (OWNER / PRIVE)</h3>
+                    </div>
+                    <span class="text-[11px] text-slate-300 font-mono">{{ now()->translatedFormat('F Y') }}</span>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs whitespace-nowrap">
+                        <thead class="bg-slate-50 text-slate-600 font-semibold border-b border-slate-100 text-[11px]">
+                            <tr>
+                                <th class="py-2.5 px-4 font-semibold">No. Transaksi</th>
+                                <th class="py-2.5 px-4 font-semibold">Tanggal</th>
+                                <th class="py-2.5 px-4 font-semibold">Deskripsi Pengeluaran</th>
+                                <th class="py-2.5 px-4 font-semibold">Kategori</th>
+                                <th class="py-2.5 px-4 font-semibold text-right">Jumlah (Rp)</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            @forelse($personalExpensesList as $prive)
+                            <tr class="hover:bg-slate-50/70 transition-colors">
+                                <td class="py-2 px-4 font-mono font-semibold text-purple-700">
+                                    {{ $prive->reference_no }}
+                                </td>
+                                <td class="py-2 px-4 text-slate-500 font-medium">
+                                    {{ $prive->expense_date?->format('d M') ?? '—' }}
+                                </td>
+                                <td class="py-2 px-4 font-medium text-slate-800 max-w-[140px] truncate" title="{{ $prive->title }}">
+                                    {{ $prive->title }}
+                                </td>
+                                <td class="py-2 px-4 text-slate-600">
+                                    <span class="px-2 py-0.5 rounded-md bg-purple-50 text-purple-700 text-[10px] font-semibold">
+                                        {{ $prive->category_label }}
+                                    </span>
+                                </td>
+                                <td class="py-2 px-4 text-right font-mono font-bold text-rose-600">
+                                    {{ rupiah($prive->amount) }}
+                                </td>
+                            </tr>
+                            @empty
+                            <tr>
+                                <td colspan="5" class="py-6 px-4 text-center text-slate-400 whitespace-normal">
+                                    Belum ada catatan beban pribadi bulan ini.
+                                </td>
+                            </tr>
+                            @endforelse
+                        </tbody>
+                        <tfoot class="bg-slate-800 text-white font-bold text-xs">
+                            <tr>
+                                <td class="py-2.5 px-4 font-bold" colspan="4">TOTAL BULAN INI</td>
+                                <td class="py-2.5 px-4 text-right font-mono font-black text-white">
+                                    {{ rupiah($financials['total_prive_month']) }}
+                                </td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 6. GRAFIK: TREN LABA BERSIH & ESTIMASI LABA -->
+            <div class="bg-white rounded-2xl shadow-xs border border-slate-200/80 p-5">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-800">Tren Laba Bersih &amp; Estimasi Laba</h3>
+                    <div class="flex items-center gap-4 text-xs font-medium">
+                        <span class="flex items-center gap-1.5 text-slate-600">
+                            <span class="w-3 h-0.5 bg-blue-500"></span>
+                            <span>Estimasi Laba Kotor</span>
+                        </span>
+                        <span class="flex items-center gap-1.5 text-slate-600">
+                            <span class="w-3 h-0.5 bg-emerald-500"></span>
+                            <span>Laba Bersih</span>
+                        </span>
+                    </div>
+                </div>
+                <p class="mb-3 text-[11px] text-slate-500">Estimasi berdasarkan nilai order dan HPP yang dicatat per bulan; laba bersih dikurangi ops. konveksi. Prive terpisah.</p>
+                <div class="relative h-60 w-full">
+                    <canvas id="profitLineChart"></canvas>
+                </div>
+            </div>
+
+        </div>
+
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- BAGIAN OPERASIONAL: TINDAKAN DIPERLUKAN & PESANAN TERBARU                  -->
+    <!-- ========================================================================= -->
+    <section class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start pt-2">
+
+        <!-- Tindakan Mendesak & Inquiries (4 Kolom) -->
+        <div class="lg:col-span-4 space-y-4">
+            <div class="bg-white rounded-2xl p-5 shadow-xs border border-slate-100">
+                <h4 class="text-xs font-bold uppercase tracking-wider text-slate-900 mb-3 flex items-center gap-2">
+                    <i class="fa-solid fa-bell text-amber-500 text-xs"></i>
+                    <span>Perlu Tindakan</span>
+                </h4>
+
+                <div class="space-y-2">
+                    @if($actionRequired['awaiting_dp'] > 0)
+                    <a href="{{ route('admin.orders.index', ['status' => 'active']) }}" class="p-3 rounded-xl bg-slate-50 hover:bg-slate-100 transition-colors flex items-center justify-between text-xs">
+                        <div class="flex items-center gap-2">
+                            <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                            <span class="font-medium text-slate-700">{{ $actionRequired['awaiting_dp'] }} pesanan belum DP</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-right text-slate-400 text-[9px]"></i>
+                    </a>
+                    @endif
+
+                    @if($actionRequired['near_deadline'] > 0)
+                    <a href="{{ route('admin.orders.index', ['status' => 'active']) }}" class="p-3 rounded-xl bg-slate-50 hover:bg-slate-100 transition-colors flex items-center justify-between text-xs">
+                        <div class="flex items-center gap-2">
+                            <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                            <span class="font-medium text-slate-700">{{ $actionRequired['near_deadline'] }} pesanan deadline &le;7 hari</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-right text-slate-400 text-[9px]"></i>
+                    </a>
+                    @endif
+
+                    @if(($actionRequired['cash_deficits'] ?? 0) > 0)
+                    <a href="{{ route('admin.orders.index', ['cash_status' => 'deficit']) }}" class="p-3 rounded-xl bg-rose-50/60 hover:bg-rose-100/60 transition-colors block text-xs">
+                        <div class="flex items-center justify-between">
+                            <span class="font-semibold text-rose-800">{{ $actionRequired['cash_deficits'] }} order nombok kas</span>
+                            <span class="font-bold text-rose-700 font-mono">{{ rupiah($actionRequired['cash_deficits_amount'] ?? 0) }}</span>
+                        </div>
+                    </a>
+                    @endif
+
+                    @if(($actionRequired['completed_unpaid'] ?? 0) > 0)
+                    <a href="{{ route('admin.orders.index', ['filter' => 'ready_to_bill']) }}" class="p-3 rounded-xl bg-rose-50/90 hover:bg-rose-100 transition-colors block text-xs border border-rose-200/60">
+                        <div class="flex items-center justify-between">
+                            <span class="font-bold text-rose-900 flex items-center gap-1.5">
+                                <span class="w-1.5 h-1.5 rounded-full bg-rose-600"></span>
+                                {{ $actionRequired['completed_unpaid'] }} pesanan tuntas belum lunas!
+                            </span>
+                            <span class="font-bold text-rose-700 font-mono">{{ rupiah($actionRequired['completed_receivable'] ?? 0) }}</span>
+                        </div>
+                    </a>
+                    @endif
+
+                    @if($actionRequired['new_inquiries'] > 0)
+                    <a href="{{ route('admin.inquiries.index', ['status' => 'new']) }}" class="p-3 rounded-xl bg-slate-50 hover:bg-slate-100 transition-colors flex items-center justify-between text-xs">
+                        <div class="flex items-center gap-2">
+                            <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                            <span class="font-medium text-slate-700">{{ $actionRequired['new_inquiries'] }} calon klien baru</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-right text-slate-400 text-[9px]"></i>
+                    </a>
+                    @endif
+
+                    @if(array_sum(array_filter($actionRequired, fn ($k) => !in_array($k, ['cash_deficits_amount', 'completed_receivable']), ARRAY_FILTER_USE_KEY)) === 0)
+                    <div class="p-3 rounded-xl bg-slate-50 text-slate-500 text-xs flex items-center gap-2">
+                        <i class="fa-solid fa-check text-emerald-500"></i>
+                        <span>Semua beres — tidak ada tindakan mendesak.</span>
+                    </div>
+                    @endif
+                </div>
+            </div>
+
+            <!-- Ringkasan Pesanan Aktif -->
+            <div class="bg-white rounded-2xl p-4 sm:p-5 shadow-xs border border-slate-100">
+                <div class="flex items-center justify-between mb-3">
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-slate-900">Ringkasan Aktivitas</h4>
+                    <span class="text-[10px] text-slate-400">Total Transaksi</span>
+                </div>
+                <div class="grid grid-cols-2 gap-2 text-xs">
+                    <div class="p-2.5 rounded-xl bg-slate-50">
+                        <span class="text-[10px] text-slate-400 block">Total Pesanan</span>
+                        <span class="text-base font-bold text-slate-900">{{ $stats['total_orders'] }}</span>
+                    </div>
+                    <div class="p-2.5 rounded-xl bg-slate-50">
+                        <span class="text-[10px] text-slate-400 block">Pesanan Aktif</span>
+                        <span class="text-base font-bold text-blue-600">{{ $stats['active_orders'] }}</span>
+                    </div>
+                    <div class="p-2.5 rounded-xl bg-slate-50">
+                        <span class="text-[10px] text-slate-400 block">Pesanan Selesai</span>
+                        <span class="text-base font-bold text-emerald-600">{{ $stats['completed_orders'] }}</span>
+                    </div>
+                    <div class="p-2.5 rounded-xl bg-slate-50">
+                        <span class="text-[10px] text-slate-400 block">Pertanyaan Baru</span>
+                        <span class="text-base font-bold text-purple-600">{{ $stats['new_inquiries'] }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabel Pesanan Terbaru (8 Kolom) -->
+        <div class="lg:col-span-8 bg-white rounded-2xl shadow-xs border border-slate-100 overflow-hidden">
+            <div class="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100">
+                <div>
+                    <h3 class="text-sm font-bold text-slate-900 tracking-tight">Pesanan Terbaru</h3>
+                    <p class="text-xs text-slate-400 mt-0.5">Daftar transaksi dan status pembayaran terkini</p>
+                </div>
+                <a href="{{ route('admin.orders.create') }}" class="inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-semibold transition-all shadow-2xs">
+                    <i class="fa-solid fa-plus text-[10px]"></i>
+                    <span>Buat Pesanan</span>
                 </a>
-                @empty
-                <p class="text-xs text-slate-400 py-2">Belum ada inquiry masuk.</p>
-                @endforelse
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs whitespace-nowrap">
+                    <thead>
+                        <tr class="text-[11px] font-semibold text-slate-400 border-b border-slate-100 bg-slate-50/50">
+                            <th class="py-2.5 px-4 font-normal">NO. ORDER</th>
+                            <th class="py-2.5 px-4 font-normal">PELANGGAN</th>
+                            <th class="py-2.5 px-4 font-normal text-right">TOTAL</th>
+                            <th class="py-2.5 px-4 font-normal text-center">PEMBAYARAN</th>
+                            <th class="py-2.5 px-4 font-normal">TAHAP</th>
+                            <th class="py-2.5 px-4 font-normal text-center">STATUS</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-50">
+                        @forelse($recentOrders as $order)
+                        <tr class="hover:bg-slate-50/70 transition-colors">
+                            <td class="py-3 px-4 font-mono font-bold text-brand-700">
+                                <a href="{{ route('admin.orders.show', $order) }}" class="hover:underline">{{ $order->order_number }}</a>
+                            </td>
+                            <td class="py-3 px-4">
+                                <div class="font-bold text-slate-800">{{ $order->customer?->name ?? 'Pelanggan' }}</div>
+                                <div class="text-[10px] text-slate-400">{{ $order->name }}</div>
+                            </td>
+                            <td class="py-3 px-4 font-mono font-bold text-slate-900 text-right">{{ rupiah($order->grand_total) }}</td>
+                            <td class="py-3 px-4 text-center">
+                                @if($order->payment_status === 'paid')
+                                    <span class="inline-block px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 font-bold text-[10px]">Lunas</span>
+                                @elseif($order->amount_paid > 0)
+                                    <span class="inline-block px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 font-bold text-[10px]">DP Masuk</span>
+                                @else
+                                    <span class="inline-block px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 font-medium text-[10px]">Belum Dibayar</span>
+                                @endif
+                            </td>
+                            <td class="py-3 px-4 text-slate-600">{{ $order->current_stage_name }}</td>
+                            <td class="py-3 px-4 text-center">
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold {{ $order->status === 'completed' ? 'bg-emerald-50 text-emerald-700' : 'bg-blue-50 text-blue-700' }}">
+                                    {{ $order->status === 'completed' ? 'Selesai' : ($order->status === 'cancelled' ? 'Dibatalkan' : 'Aktif') }}
+                                </span>
+                            </td>
+                        </tr>
+                        @empty
+                        <tr>
+                            <td colspan="6" class="py-8 text-center text-slate-400">Belum ada pesanan terbaru.</td>
+                        </tr>
+                        @endforelse
+                    </tbody>
+                </table>
             </div>
         </div>
 
-        <!-- Outflow Mini Donut Visual -->
-        <div class="bg-white rounded-2xl p-5 shadow-sm">
-            <h4 class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Porsi Beban Kas</h4>
-            <div class="relative h-40 flex items-center justify-center">
-                <canvas id="outflowChart"></canvas>
-            </div>
-        </div>
-    </div>
+    </section>
 
-    <!-- RIGHT SIDE: ORDER TABLE (8 COLS, Clean & Borderless Look) -->
-    <div class="lg:col-span-8 bg-white rounded-2xl shadow-sm overflow-hidden">
-        <div class="p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-50">
-            <div>
-                <h3 class="text-base font-bold text-slate-900 tracking-tight">Pesanan Terbaru</h3>
-                <p class="text-xs text-slate-400 mt-0.5">Daftar order aktif dan progress pengerjaan konveksi</p>
-            </div>
-            <a href="{{ route('admin.orders.create') }}" class="inline-flex items-center justify-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-semibold transition-colors shadow-xs active:scale-95">
-                <i class="fa-solid fa-plus text-[10px]"></i>
-                <span>Buat Pesanan</span>
-            </a>
-        </div>
-
-        <!-- Table Responsive Wrapper -->
-        <div class="overflow-x-auto">
-            <table class="w-full text-left text-xs whitespace-nowrap">
-                <thead>
-                    <tr class="text-[11px] font-semibold text-slate-400 border-b border-slate-100">
-                        <th class="py-3 px-4 font-normal">NO. ORDER</th>
-                        <th class="py-3 px-4 font-normal">CUSTOMER</th>
-                        <th class="py-3 px-4 font-normal text-right">TOTAL</th>
-                        <th class="py-3 px-4 font-normal text-center">PEMBAYARAN</th>
-                        <th class="py-3 px-4 font-normal">TAHAP</th>
-                        <th class="py-3 px-4 font-normal text-right">DEADLINE</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-50">
-                    @forelse($recentOrders as $order)
-                    <tr class="hover:bg-slate-50/70 transition-colors">
-                        <td class="py-3.5 px-4 font-medium text-brand-700 font-mono">
-                            <a href="{{ route('admin.orders.show', $order) }}" class="hover:underline">{{ $order->order_number }}</a>
-                        </td>
-                        <td class="py-3.5 px-4">
-                            <div class="font-bold text-slate-900">{{ $order->customer->name }}</div>
-                            <div class="text-[11px] text-slate-400">{{ $order->items->first()?->product_name }}{{ $order->items->count() > 1 ? ' +'.($order->items->count()-1) : '' }}</div>
-                        </td>
-                        <td class="py-3.5 px-4 font-semibold text-slate-900 text-right">{{ rupiah($order->grand_total) }}</td>
-                        <td class="py-3.5 px-4 text-center">
-                            @if($order->payment_status === 'paid')
-                                <span class="inline-block px-2.5 py-0.5 rounded-md bg-emerald-50 text-emerald-700 font-semibold text-[11px]">Lunas</span>
-                            @elseif($order->payment_status === 'dp')
-                                <span class="inline-block px-2.5 py-0.5 rounded-md bg-amber-50 text-amber-700 font-semibold text-[11px]">DP</span>
-                            @else
-                                <span class="inline-block px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 font-medium text-[11px]">Belum Dibayar</span>
-                            @endif
-                        </td>
-                        <td class="py-3.5 px-4 text-slate-600">{{ $order->current_stage_name }}</td>
-                        <td class="py-3.5 px-4 text-right {{ $order->deadline && $order->deadline->isPast() ? 'text-rose-500 font-semibold' : 'text-slate-500' }}">
-                            {{ $order->deadline?->format('d/m/Y') ?? '—' }}
-                        </td>
-                    </tr>
-                    @empty
-                    <tr>
-                        <td colspan="6" class="py-8 text-center text-slate-400">Belum ada pesanan terbaru.</td>
-                    </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-    </div>
-</section>
+</div>
 @endsection
 
 @push('scripts')
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        const ctx = document.getElementById('outflowChart');
-        if (ctx) {
-            new Chart(ctx.getContext('2d'), {
-                type: 'doughnut',
+        // 1. Grafik Batang Tren Arus Kas Bulanan (Kas Masuk vs Kas Keluar)
+        const cashCtx = document.getElementById('cashflowBarChart');
+        if (cashCtx) {
+            new Chart(cashCtx.getContext('2d'), {
+                type: 'bar',
                 data: {
-                    labels: ['HPP Produksi', 'Ops Konveksi', 'Ops Pribadi'],
-                    datasets: [{
-                        data: [
-                            {{ (float)($financials['total_hpp'] ?? 0) }},
-                            {{ (float)($financials['convection_expenses_total'] ?? 0) }},
-                            {{ (float)($financials['personal_expenses_total'] ?? 0) }}
-                        ],
-                        backgroundColor: ['#e11d48', '#fb7185', '#fda4af'],
-                        borderWidth: 0,
-                        hoverOffset: 3
-                    }]
+                    labels: {!! json_encode($monthlyTrend->pluck('label')) !!},
+                    datasets: [
+                        {
+                            label: 'Kas Masuk',
+                            data: {!! json_encode($monthlyTrend->pluck('kas_masuk')) !!},
+                            backgroundColor: '#059669', // Emerald green
+                            borderRadius: 4,
+                            barPercentage: 0.6,
+                            categoryPercentage: 0.8
+                        },
+                        {
+                            label: 'Kas Keluar',
+                            data: {!! json_encode($monthlyTrend->pluck('kas_keluar')) !!},
+                            backgroundColor: '#e11d48', // Rose red
+                            borderRadius: 4,
+                            barPercentage: 0.6,
+                            categoryPercentage: 0.8
+                        }
+                    ]
                 },
                 options: {
                     responsive: true,
@@ -592,14 +879,90 @@
                         tooltip: {
                             callbacks: {
                                 label: function(context) {
-                                    let label = context.label || '';
-                                    let val = context.raw || 0;
-                                    return ' ' + label + ': Rp ' + Number(val).toLocaleString('id-ID');
+                                    return ' ' + context.dataset.label + ': Rp ' + Number(context.raw || 0).toLocaleString('id-ID');
                                 }
                             }
                         }
                     },
-                    cutout: '78%'
+                    scales: {
+                        x: {
+                            grid: { display: false }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(val) {
+                                    if (val >= 1000000) {
+                                        return 'Rp ' + (val / 1000000).toLocaleString('id-ID') + ' jt';
+                                    }
+                                    return 'Rp ' + val.toLocaleString('id-ID');
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // 2. Grafik Garis Tren Laba Bersih & Estimasi Laba
+        const profitCtx = document.getElementById('profitLineChart');
+        if (profitCtx) {
+            new Chart(profitCtx.getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: {!! json_encode($monthlyTrend->pluck('label')) !!},
+                    datasets: [
+                        {
+                            label: 'Estimasi Laba Kotor',
+                            data: {!! json_encode($monthlyTrend->pluck('estimasi_laba')) !!},
+                            borderColor: '#2563eb', // Blue
+                            backgroundColor: 'rgba(37, 99, 235, 0.08)',
+                            fill: true,
+                            tension: 0.35,
+                            borderWidth: 2,
+                            pointRadius: 3
+                        },
+                        {
+                            label: 'Laba Bersih',
+                            data: {!! json_encode($monthlyTrend->pluck('laba_bersih')) !!},
+                            borderColor: '#059669', // Emerald
+                            backgroundColor: 'rgba(5, 150, 105, 0.08)',
+                            fill: true,
+                            tension: 0.35,
+                            borderWidth: 2,
+                            pointRadius: 3
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return ' ' + context.dataset.label + ': Rp ' + Number(context.raw || 0).toLocaleString('id-ID');
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { display: false }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(val) {
+                                    if (Math.abs(val) >= 1000000) {
+                                        return 'Rp ' + (val / 1000000).toLocaleString('id-ID') + ' jt';
+                                    }
+                                    return 'Rp ' + val.toLocaleString('id-ID');
+                                }
+                            }
+                        }
+                    }
                 }
             });
         }

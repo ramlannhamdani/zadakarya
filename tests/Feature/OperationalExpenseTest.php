@@ -6,9 +6,9 @@ use App\Models\Customer;
 use App\Models\OperationalExpense;
 use App\Models\Order;
 use App\Models\OrderCost;
-use App\Models\Payment;
 use App\Models\Setting;
 use App\Models\User;
+use App\Services\GoogleSheetService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Http;
@@ -229,8 +229,8 @@ class OperationalExpenseTest extends TestCase
         $response = $this->actingAs($this->admin)->get(route('admin.dashboard'));
 
         $response->assertOk();
-        $response->assertSee('Laba Perusahaan & Beban Operasional');
-        $response->assertSee('Total HPP Produksi');
+        $response->assertSee('BIAYA OPERASIONAL');
+        $response->assertSee('HPP:');
         $response->assertSee('Rp 4.000.000');
         $response->assertSee('Laba Kotor Pesanan');
         $response->assertSee('Rp 6.000.000');
@@ -279,7 +279,7 @@ class OperationalExpenseTest extends TestCase
         $dashResponse->assertOk();
         $dashResponse->assertSee('Ops. Konveksi');
         $dashResponse->assertSee('Rp 2.000.000');
-        $dashResponse->assertSee('Ops. Pribadi');
+        $dashResponse->assertSee('Beban Pribadi (Prive)');
         $dashResponse->assertSee('Rp 1.000.000');
 
         // 4. Test Filter di Halaman Beban Operasional
@@ -296,7 +296,7 @@ class OperationalExpenseTest extends TestCase
         $persFilterResponse->assertDontSee('Listrik Mesin Konveksi');
 
         // 5. Test Google Sheet Format
-        $sheetService = new \App\Services\GoogleSheetService();
+        $sheetService = new GoogleSheetService;
         $formattedConv = $sheetService->formatExpenseData($convection);
         $this->assertStringContainsString('[Ops. Konveksi]', $formattedConv['desc']);
 

@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Article;
 use App\Models\Customer;
+use App\Models\Order;
 use App\Models\Portfolio;
 use App\Models\Review;
 use App\Models\Service;
@@ -49,7 +50,7 @@ class AdminPagesTest extends TestCase
     {
         $admin = User::factory()->create();
         $customer = Customer::create(['name' => 'Budi']);
-        $order = \App\Models\Order::create([
+        $order = Order::create([
             'order_number' => 'ZDK-0001-010126',
             'customer_id' => $customer->id,
             'name' => 'Uji Revenue',
@@ -60,7 +61,7 @@ class AdminPagesTest extends TestCase
 
         $this->actingAs($admin)->get(route('admin.dashboard'))
             ->assertOk()
-            ->assertSee('Total Pendapatan')
+            ->assertSee('KAS MASUK BLN INI')
             ->assertSee('Rp 4.000.000')   // terbayar
             ->assertSee('Rp 6.000.000');  // piutang
     }

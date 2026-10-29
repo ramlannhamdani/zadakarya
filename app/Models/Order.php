@@ -256,6 +256,12 @@ class Order extends Model
         return (int) ($this->amount_paid - $this->total_cost);
     }
 
+    /** Realisasi DP terhadap HPP (Positif = surplus/aman DP, Negatif = minus/nombok kas). */
+    public function getDpVsHppAttribute(): int
+    {
+        return $this->dp_paid - $this->total_cost;
+    }
+
     /**
      * Dana talangan kas kantor yang terpakai untuk pesanan ini.
      * Bernilai positif jika belanja HPP melebihi pembayaran/DP yang sudah masuk.
@@ -309,18 +315,18 @@ class Order extends Model
         if ($this->cash_deficit > 0) {
             return [
                 'status' => 'deficit',
-                'label' => 'Nombok Kas ' . rupiah($this->cash_deficit),
-                'short_label' => 'Nombok ' . rupiah($this->cash_deficit),
+                'label' => 'Nombok Kas '.rupiah($this->cash_deficit),
+                'short_label' => 'Nombok '.rupiah($this->cash_deficit),
                 'badge' => 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-800',
                 'color' => 'text-rose-600 dark:text-rose-400',
                 'icon' => 'alert-triangle',
-                'description' => 'Belanja HPP melebihi DP masuk. Kas kantor menalangi ' . rupiah($this->cash_deficit) . ' sampai pelunasan.',
+                'description' => 'Belanja HPP melebihi DP masuk. Kas kantor menalangi '.rupiah($this->cash_deficit).' sampai pelunasan.',
             ];
         }
 
         return [
             'status' => 'surplus',
-            'label' => 'DP Cukup (Sisa ' . rupiah($this->cash_surplus) . ')',
+            'label' => 'DP Cukup (Sisa '.rupiah($this->cash_surplus).')',
             'short_label' => 'DP Cukup',
             'badge' => 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800',
             'color' => 'text-blue-600 dark:text-blue-400',

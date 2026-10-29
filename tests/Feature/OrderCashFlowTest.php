@@ -16,6 +16,7 @@ class OrderCashFlowTest extends TestCase
     use RefreshDatabase;
 
     private User $admin;
+
     private Customer $customer;
 
     protected function setUp(): void
@@ -235,6 +236,11 @@ class OrderCashFlowTest extends TestCase
             'recorded_by' => $this->admin->id,
         ]);
 
+        $order->payments()->create([
+            'amount' => 1500000, 'type' => Payment::TYPE_DP,
+            'payment_date' => now(), 'method' => 'cash',
+        ]);
+
         // Test Dashboard
         $dashResponse = $this->actingAs($this->admin)->get(route('admin.dashboard'));
         $dashResponse->assertOk();
@@ -242,12 +248,13 @@ class OrderCashFlowTest extends TestCase
         $dashResponse->assertSee('1.000.000'); // 2.5jt - 1.5jt = 1jt
 
         // Test GoogleSheetService
-        $service = new GoogleSheetService();
+        $service = new GoogleSheetService;
         $formatted = $service->formatOrderData($order->fresh(['costs', 'customer', 'items', 'payments']));
 
         $this->assertSame(-1000000, $formatted['cash_position']);
         $this->assertSame(1000000, $formatted['cash_deficit']);
         $this->assertSame(1000000, $formatted['cash_advance']);
+        $this->assertSame(-1000000, $formatted['dp_vs_hpp']);
         $this->assertSame('Aktif (Pesanan Diterima)', $formatted['status']);
         $this->assertSame('Order Berjalan', $formatted['receivable_type']);
     }
@@ -310,11 +317,11 @@ class OrderCashFlowTest extends TestCase
         $response = $this->actingAs($this->admin)->get(route('admin.dashboard'));
 
         $response->assertOk();
-        $response->assertSee('Peta Alokasi Dana (Di Mana Uang Berada?)');
-        $response->assertSee('1. Kas Bebas Likuid');
-        $response->assertSee('2. Talangan Kas HPP');
-        $response->assertSee('3. Siap Ditagih');
-        $response->assertSee('4. Piutang Berjalan');
-        $response->assertSee('5. Utang Luar');
+        $response->assertSee('DASHBOARD KEUANGAN - ZADA KARYA');
+        $response->assertSee('KAS BERSIH');
+        $response->assertSee('TALANGAN KAS');
+        $response->assertSee('PIUTANG JT');
+        $response->assertSee('PIUTANG BERJALAN');
+        $response->assertSee('SISA PINJAMAN');
     }
 }
