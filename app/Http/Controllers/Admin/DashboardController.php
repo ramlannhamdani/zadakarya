@@ -28,7 +28,7 @@ class DashboardController extends Controller
 
         // Revenue: uang yang benar-benar masuk (tabel payments), piutang, dan nilai pesanan.
         $nonCancelled = Order::where('status', '!=', 'cancelled')->get(['id', 'status', 'grand_total', 'amount_paid', 'payment_status']);
-        $completedUnpaidOrders = $nonCancelled->filter(fn ($o) => $o->status === 'completed' && $o->payment_status !== 'paid');
+        $completedUnpaidOrders = $nonCancelled->filter(fn ($o) => $o->is_ready_to_bill);
         $activeUnpaidOrders = $nonCancelled->filter(fn ($o) => $o->status === 'active' && $o->payment_status !== 'paid');
 
         $completedReceivable = (int) $completedUnpaidOrders->sum(fn ($o) => max(0, $o->grand_total - $o->amount_paid));

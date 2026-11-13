@@ -630,6 +630,8 @@
             $pricePerUnit = $totalQty > 0 ? (int) round($grandTotal / $totalQty) : 0;
             $profitPerUnit = $totalQty > 0 ? (int) round($grossProfit / $totalQty) : 0;
             $statusMeta = $order->profit_status_meta;
+            $isPaid = $order->payment_status === 'paid';
+            $position = $isPaid ? $order->net_cash_flow : $order->reported_dp_vs_hpp;
         @endphp
 
         {{-- KPI Cards --}}
@@ -690,25 +692,28 @@
 
         <div class="admin-card mt-5">
             <div class="flex flex-wrap items-center justify-between gap-3">
-                <h2 class="font-extrabold text-ink">Realisasi DP vs HPP</h2>
+                <h2 class="font-extrabold text-ink">{{ $isPaid ? 'Pembayaran Masuk vs HPP' : 'Realisasi DP vs HPP' }}</h2>
                 <x-dp-vs-hpp :order="$order" />
             </div>
-            <p class="mt-2 text-xs text-neutral-500">DP yang benar-benar diterima dikurangi belanja HPP. Plus hijau berarti HPP masih tercover DP; minus merah berarti DP belum mencukupi HPP. Pembayaran pelunasan dihitung terpisah.</p>
             <div class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
                 <div class="rounded-lg border border-line bg-white p-3.5">
-                    <span class="text-xs text-neutral-500">DP Diterima</span>
-                    <p class="mt-1 text-xl font-extrabold text-emerald-600">{{ rupiah($order->dp_paid) }}</p>
+                    <span class="text-xs text-neutral-500">{{ $isPaid ? 'Pembayaran Masuk' : 'DP Diterima' }}</span>
+                    <p class="mt-1 text-xl font-extrabold text-emerald-600">{{ rupiah($isPaid ? $order->amount_paid : $order->dp_paid) }}</p>
                 </div>
                 <div class="rounded-lg border border-line bg-white p-3.5">
                     <span class="text-xs text-neutral-500">Belanja HPP</span>
                     <p class="mt-1 text-xl font-extrabold text-rose-600">{{ rupiah($totalCost) }}</p>
                 </div>
                 <div class="rounded-lg border border-line bg-white p-3.5">
-                    <span class="text-xs text-neutral-500">Realisasi DP − HPP</span>
-                    <p class="mt-1 text-xl font-extrabold {{ $order->dp_vs_hpp < 0 ? 'text-rose-600' : ($order->dp_vs_hpp > 0 ? 'text-emerald-600' : 'text-slate-600') }}">{{ $order->dp_vs_hpp > 0 ? '+' : ($order->dp_vs_hpp < 0 ? '-' : '') }}{{ rupiah(abs($order->dp_vs_hpp)) }}</p>
+                    <span class="text-xs text-neutral-500">{{ $isPaid ? 'Posisi Kas' : 'Realisasi DP vs HPP' }}</span>
+                    <p class="mt-1 text-xl font-extrabold {{ $position < 0 ? 'text-rose-600' : ($position > 0 ? 'text-emerald-600' : 'text-slate-600') }}">{{ $position > 0 ? '+' : ($position < 0 ? '-' : '') }}{{ rupiah(abs($position)) }}</p>
                 </div>
             </div>
-            <p class="mt-3 text-xs text-neutral-600">Pelunasan diterima: <strong>{{ rupiah($order->settlement_paid) }}</strong> · Sisa tagihan: <strong>{{ rupiah($order->remaining) }}</strong> · Posisi kas seluruh pembayaran − HPP: <strong>{{ rupiah($order->net_cash_flow) }}</strong>.</p>
+            @if($order->is_ready_to_bill)
+                <p class="mt-3 text-xs text-neutral-600">Sisa tagihan: <strong>{{ rupiah($order->remaining) }}</strong>.</p>
+            @elseif(! $isPaid)
+                <p class="mt-3 text-xs text-neutral-600">Pelunasan diterima: <strong>{{ rupiah($order->settlement_paid) }}</strong> · Sisa tagihan: <strong>{{ rupiah($order->remaining) }}</strong> · Posisi kas seluruh pembayaran − HPP: <strong>{{ rupiah($order->net_cash_flow) }}</strong>.</p>
+            @endif
             @if($order->is_cash_deficit)
                 <p class="mt-3 rounded-lg bg-rose-50 p-3 text-sm font-semibold text-rose-800">Kas kantor sedang menalangi {{ rupiah($order->cash_deficit) }} setelah seluruh pembayaran masuk diperhitungkan.</p>
             @endif

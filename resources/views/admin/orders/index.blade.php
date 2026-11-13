@@ -133,7 +133,7 @@
                     <th class="py-3.5 px-3.5 sm:px-5 font-normal">PRODUK</th>
                     <th class="py-3.5 px-3.5 sm:px-5 font-normal text-right">TOTAL</th>
                     <th class="py-3.5 px-3.5 sm:px-5 font-normal text-center">PEMBAYARAN</th>
-                    <th class="py-3.5 px-3.5 sm:px-5 font-normal text-center">REALISASI DP VS HPP</th>
+                    <th class="py-3.5 px-3.5 sm:px-5 font-normal text-center">DANA MASUK VS HPP</th>
                     <th class="py-3.5 px-3.5 sm:px-5 font-normal">TAHAP</th>
                     <th class="py-3.5 px-3.5 sm:px-5 font-normal text-center">DEADLINE</th>
                     <th class="py-3.5 px-3.5 sm:px-5 font-normal text-center">STATUS</th>
@@ -163,7 +163,7 @@
                     </td>
                     <td class="py-3.5 px-5 text-center">
                         <div class="inline-flex flex-col items-center gap-1">
-                            @if($order->status === 'completed' && $order->payment_status !== 'paid')
+                            @if($order->is_ready_to_bill)
                                 <span class="inline-block px-2.5 py-0.5 rounded-md bg-rose-50 text-rose-700 font-bold text-[11px]">
                                     🚨 Siap Ditagih
                                 </span>
@@ -183,7 +183,7 @@
                     </td>
                     <td class="py-3.5 px-5 text-slate-600">
                         <span class="block">{{ $order->current_stage_name }}</span>
-                        <span class="text-[10px] text-slate-400">Tahap {{ $order->current_stage }}/7</span>
+                        <span class="text-[10px] text-slate-400">Tahap {{ $order->current_stage }}/7{{ $order->status === 'active' && $order->current_stage === \App\Support\Stages::count() ? ' · Belum ditutup' : '' }}</span>
                     </td>
                     <td class="py-3.5 px-5 text-center {{ $order->deadline && $order->deadline->isPast() ? 'text-rose-500 font-semibold' : 'text-slate-500' }}">
                         {{ $order->deadline?->format('d/m/Y') ?? '—' }}

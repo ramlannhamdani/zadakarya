@@ -39,7 +39,7 @@ class DashboardFinancialOverviewTest extends TestCase
         ], $attributes));
     }
 
-    public function test_dp_position_is_identical_in_web_and_sheet_and_excludes_settlement(): void
+    public function test_paid_order_shows_cash_position_in_admin_and_keeps_dp_realization_in_sheet(): void
     {
         $order = $this->order();
         $order->payments()->create(['amount' => 2000000, 'type' => Payment::TYPE_DP, 'payment_date' => today(), 'method' => 'cash']);
@@ -53,12 +53,27 @@ class DashboardFinancialOverviewTest extends TestCase
         $data = app(GoogleSheetService::class)->formatOrderData($order);
         $this->assertSame($order->dp_vs_hpp, $data['dp_vs_hpp']);
         $this->assertSame(0, $data['cash_advance']);
-        $this->actingAs($this->admin)->get(route('admin.orders.index'))->assertOk()->assertSee('-Rp 1.000.000')->assertSee('DP Kurang');
-        $this->get(route('admin.orders.show', ['order' => $order, 'tab' => 'hpp']))->assertOk()->assertSee('-Rp 1.000.000');
+        $this->actingAs($this->admin)->get(route('admin.orders.index'))->assertOk()
+            ->assertSee('+Rp 2.000.000')->assertSee('Surplus Kas')->assertDontSee('DP Kurang');
+        $this->get(route('admin.orders.show', ['order' => $order, 'tab' => 'hpp']))->assertOk()
+            ->assertSee('Pembayaran Masuk vs HPP')->assertSee('+Rp 2.000.000')->assertDontSee('-Rp 1.000.000');
 
         // Kolom ringkasan pembayaran tanpa bukti jenis tidak boleh dianggap DP.
         $legacy = $this->order(['amount_paid' => 1500000]);
         $this->assertSame(0, $legacy->dp_paid);
+    }
+
+    public function test_full_payment_without_dp_shows_actual_cash_position(): void
+    {
+        foreach ([225500 => ['+Rp 24.500', 'Surplus Kas'], 250000 => ['Rp 0', 'Impas Kas'], 275000 => ['-Rp 25.000', 'Defisit Kas']] as $hpp => [$position, $label]) {
+            $order = $this->order(['grand_total' => 250000, 'status' => 'completed', 'current_stage' => 7]);
+            $order->payments()->create(['amount' => 250000, 'type' => Payment::TYPE_SETTLEMENT, 'payment_date' => today(), 'method' => 'cash']);
+            $order->costs()->create(['category' => 'kain', 'description' => 'Kain', 'amount' => $hpp, 'spent_at' => today()]);
+            $order->refreshPaymentStatus();
+
+            $this->actingAs($this->admin)->get(route('admin.orders.index', ['q' => $order->order_number]))->assertOk()
+                ->assertSee($position)->assertSee($label)->assertDontSee('DP Kurang');
+        }
     }
 
     public function test_positive_zero_and_negative_dp_positions_have_the_correct_badges(): void
@@ -70,6 +85,35 @@ class DashboardFinancialOverviewTest extends TestCase
             $this->actingAs($this->admin)->get(route('admin.orders.index'))->assertOk()->assertSee($label);
             $this->assertSame(2000000 - $hpp, app(GoogleSheetService::class)->formatOrderData($order->fresh())['dp_vs_hpp']);
         }
+    }
+
+    public function test_closing_final_stage_moves_outstanding_balance_to_due_receivables(): void
+    {
+        $order = $this->order(['grand_total' => 4320000, 'current_stage' => 7, 'deadline' => today()->addWeek()]);
+        $stage = $order->stages()->create(['stage_number' => 7, 'name' => 'Selesai', 'status' => 'in_progress']);
+        $order->payments()->create(['amount' => 2000000, 'type' => Payment::TYPE_DP, 'payment_date' => today(), 'method' => 'cash']);
+        $order->costs()->create(['category' => 'kain', 'description' => 'Kain', 'amount' => 3105380, 'spent_at' => today()]);
+        $order->refreshPaymentStatus();
+
+        $list = route('admin.orders.index');
+        $this->actingAs($this->admin)->get($list)->assertOk()
+            ->assertSee('-Rp 1.105.380')->assertSee('Nombok')->assertSee('Belum ditutup');
+
+        $this->from($list)->post(route('admin.orders.stages.complete', [$order, $stage]))->assertRedirect($list);
+        $this->get(route('admin.orders.index', ['filter' => 'ready_to_bill']))->assertOk()
+            ->assertSee($order->order_number)->assertSee('Siap Ditagih')->assertSee('Rp 2.320.000')
+            ->assertSee('Rp 0')->assertDontSee('-Rp 1.105.380');
+        $this->get(route('admin.orders.show', ['order' => $order, 'tab' => 'hpp']))->assertOk()
+            ->assertSee('Sisa tagihan Rp 2.320.000 siap ditagih.')->assertDontSee('-Rp 1.105.380');
+
+        $dashboard = $this->get(route('admin.dashboard'))->assertOk();
+        $this->assertSame(2320000, $dashboard->viewData('financials')['critical_receivable']);
+        $this->assertSame(0, $dashboard->viewData('financials')['total_cash_advances']);
+        $this->assertSame(0, $dashboard->viewData('financials')['total_wip_pelunasan']);
+        $this->assertSame(0, app(GoogleSheetService::class)->formatOrderData($order->fresh())['dp_vs_hpp']);
+
+        $this->from($list)->post(route('admin.orders.stages.reopen', [$order, $stage]))->assertRedirect($list);
+        $this->get($list)->assertOk()->assertSee('-Rp 1.105.380');
     }
 
     public function test_totals_cover_all_orders_and_critical_receivables_do_not_overlap_running(): void

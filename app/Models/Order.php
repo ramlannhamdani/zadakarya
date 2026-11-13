@@ -262,6 +262,16 @@ class Order extends Model
         return $this->dp_paid - $this->total_cost;
     }
 
+    public function getIsReadyToBillAttribute(): bool
+    {
+        return $this->status === 'completed' && $this->payment_status !== 'paid';
+    }
+
+    public function getReportedDpVsHppAttribute(): int
+    {
+        return $this->is_ready_to_bill ? 0 : $this->dp_vs_hpp;
+    }
+
     /**
      * Dana talangan kas kantor yang terpakai untuk pesanan ini.
      * Bernilai positif jika belanja HPP melebihi pembayaran/DP yang sudah masuk.

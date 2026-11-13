@@ -469,7 +469,7 @@ class GoogleSheetService
             'settlement' => $settlement,
             'total_cost' => (int) $order->total_cost,
             'cash_advance' => (int) $order->cash_deficit, // Kompatibilitas dengan skrip lama yang membaca defisit positif.
-            'dp_vs_hpp' => $order->dp_vs_hpp,
+            'dp_vs_hpp' => $order->reported_dp_vs_hpp,
             'deadline' => $order->deadline?->format('Y-m-d') ?? '',
             'created_at' => $order->created_at?->format('Y-m-d H:i:s') ?? '',
             'amount_paid' => (int) $order->amount_paid,
