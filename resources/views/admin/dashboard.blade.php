@@ -54,19 +54,21 @@
 
             <!-- ===================== BARIS 1: KAS UTAMA & KEWAJIBAN ===================== -->
 
-            <!-- 1. KAS RIIL -->
-            <div class="bg-white rounded-2xl shadow-xs border border-slate-200/80 overflow-hidden flex flex-col justify-between hover:shadow-md transition-shadow">
-                <div class="bg-slate-800 text-white px-4 py-2.5 flex items-center justify-between">
-                    <span class="text-[11px] font-bold tracking-wider uppercase">KAS RIIL</span>
-                    <i class="fa-solid fa-wallet text-slate-300 text-xs"></i>
+            <!-- 1. UANG DI TANGAN -->
+            <div class="bg-gradient-to-br from-emerald-600 to-teal-700 rounded-2xl shadow-sm text-white overflow-hidden flex flex-col justify-between hover:shadow-md transition-shadow">
+                <div class="bg-emerald-800/60 px-4 py-2.5 flex items-center justify-between border-b border-emerald-500/30">
+                    <div class="flex items-center gap-1.5">
+                        <span class="text-[11px] font-bold tracking-wider uppercase">UANG DI TANGAN</span>
+                    </div>
+                    <i class="fa-solid fa-shield-halved text-emerald-200 text-xs"></i>
                 </div>
                 <div class="p-4 sm:p-5">
-                    <div class="text-lg xl:text-2xl font-black tabular-nums break-words text-slate-900 tracking-tight">
-                        {{ rupiah($financials['current_cash_balance']) }}
+                    <div class="text-lg xl:text-2xl font-black tabular-nums break-words text-white tracking-tight">
+                        {{ rupiah($financials['kas_bersih']) }}
                     </div>
-                    <div class="mt-2 text-[11px] text-slate-500 flex items-center justify-between">
-                        <span>Saldo Kas di Bank &amp; Laci</span>
-                        <span class="text-slate-400 font-mono text-[10px]">Likuid</span>
+                    <div class="mt-2 text-[11px] text-emerald-100/90 flex items-center justify-between">
+                        <span>Kas Riil − Talangan (Estimasi)</span>
+                        <span class="text-emerald-200 font-mono text-[10px]">Estimasi</span>
                     </div>
                 </div>
             </div>
@@ -119,21 +121,19 @@
                 </div>
             </div>
 
-            <!-- 4. KAS BERSIH (EMERALD ACCENT CARD) -->
-            <div class="bg-gradient-to-br from-emerald-600 to-teal-700 rounded-2xl shadow-sm text-white overflow-hidden flex flex-col justify-between hover:shadow-md transition-shadow">
-                <div class="bg-emerald-800/60 px-4 py-2.5 flex items-center justify-between border-b border-emerald-500/30">
-                    <div class="flex items-center gap-1.5">
-                        <span class="text-[11px] font-bold tracking-wider uppercase">KAS BERSIH</span>
-                    </div>
-                    <i class="fa-solid fa-shield-halved text-emerald-200 text-xs"></i>
+            <!-- 4. KAS RIIL -->
+            <div class="bg-white rounded-2xl shadow-xs border border-slate-200/80 overflow-hidden flex flex-col justify-between hover:shadow-md transition-shadow">
+                <div class="bg-slate-800 text-white px-4 py-2.5 flex items-center justify-between">
+                    <span class="text-[11px] font-bold tracking-wider uppercase">KAS RIIL</span>
+                    <i class="fa-solid fa-wallet text-slate-300 text-xs"></i>
                 </div>
                 <div class="p-4 sm:p-5">
-                    <div class="text-lg xl:text-2xl font-black tabular-nums break-words text-white tracking-tight">
-                        {{ rupiah($financials['kas_bersih']) }}
+                    <div class="text-lg xl:text-2xl font-black tabular-nums break-words text-slate-900 tracking-tight">
+                        {{ rupiah($financials['current_cash_balance']) }}
                     </div>
-                    <div class="mt-2 text-[11px] text-emerald-100/90 flex items-center justify-between">
-                        <span>Kas Riil − Talangan (Estimasi)</span>
-                        <span class="text-emerald-200 font-mono text-[10px]">Murni</span>
+                    <div class="mt-2 text-[11px] text-slate-500 flex items-center justify-between">
+                        <span>Saldo Kas di Bank &amp; Laci</span>
+                        <span class="text-slate-400 font-mono text-[10px]">Likuid</span>
                     </div>
                 </div>
             </div>
@@ -708,7 +708,7 @@
                     <a href="{{ route('admin.orders.index', ['cash_status' => 'deficit']) }}" class="p-3 rounded-xl bg-rose-50/60 hover:bg-rose-100/60 transition-colors block text-xs">
                         <div class="flex items-center justify-between">
                             <span class="font-semibold text-rose-800">{{ $actionRequired['cash_deficits'] }} order nombok kas</span>
-                            <span class="font-bold text-rose-700 font-mono">{{ rupiah($actionRequired['cash_deficits_amount'] ?? 0) }}</span>
+                            <span class="font-bold text-rose-700 font-mono">Talangan bersih {{ rupiah($actionRequired['cash_deficits_amount'] ?? 0) }}</span>
                         </div>
                     </a>
                     @endif

@@ -104,7 +104,7 @@ class DashboardController extends Controller
         // Laba bersih operasional konveksi (Laba Kotor - Beban Konveksi)
         $netProfit = $grossProfit - $convectionExpensesTotal;
 
-        // Total Dana Talangan Kas yang sedang terpakai menombok pesanan aktif (HPP > Uang Masuk)
+        // Sisa pembayaran dari pesanan aktif mengurangi talangan yang dibutuhkan.
         $totalCashAdvances = 0;
         $deficitOrdersCount = 0;
         try {
@@ -114,12 +114,8 @@ class DashboardController extends Controller
                     ->where('payment_status', '!=', 'paid')
                     ->get();
 
-                foreach ($activeUnsettled as $actOrder) {
-                    if ($actOrder->cash_deficit > 0) {
-                        $totalCashAdvances += $actOrder->cash_deficit;
-                        $deficitOrdersCount++;
-                    }
-                }
+                $totalCashAdvances = max(0, -$activeUnsettled->sum('net_cash_flow'));
+                $deficitOrdersCount = $activeUnsettled->filter(fn ($order) => $order->cash_deficit > 0)->count();
             }
         } catch (\Throwable) {
             $totalCashAdvances = 0;

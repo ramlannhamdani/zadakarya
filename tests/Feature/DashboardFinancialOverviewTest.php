@@ -140,6 +140,27 @@ class DashboardFinancialOverviewTest extends TestCase
         $this->assertSame(0, $response->viewData('wipOrders')->first()['progress_pct']);
     }
 
+    public function test_cash_advances_use_net_shortfall_of_active_unpaid_orders(): void
+    {
+        foreach ([3500000, 1005000, 507500, -8453019, -3067800] as $position) {
+            $order = $this->order(['grand_total' => 20000000]);
+            $order->payments()->create(['amount' => 9000000 + $position, 'type' => Payment::TYPE_DP, 'payment_date' => today(), 'method' => 'cash']);
+            $order->costs()->create(['category' => 'kain', 'description' => 'Kain', 'amount' => 9000000, 'spent_at' => today()]);
+            $order->refreshPaymentStatus();
+        }
+
+        $dashboard = $this->actingAs($this->admin)->get(route('admin.dashboard'))->assertOk();
+        $this->assertSame(6508319, $dashboard->viewData('financials')['total_cash_advances']);
+        $this->assertSame(2, $dashboard->viewData('financials')['deficit_orders_count']);
+
+        $surplus = $this->order(['grand_total' => 20000000]);
+        $surplus->payments()->create(['amount' => 7000000, 'type' => Payment::TYPE_DP, 'payment_date' => today(), 'method' => 'cash']);
+        $surplus->refreshPaymentStatus();
+        $dashboard = $this->get(route('admin.dashboard'))->assertOk();
+        $this->assertSame(0, $dashboard->viewData('financials')['total_cash_advances']);
+        $this->assertSame(2, $dashboard->viewData('financials')['deficit_orders_count']);
+    }
+
     public function test_monthly_prive_is_zero_when_only_previous_month_has_expenses(): void
     {
         OperationalExpense::create(['reference_no' => 'EXP-PAST', 'title' => 'Prive Bulan Lalu',
