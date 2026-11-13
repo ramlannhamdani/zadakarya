@@ -170,6 +170,12 @@ class DashboardFinancialOverviewTest extends TestCase
         $this->assertSame(0, $response->viewData('financials')['total_prive_month']);
         $this->assertCount(0, $response->viewData('personalExpensesList'));
         $response->assertDontSee('Prive Bulan Lalu');
+
+        $previousMonth = today()->startOfMonth()->subMonth();
+        $response = $this->get(route('admin.dashboard', ['prive_month' => $previousMonth->format('Y-m')]))->assertOk()
+            ->assertSee('Prive Bulan Lalu')->assertSee('Total '.$previousMonth->translatedFormat('F Y'));
+        $this->assertSame(900000, $response->viewData('financials')['total_prive_month']);
+        $this->assertSame(0, $response->viewData('financials')['personal_expenses_this_month']);
     }
 
     public function test_cost_composition_includes_legacy_categories_and_prive_uses_real_titles(): void

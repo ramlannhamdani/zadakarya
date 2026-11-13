@@ -585,13 +585,18 @@
             </div>
 
             <!-- 5. TABEL: BEBAN PRIBADI PER BULAN (OWNER / PRIVE) -->
-            <div class="bg-white rounded-2xl shadow-xs border border-slate-200/80 overflow-hidden">
-                <div class="bg-slate-800 text-white px-5 py-3 flex items-center justify-between">
+            <div id="beban-pribadi" class="bg-white rounded-2xl shadow-xs border border-slate-200/80 overflow-hidden scroll-mt-28">
+                <div class="bg-slate-800 text-white px-5 py-3 flex flex-wrap items-center justify-between gap-2">
                     <div class="flex items-center gap-2">
                         <i class="fa-solid fa-user-tie text-purple-300 text-xs"></i>
                         <h3 class="text-xs font-bold uppercase tracking-wider">BEBAN PRIBADI PER BULAN (OWNER / PRIVE)</h3>
                     </div>
-                    <span class="text-[11px] text-slate-300 font-mono">{{ now()->translatedFormat('F Y') }}</span>
+                    <form method="GET" action="{{ route('admin.dashboard') }}#beban-pribadi" class="flex flex-wrap items-center gap-2">
+                        <label for="prive-month" class="sr-only">Bulan beban pribadi</label>
+                        <input id="prive-month" name="prive_month" type="month" value="{{ $priveMonthStart->format('Y-m') }}" required
+                            class="rounded-md border border-slate-500 bg-white px-2 py-1 text-xs text-slate-800">
+                        <button type="submit" class="rounded-md bg-slate-700 px-2.5 py-1.5 text-xs font-semibold hover:bg-slate-800">Tampilkan</button>
+                    </form>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left text-xs whitespace-nowrap">
@@ -628,14 +633,14 @@
                             @empty
                             <tr>
                                 <td colspan="5" class="py-6 px-4 text-center text-slate-400 whitespace-normal">
-                                    Belum ada catatan beban pribadi bulan ini.
+                                    Belum ada catatan beban pribadi pada {{ $priveMonthStart->translatedFormat('F Y') }}.
                                 </td>
                             </tr>
                             @endforelse
                         </tbody>
                         <tfoot class="bg-slate-800 text-white font-bold text-xs">
                             <tr>
-                                <td class="py-2.5 px-4 font-bold" colspan="4">TOTAL BULAN INI</td>
+                                <td class="py-2.5 px-4 font-bold uppercase" colspan="4">Total {{ $priveMonthStart->translatedFormat('F Y') }}</td>
                                 <td class="py-2.5 px-4 text-right font-mono font-black text-white">
                                     {{ rupiah($financials['total_prive_month']) }}
                                 </td>

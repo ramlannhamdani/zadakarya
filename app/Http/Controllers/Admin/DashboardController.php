@@ -12,11 +12,13 @@ use App\Models\Order;
 use App\Models\OrderCost;
 use App\Models\Payment;
 use App\Support\Stages;
+use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Schema;
 
 class DashboardController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $stats = [
             'total_orders' => Order::count(),
@@ -194,9 +196,16 @@ class DashboardController extends Controller
                     'pelunasan' => $order->remaining, 'stage_name' => $order->current_stage_name];
             });
 
-        $personalExpensesList = OperationalExpense::where('expense_type', OperationalExpense::TYPE_PERSONAL)
-            ->whereBetween('expense_date', [$nowStart, $nowEnd])->latest('expense_date')->latest('id')->limit(7)->get();
-        $totalPriveMonth = $personalExpensesThisMonth;
+        $priveMonth = $request->query('prive_month');
+        $priveMonthStart = is_string($priveMonth) && preg_match('/^[1-9][0-9]{3}-(0[1-9]|1[0-2])$/D', $priveMonth)
+            ? Carbon::createFromFormat('!Y-m', $priveMonth)
+            : $nowStart;
+        $personalExpensesForMonth = OperationalExpense::where('expense_type', OperationalExpense::TYPE_PERSONAL)
+            ->whereBetween('expense_date', [$priveMonthStart, $priveMonthStart->copy()->endOfMonth()]);
+        $totalPriveMonth = $priveMonthStart->equalTo($nowStart)
+            ? $personalExpensesThisMonth
+            : (int) (clone $personalExpensesForMonth)->sum('amount');
+        $personalExpensesList = $personalExpensesForMonth->latest('expense_date')->latest('id')->limit(7)->get();
 
         $historyStart = now()->startOfMonth()->subMonths(7);
         $historyEnd = now()->endOfMonth();
@@ -291,6 +300,7 @@ class DashboardController extends Controller
             'costComposition' => $costComposition,
             'wipOrders' => $wipOrders,
             'personalExpensesList' => $personalExpensesList,
+            'priveMonthStart' => $priveMonthStart,
             'monthlyTrend' => $monthlyTrend,
         ]);
     }
