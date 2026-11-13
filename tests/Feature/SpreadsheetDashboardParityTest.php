@@ -121,7 +121,7 @@ class SpreadsheetDashboardParityTest extends TestCase
         $this->assertSame(9, $sheet['charts'][0]['ranges'][0][3]);
         $this->assertCount(22, $sheet['order_rows'][0]);
         $keys = [
-            ['current_cash_balance', 'total_cash_advances', 'total_active_debt', 'kas_bersih'],
+            ['kas_bersih', 'total_cash_advances', 'total_active_debt', 'current_cash_balance'],
             ['this_month_cash_inflow', 'this_month_global_outflow', 'critical_receivable', 'active_receivable'],
             ['order_value', 'operating_cost', 'net_profit', 'retained_earnings'],
             ['aset_mesin', 'aset_lain', 'total_aset_investasi', 'total_equity'],
