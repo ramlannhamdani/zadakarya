@@ -269,7 +269,7 @@ class Order extends Model
 
     public function getReportedDpVsHppAttribute(): int
     {
-        return $this->is_ready_to_bill ? 0 : $this->dp_vs_hpp;
+        return $this->status === 'completed' ? 0 : $this->dp_vs_hpp;
     }
 
     /**

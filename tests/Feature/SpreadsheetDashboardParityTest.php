@@ -112,6 +112,9 @@ class SpreadsheetDashboardParityTest extends TestCase
         $this->assertMatchesAdmin($sheet);
         $this->assertSame(['PARITAS-12'], array_column($sheet['critical_orders'], 'order_number'));
         $this->assertSame(3500000, $sheet['financials']['critical_receivable']);
+        $orderRows = array_column($sheet['order_rows'], null, 1);
+        $this->assertSame(0, $orderRows['PARITAS-12'][12]);
+        $this->assertSame(-500000, $orderRows['PARITAS-1'][12]);
         $this->assertSame([101, 102], array_column($sheet['charts'], 'id'));
         $this->assertSame([48, 48], array_column($sheet['charts'], 'row'));
         $this->assertSame('Tren Dashboard', $sheet['charts'][0]['ranges'][0][0]);
@@ -157,6 +160,23 @@ class SpreadsheetDashboardParityTest extends TestCase
             ['action' => 'delete', 'entity' => 'asset', 'id' => $assetCode],
         ];
         $this->assertMatchesAdmin($this->spreadsheet($before, ['operations' => $operations]));
+    }
+
+    public function test_completed_and_paid_order_zeroes_dp_realization_on_sync(): void
+    {
+        $this->seedOverview();
+        $before = $this->payload();
+        $order = Order::where('order_number', 'PARITAS-3')->firstOrFail();
+        $this->assertSame('paid', $order->payment_status);
+        $this->assertSame(-500000, $order->dp_vs_hpp);
+        $order->update(['status' => 'completed']);
+
+        $operations = [['type' => 'order', 'order' => app(GoogleSheetService::class)->formatOrderData($order)]];
+        $sheet = $this->spreadsheet($before, ['operations' => $operations]);
+        $orderRows = array_column($sheet['order_rows'], null, 1);
+        $this->assertSame(0, $orderRows['PARITAS-3'][12]);
+        $this->assertSame(0, $orderRows['PARITAS-3'][11]);
+        $this->assertSame(['PARITAS-12'], array_column($sheet['critical_orders'], 'order_number'));
     }
 
     public function test_empty_dashboard_has_zero_totals_and_chart_installation_instructions(): void
