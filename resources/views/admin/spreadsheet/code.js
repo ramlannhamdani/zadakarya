@@ -12,7 +12,7 @@
  * yang ada di aplikasi — penyebab paling sering tampilan sheet terlihat lama.
  * Naikkan setiap kali berkas ini diubah.
  */
-var SCRIPT_VERSION = '2026-10-29.02';
+var SCRIPT_VERSION = '2026-11-14.01';
 
 /**
  * Tinggi baris data di seluruh tab. Baris judul, banner, dan kartu KPI punya
@@ -389,7 +389,7 @@ function calculateDashboardData(source, today) {
   var cash = source.cash.filter(function(row) { return !!row[9]; });
   var monthCash = cash.filter(function(row) { return dashboardDate(row[0]).slice(0, 7) === ym; });
   var active = included.filter(function(order) { return order.status === 'active'; });
-  var critical = included.filter(function(order) { return order.remaining > 0 && (order.status === 'completed' || (order.deadline && order.deadline <= today)); });
+  var critical = included.filter(function(order) { return order.status === 'completed' && order.payment_status !== 'paid' && order.remaining > 0; });
   var f = {};
   f.current_cash_balance = sum(cash, function(row) { return num(row[5]) - num(row[6]); });
   f.total_cash_advances = sum(active.filter(function(order) { return order.payment_status !== 'paid'; }), function(order) { return Math.max(0, order.cost - order.paid); });
@@ -398,7 +398,7 @@ function calculateDashboardData(source, today) {
   f.this_month_cash_inflow = sum(monthCash, function(row) { return num(row[5]); });
   f.this_month_global_outflow = sum(monthCash, function(row) { return num(row[6]); });
   f.critical_receivable = sum(critical, function(order) { return order.remaining; });
-  f.active_receivable = sum(active.filter(function(order) { return !order.deadline || order.deadline > today; }), function(order) { return order.remaining; });
+  f.active_receivable = sum(active.filter(function(order) { return order.payment_status !== 'paid'; }), function(order) { return order.remaining; });
   f.order_value = sum(included, function(order) { return order.total; });
   f.total_hpp = sum(profitCosts, function(row) { return num(row[7]); });
   f.convection_expenses_total = sum(convection, function(row) { return num(row[4]); });
@@ -567,7 +567,7 @@ function refreshDashboard(ss, day) {
   ];
   details.forEach(function(row, i) { row.forEach(function(text, j) { sheet.getRange(5 + i * 3, 1 + j * 3).setValue(text); }); });
   writeDashboardRows(sheet, 18, 1, [1, 1, 1, 1, 2], 6, data.critical_orders.map(function(o) {
-    return [o.order_number, o.customer, o.remaining, o.deadline ? o.deadline.split('-').reverse().join('/') : '—', o.status === 'completed' ? 'Siap Tagih' : 'Belum lunas'];
+    return [o.order_number, o.customer, o.remaining, o.deadline ? o.deadline.split('-').reverse().join('/') : '—', 'Siap Tagih'];
   }), [2]);
   writeDashboardRows(sheet, 18, 7, [1, 1, 1, 1, 2], 6, data.wip_orders.map(function(o) {
     return [o.order_number, o.customer, o.progress_pct + '% tahap selesai', o.remaining, o.stage_name];

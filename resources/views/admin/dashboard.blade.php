@@ -190,7 +190,7 @@
                     </div>
                     <div class="mt-2 text-[11px] text-slate-500 flex items-center justify-between">
                         <a href="{{ route('admin.orders.index', ['filter' => 'ready_to_bill']) }}" class="text-rose-600 font-semibold hover:underline">
-                            Selesai &amp; Lewat Deadline
+                            Pesanan selesai, belum lunas
                         </a>
                         <span class="text-rose-500 font-mono text-[10px]">Siap Tagih</span>
                     </div>
@@ -210,7 +210,7 @@
                         {{ rupiah($financials['active_receivable']) }}
                     </div>
                     <div class="mt-2 text-[11px] text-slate-500 flex items-center justify-between">
-                        <span>Pesanan belum jatuh tempo</span>
+                        <span>Pesanan masih berjalan</span>
                         <span class="text-blue-500 font-mono text-[10px]">WIP</span>
                     </div>
                 </div>
@@ -423,11 +423,7 @@
                                     {{ $order->deadline?->format('d/m/Y') ?? '—' }}
                                 </td>
                                 <td class="py-2.5 px-4 text-center">
-                                    @if($order->status === 'completed')
-                                        <span class="px-2 py-0.5 rounded-md bg-rose-50 text-rose-700 font-bold text-[10px] border border-rose-200/60">Siap Tagih</span>
-                                    @else
-                                        <span class="px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 font-bold text-[10px] border border-amber-200/60">Belum lunas</span>
-                                    @endif
+                                    <span class="px-2 py-0.5 rounded-md bg-rose-50 text-rose-700 font-bold text-[10px] border border-rose-200/60">Siap Tagih</span>
                                 </td>
                             </tr>
                             @empty

@@ -116,22 +116,27 @@ class DashboardFinancialOverviewTest extends TestCase
         $this->get($list)->assertOk()->assertSee('-Rp 1.105.380');
     }
 
-    public function test_totals_cover_all_orders_and_critical_receivables_do_not_overlap_running(): void
+    public function test_only_completed_unpaid_orders_count_toward_due_receivables(): void
     {
-        for ($i = 0; $i < 9; $i++) {
-            $this->order(['deadline' => today()->subDay()]);
+        for ($i = 0; $i < 8; $i++) {
+            $this->order(['status' => 'completed', 'deadline' => today()->addDays(10)]);
         }
+        $late = $this->order(['deadline' => today()->subDay()]);
+        $late->costs()->create(['category' => 'kain', 'description' => 'Kain', 'amount' => 1000000, 'spent_at' => today()]);
         $this->order(['deadline' => today()->addDay()]);
-        $this->order(['status' => 'completed', 'deadline' => today()->addDays(10)]);
+        $this->order(['status' => 'completed', 'amount_paid' => 5000000, 'payment_status' => 'paid']);
         $this->order(['status' => 'cancelled', 'deadline' => today()->subDay()]);
 
         $response = $this->actingAs($this->admin)->get(route('admin.dashboard'))->assertOk();
         $financials = $response->viewData('financials');
-        $this->assertSame(50000000, $financials['critical_receivable']);
-        $this->assertSame(5000000, $financials['active_receivable']);
-        $this->assertSame(50000000, $financials['total_wip_pelunasan']);
-        $this->assertCount(6, $response->viewData('criticalOrders'));
-        $this->assertCount(6, $response->viewData('wipOrders'));
+        $this->assertSame(40000000, $financials['critical_receivable']);
+        $this->assertSame(10000000, $financials['active_receivable']);
+        $this->assertSame(1000000, $financials['total_cash_advances']);
+        $this->assertSame(10000000, $financials['total_wip_pelunasan']);
+        $criticalOrders = $response->viewData('criticalOrders');
+        $this->assertCount(6, $criticalOrders);
+        $this->assertNotContains($late->order_number, $criticalOrders->pluck('order_number'));
+        $this->assertCount(2, $response->viewData('wipOrders'));
         $this->assertSame(0, $response->viewData('wipOrders')->first()['progress_pct']);
     }
 

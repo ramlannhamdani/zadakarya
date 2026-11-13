@@ -44,7 +44,7 @@ class SpreadsheetDashboardParityTest extends TestCase
             $order->createInitialStages();
             $order->stages()->where('stage_number', '<=', $i % 7)->update(['status' => 'completed']);
             $order->payments()->create(['type' => Payment::TYPE_DP, 'amount' => 1500000, 'payment_date' => '2026-09-20', 'method' => 'cash']);
-            if ($i % 3 === 0) {
+            if ($i % 3 === 0 && $i !== 12) {
                 $order->payments()->create(['type' => Payment::TYPE_SETTLEMENT, 'amount' => 3500000, 'payment_date' => '2026-10-25', 'method' => 'cash']);
             }
             $order->refreshPaymentStatus();
@@ -110,6 +110,8 @@ class SpreadsheetDashboardParityTest extends TestCase
         $this->seedOverview();
         $sheet = $this->spreadsheet($this->payload(), ['rebuild' => true]);
         $this->assertMatchesAdmin($sheet);
+        $this->assertSame(['PARITAS-12'], array_column($sheet['critical_orders'], 'order_number'));
+        $this->assertSame(3500000, $sheet['financials']['critical_receivable']);
         $this->assertSame([101, 102], array_column($sheet['charts'], 'id'));
         $this->assertSame([48, 48], array_column($sheet['charts'], 'row'));
         $this->assertSame('Tren Dashboard', $sheet['charts'][0]['ranges'][0][0]);

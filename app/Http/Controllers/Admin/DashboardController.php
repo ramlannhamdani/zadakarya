@@ -167,17 +167,10 @@ class DashboardController extends Controller
         $kasBersih = $currentCashBalance - $totalCashAdvances;
         $totalEquity = $currentCashBalance + $revenue['receivable'] + $totalAsetInvestasi - $totalActiveDebt;
 
-        // Total dihitung sebelum batas pratinjau agar kartu mencakup seluruh tagihan.
-        $criticalQuery = Order::where('status', '!=', 'cancelled')
+        $criticalOrders = Order::where('status', 'completed')
+            ->where('payment_status', '!=', 'paid')
             ->whereColumn('grand_total', '>', 'amount_paid')
-            ->where(function ($query) {
-                $query->where('status', 'completed')->orWhereDate('deadline', '<=', today());
-            });
-        $criticalReceivable = (int) (clone $criticalQuery)->get(['grand_total', 'amount_paid'])->sum('remaining');
-        $criticalOrders = (clone $criticalQuery)->with('customer')->orderBy('deadline')->orderBy('id')->limit(6)->get();
-        $runningReceivable = (int) Order::where('status', 'active')
-            ->where(fn ($query) => $query->whereNull('deadline')->orWhereDate('deadline', '>', today()))
-            ->get(['grand_total', 'amount_paid'])->sum('remaining');
+            ->with('customer')->orderBy('deadline')->orderBy('id')->limit(6)->get();
 
         $rawCosts = OrderCost::whereHas('order', fn ($query) => $query->where('status', '!=', 'cancelled'))
             ->selectRaw('category, sum(amount) as total_amount')->groupBy('category')->pluck('total_amount', 'category');
@@ -261,11 +254,11 @@ class DashboardController extends Controller
             'current_cash_balance' => $currentCashBalance,
             'completed_receivable' => $completedReceivable,
             'completed_unpaid_count' => $completedUnpaidOrders->count(),
-            'active_receivable' => $runningReceivable,
+            'active_receivable' => $activeReceivable,
             'active_unpaid_count' => $activeUnpaidOrders->count(),
             // Metrik Dashboard Keuangan
             'kas_bersih' => $kasBersih,
-            'critical_receivable' => $criticalReceivable,
+            'critical_receivable' => $completedReceivable,
             'aset_mesin' => $asetMesin,
             'aset_lain' => $asetLain,
             'total_aset_investasi' => $totalAsetInvestasi,
