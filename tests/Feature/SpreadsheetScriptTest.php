@@ -206,7 +206,7 @@ class SpreadsheetScriptTest extends TestCase
 
     public function test_dashboard_keeps_all_sixteen_financial_metrics(): void
     {
-        foreach (['current_cash_balance', 'total_cash_advances', 'total_active_debt', 'kas_bersih',
+        foreach (['current_cash_balance', 'total_cash_advances', 'total_active_debt',
             'this_month_cash_inflow', 'this_month_global_outflow', 'critical_receivable', 'active_receivable',
             'order_value', 'operating_cost', 'net_profit', 'retained_earnings',
             'aset_mesin', 'aset_lain', 'total_aset_investasi', 'total_equity'] as $key) {

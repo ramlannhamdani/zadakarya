@@ -12,7 +12,7 @@
  * yang ada di aplikasi — penyebab paling sering tampilan sheet terlihat lama.
  * Naikkan setiap kali berkas ini diubah.
  */
-var SCRIPT_VERSION = '2026-11-14.03';
+var SCRIPT_VERSION = '2026-11-14.04';
 
 /**
  * Tinggi baris data di seluruh tab. Baris judul, banner, dan kartu KPI punya
@@ -330,7 +330,7 @@ function setupAnalisaSheet(ss, orderSheet, costSheet) {
 /* Perhitungan ini diuji terhadap DashboardController dengan data yang sama. */
 var DASHBOARD_HPP_CATEGORIES = ['Kain & Bahan Baku', 'Aksesoris & Trims', 'Jasa Makloon (Bordir/Sablon)', 'Upah CMT / Jahit', 'Packing & Operasional'];
 var DASHBOARD_CARD_KEYS = [
-  ['kas_bersih', 'total_cash_advances', 'total_active_debt', 'current_cash_balance'],
+  ['current_cash_balance', 'total_cash_advances', 'total_active_debt', 'current_cash_balance'],
   ['this_month_cash_inflow', 'this_month_global_outflow', 'critical_receivable', 'active_receivable'],
   ['order_value', 'operating_cost', 'net_profit', 'retained_earnings'],
   ['aset_mesin', 'aset_lain', 'total_aset_investasi', 'total_equity']
@@ -393,9 +393,8 @@ function calculateDashboardData(source, today) {
   var f = {};
   f.current_cash_balance = sum(cash, function(row) { return num(row[5]) - num(row[6]); });
   var activeUnpaid = active.filter(function(order) { return order.payment_status !== 'paid'; });
-  f.total_cash_advances = Math.max(0, sum(activeUnpaid, function(order) { return order.cost - order.paid; }));
+  f.total_cash_advances = sum(activeUnpaid, function(order) { return Math.max(0, order.cost - order.paid); });
   f.total_active_debt = sum(source.loans.filter(function(row) { return row[10] && row[7] !== 'Lunas'; }), function(row) { return num(row[5]); });
-  f.kas_bersih = f.current_cash_balance - f.total_cash_advances;
   f.this_month_cash_inflow = sum(monthCash, function(row) { return num(row[5]); });
   f.this_month_global_outflow = sum(monthCash, function(row) { return num(row[6]); });
   f.critical_receivable = sum(critical, function(order) { return order.remaining; });
@@ -561,8 +560,8 @@ function refreshDashboard(ss, day) {
     });
   });
   var details = [
-    ['Kas riil − talangan (estimasi)', 'Kekurangan setelah dikurangi sisa dana pesanan aktif', 'Sisa pokok pinjaman pihak luar', 'Saldo kas masuk − keluar'],
-    ['Pembayaran pelanggan + pinjaman', 'HPP + ops + prive + cicilan', 'Selesai / deadline sampai hari ini', 'Pesanan aktif belum jatuh tempo'],
+    ['Saldo Arus Kas', 'Kas yang dipakai untuk menutup HPP pesanan aktif', 'Sisa pokok pinjaman pihak luar', 'Saldo kas masuk − keluar'],
+    ['Pembayaran pelanggan + pinjaman', 'HPP + ops + prive + cicilan', 'Pesanan selesai, belum lunas', 'Sisa tagihan pesanan aktif'],
     ['Seluruh pesanan selain dibatalkan', 'HPP: ' + dashboardRupiah(f.total_hpp) + '\nOps. Konveksi: ' + dashboardRupiah(f.convection_expenses_total),
       'Margin: ' + f.profit_margin_pct + '%\nLaba kotor: ' + dashboardRupiah(f.gross_profit), 'Prive: ' + dashboardRupiah(f.personal_expenses_total) + '\nSisa laba ditahan untuk usaha'],
     ['Nilai buku aset mesin', 'Nilai buku aset selain mesin', 'Total nilai buku seluruh aset', 'Kas + piutang + aset − utang']

@@ -106,7 +106,7 @@ class DashboardController extends Controller
         // Laba bersih operasional konveksi (Laba Kotor - Beban Konveksi)
         $netProfit = $grossProfit - $convectionExpensesTotal;
 
-        // Sisa pembayaran dari pesanan aktif mengurangi talangan yang dibutuhkan.
+        // Talangan mencatat kas yang sudah dipakai untuk menutup HPP tiap pesanan aktif.
         $totalCashAdvances = 0;
         $deficitOrdersCount = 0;
         try {
@@ -116,7 +116,7 @@ class DashboardController extends Controller
                     ->where('payment_status', '!=', 'paid')
                     ->get();
 
-                $totalCashAdvances = max(0, -$activeUnsettled->sum('net_cash_flow'));
+                $totalCashAdvances = $activeUnsettled->sum('cash_deficit');
                 $deficitOrdersCount = $activeUnsettled->filter(fn ($order) => $order->cash_deficit > 0)->count();
             }
         } catch (\Throwable) {
@@ -162,7 +162,6 @@ class DashboardController extends Controller
         $asetMesin = (int) ConvectionAsset::whereIn('category', $machineryCategories)->sum('current_value');
         $asetLain = (int) ConvectionAsset::whereNotIn('category', $machineryCategories)->sum('current_value');
         $totalAsetInvestasi = $asetMesin + $asetLain;
-        $kasBersih = $currentCashBalance - $totalCashAdvances;
         $totalEquity = $currentCashBalance + $revenue['receivable'] + $totalAsetInvestasi - $totalActiveDebt;
 
         $criticalOrders = Order::where('status', 'completed')
@@ -262,7 +261,6 @@ class DashboardController extends Controller
             'active_receivable' => $activeReceivable,
             'active_unpaid_count' => $activeUnpaidOrders->count(),
             // Metrik Dashboard Keuangan
-            'kas_bersih' => $kasBersih,
             'critical_receivable' => $completedReceivable,
             'aset_mesin' => $asetMesin,
             'aset_lain' => $asetLain,

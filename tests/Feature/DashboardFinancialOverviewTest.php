@@ -98,6 +98,10 @@ class DashboardFinancialOverviewTest extends TestCase
         $list = route('admin.orders.index');
         $this->actingAs($this->admin)->get($list)->assertOk()
             ->assertSee('-Rp 1.105.380')->assertSee('Nombok')->assertSee('Belum ditutup');
+        $before = $this->get(route('admin.dashboard'))->assertOk()->viewData('financials');
+        $this->assertSame(-1105380, $before['current_cash_balance']);
+        $this->assertSame(1105380, $before['total_cash_advances']);
+        $this->assertSame(2320000, $before['active_receivable']);
 
         $this->from($list)->post(route('admin.orders.stages.complete', [$order, $stage]))->assertRedirect($list);
         $this->get(route('admin.orders.index', ['filter' => 'ready_to_bill']))->assertOk()
@@ -107,6 +111,7 @@ class DashboardFinancialOverviewTest extends TestCase
             ->assertSee('Sisa tagihan Rp 2.320.000 siap ditagih.')->assertDontSee('-Rp 1.105.380');
 
         $dashboard = $this->get(route('admin.dashboard'))->assertOk();
+        $this->assertSame(-1105380, $dashboard->viewData('financials')['current_cash_balance']);
         $this->assertSame(2320000, $dashboard->viewData('financials')['critical_receivable']);
         $this->assertSame(0, $dashboard->viewData('financials')['total_cash_advances']);
         $this->assertSame(0, $dashboard->viewData('financials')['total_wip_pelunasan']);
@@ -140,7 +145,7 @@ class DashboardFinancialOverviewTest extends TestCase
         $this->assertSame(0, $response->viewData('wipOrders')->first()['progress_pct']);
     }
 
-    public function test_cash_advances_use_net_shortfall_of_active_unpaid_orders(): void
+    public function test_cash_advances_sum_shortfalls_per_active_unpaid_order(): void
     {
         foreach ([3500000, 1005000, 507500, -8453019, -3067800] as $position) {
             $order = $this->order(['grand_total' => 20000000]);
@@ -150,14 +155,16 @@ class DashboardFinancialOverviewTest extends TestCase
         }
 
         $dashboard = $this->actingAs($this->admin)->get(route('admin.dashboard'))->assertOk();
-        $this->assertSame(6508319, $dashboard->viewData('financials')['total_cash_advances']);
+        $this->assertSame(11520819, $dashboard->viewData('financials')['total_cash_advances']);
+        $this->assertSame(-6508319, $dashboard->viewData('financials')['current_cash_balance']);
         $this->assertSame(2, $dashboard->viewData('financials')['deficit_orders_count']);
 
         $surplus = $this->order(['grand_total' => 20000000]);
         $surplus->payments()->create(['amount' => 7000000, 'type' => Payment::TYPE_DP, 'payment_date' => today(), 'method' => 'cash']);
         $surplus->refreshPaymentStatus();
         $dashboard = $this->get(route('admin.dashboard'))->assertOk();
-        $this->assertSame(0, $dashboard->viewData('financials')['total_cash_advances']);
+        $this->assertSame(11520819, $dashboard->viewData('financials')['total_cash_advances']);
+        $this->assertSame(491681, $dashboard->viewData('financials')['current_cash_balance']);
         $this->assertSame(2, $dashboard->viewData('financials')['deficit_orders_count']);
     }
 
@@ -221,7 +228,7 @@ class DashboardFinancialOverviewTest extends TestCase
         $this->assertSame(-1000000, $financials['gross_profit']);
         $this->assertSame(-1100000, $financials['net_profit']);
         $this->assertSame(0, $financials['aset_mesin']);
-        $this->assertSame(-900000, $financials['kas_bersih']);
+        $this->assertSame(1100000, $financials['current_cash_balance']);
         $this->assertSame(4000000, $trend->last()['kas_masuk']);
         $this->assertSame(2900000, $trend->last()['kas_keluar']);
         $this->assertSame(-1100000, $trend->last()['laba_bersih']);

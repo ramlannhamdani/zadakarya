@@ -64,11 +64,10 @@
                 </div>
                 <div class="p-4 sm:p-5">
                     <div class="text-lg xl:text-2xl font-black tabular-nums break-words text-white tracking-tight">
-                        {{ rupiah($financials['kas_bersih']) }}
+                        {{ rupiah($financials['current_cash_balance']) }}
                     </div>
                     <div class="mt-2 text-[11px] text-emerald-100/90 flex items-center justify-between">
-                        <span>Kas Riil − Talangan (Estimasi)</span>
-                        <span class="text-emerald-200 font-mono text-[10px]">Estimasi</span>
+                        <span>Saldo Arus Kas</span>
                     </div>
                 </div>
             </div>
@@ -713,7 +712,7 @@
                     <a href="{{ route('admin.orders.index', ['cash_status' => 'deficit']) }}" class="p-3 rounded-xl bg-rose-50/60 hover:bg-rose-100/60 transition-colors block text-xs">
                         <div class="flex items-center justify-between">
                             <span class="font-semibold text-rose-800">{{ $actionRequired['cash_deficits'] }} order nombok kas</span>
-                            <span class="font-bold text-rose-700 font-mono">Talangan bersih {{ rupiah($actionRequired['cash_deficits_amount'] ?? 0) }}</span>
+                            <span class="font-bold text-rose-700 font-mono">{{ rupiah($actionRequired['cash_deficits_amount'] ?? 0) }}</span>
                         </div>
                     </a>
                     @endif
