@@ -12,7 +12,7 @@
  * yang ada di aplikasi — penyebab paling sering tampilan sheet terlihat lama.
  * Naikkan setiap kali berkas ini diubah.
  */
-var SCRIPT_VERSION = '2026-11-14.04';
+var SCRIPT_VERSION = '2026-11-14.05';
 
 /**
  * Tinggi baris data di seluruh tab. Baris judul, banner, dan kartu KPI punya
@@ -330,13 +330,13 @@ function setupAnalisaSheet(ss, orderSheet, costSheet) {
 /* Perhitungan ini diuji terhadap DashboardController dengan data yang sama. */
 var DASHBOARD_HPP_CATEGORIES = ['Kain & Bahan Baku', 'Aksesoris & Trims', 'Jasa Makloon (Bordir/Sablon)', 'Upah CMT / Jahit', 'Packing & Operasional'];
 var DASHBOARD_CARD_KEYS = [
-  ['current_cash_balance', 'total_cash_advances', 'total_active_debt', 'current_cash_balance'],
+  ['current_cash_balance', 'total_cash_advances', 'total_active_debt'],
   ['this_month_cash_inflow', 'this_month_global_outflow', 'critical_receivable', 'active_receivable'],
   ['order_value', 'operating_cost', 'net_profit', 'retained_earnings'],
   ['aset_mesin', 'aset_lain', 'total_aset_investasi', 'total_equity']
 ];
 var DASHBOARD_CARD_LABELS = [
-  ['UANG DI TANGAN', 'TALANGAN KAS', 'SISA PINJAMAN', 'KAS RIIL'],
+  ['UANG DI TANGAN', 'TALANGAN KAS', 'SISA PINJAMAN'],
   ['KAS MASUK BLN INI', 'KAS KELUAR BLN INI', 'PIUTANG JT (JATUH TEMPO)', 'PIUTANG BERJALAN'],
   ['TOTAL NILAI ORDER', 'BIAYA OPERASIONAL', 'LABA BERSIH & MARGIN', 'ALOKASI LABA'],
   ['ASET MESIN', 'ASET LAIN', 'TOTAL ASET & INVESTASI', 'TOTAL EKUITAS']
@@ -463,17 +463,18 @@ function setupDashboardSheet(sheet, rekapSheet) {
     sheet.setRowHeight(labelRow, 28);
     sheet.setRowHeight(labelRow + 1, 48);
     sheet.setRowHeight(labelRow + 2, 38);
-    for (var card = 0; card < 4; card++) {
-      var col = card * 3 + 1;
+    var cardWidth = 12 / DASHBOARD_CARD_KEYS[group].length;
+    for (var card = 0; card < DASHBOARD_CARD_KEYS[group].length; card++) {
+      var col = card * cardWidth + 1;
       var cashOnHand = group === 0 && card === 0;
       var accent = cashOnHand ? '#047857' : (card === 3 && group === 3 ? '#0E7490' : CLR.navy);
       var solid = cashOnHand || (card === 3 && (group === 2 || group === 3));
-      sheet.getRange(labelRow, col, 1, 3).merge().setValue(DASHBOARD_CARD_LABELS[group][card])
+      sheet.getRange(labelRow, col, 1, cardWidth).merge().setValue(DASHBOARD_CARD_LABELS[group][card])
         .setFontSize(9).setFontWeight('bold').setFontColor(CLR.white).setBackground(accent)
         .setHorizontalAlignment('left').setVerticalAlignment('middle').setWrap(true);
-      sheet.getRange(labelRow + 1, col, 1, 3).merge().setNumberFormat('"Rp"#,##0;[Red]-"Rp"#,##0')
+      sheet.getRange(labelRow + 1, col, 1, cardWidth).merge().setNumberFormat('"Rp"#,##0;[Red]-"Rp"#,##0')
         .setFontSize(18).setFontWeight('bold').setFontColor(solid ? CLR.white : accent).setBackground(solid ? accent : CLR.white).setVerticalAlignment('middle');
-      sheet.getRange(labelRow + 2, col, 1, 3).merge().setFontSize(8).setFontColor(solid ? CLR.white : CLR.gray2)
+      sheet.getRange(labelRow + 2, col, 1, cardWidth).merge().setFontSize(8).setFontColor(solid ? CLR.white : CLR.gray2)
         .setVerticalAlignment('middle').setWrap(true).setBackground(solid ? accent : CLR.gray1);
     }
   }
@@ -554,19 +555,26 @@ function refreshDashboard(ss, day) {
   var today = dashboardDate(day || new Date());
   var data = calculateDashboardData(readDashboardSource(ss), today);
   var f = data.financials;
+  // Pertahankan posisi sel versi lama sampai layout diperbarui lewat Tata Ulang.
+  var oldCashLayout = sheet.getRange('J3').getValues()[0][0] === 'KAS RIIL';
   DASHBOARD_CARD_KEYS.forEach(function(keys, row) {
+    var cardWidth = row === 0 && oldCashLayout ? 3 : 12 / keys.length;
     keys.forEach(function(key, col) {
-      sheet.getRange(4 + row * 3, 1 + col * 3).setValue(f[key]);
+      sheet.getRange(4 + row * 3, 1 + col * cardWidth).setValue(f[key]);
     });
   });
+  if (oldCashLayout) sheet.getRange('J4').setValue(f.current_cash_balance);
   var details = [
-    ['Saldo Arus Kas', 'Kas yang dipakai untuk menutup HPP pesanan aktif', 'Sisa pokok pinjaman pihak luar', 'Saldo kas masuk − keluar'],
+    ['Saldo Arus Kas', 'Kas yang dipakai untuk menutup HPP pesanan aktif', 'Sisa pokok pinjaman pihak luar'],
     ['Pembayaran pelanggan + pinjaman', 'HPP + ops + prive + cicilan', 'Pesanan selesai, belum lunas', 'Sisa tagihan pesanan aktif'],
     ['Seluruh pesanan selain dibatalkan', 'HPP: ' + dashboardRupiah(f.total_hpp) + '\nOps. Konveksi: ' + dashboardRupiah(f.convection_expenses_total),
       'Margin: ' + f.profit_margin_pct + '%\nLaba kotor: ' + dashboardRupiah(f.gross_profit), 'Prive: ' + dashboardRupiah(f.personal_expenses_total) + '\nSisa laba ditahan untuk usaha'],
     ['Nilai buku aset mesin', 'Nilai buku aset selain mesin', 'Total nilai buku seluruh aset', 'Kas + piutang + aset − utang']
   ];
-  details.forEach(function(row, i) { row.forEach(function(text, j) { sheet.getRange(5 + i * 3, 1 + j * 3).setValue(text); }); });
+  details.forEach(function(notes, row) {
+    var cardWidth = row === 0 && oldCashLayout ? 3 : 12 / notes.length;
+    notes.forEach(function(note, col) { sheet.getRange(5 + row * 3, 1 + col * cardWidth).setValue(note); });
+  });
   writeDashboardRows(sheet, 18, 1, [1, 1, 1, 1, 2], 6, data.critical_orders.map(function(o) {
     return [o.order_number, o.customer, o.remaining, o.deadline ? o.deadline.split('-').reverse().join('/') : '—', 'Siap Tagih'];
   }), [2]);

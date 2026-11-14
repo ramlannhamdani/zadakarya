@@ -121,16 +121,19 @@ class SpreadsheetDashboardParityTest extends TestCase
         $this->assertSame(9, $sheet['charts'][0]['ranges'][0][3]);
         $this->assertCount(22, $sheet['order_rows'][0]);
         $keys = [
-            ['current_cash_balance', 'total_cash_advances', 'total_active_debt', 'current_cash_balance'],
+            ['current_cash_balance', 'total_cash_advances', 'total_active_debt'],
             ['this_month_cash_inflow', 'this_month_global_outflow', 'critical_receivable', 'active_receivable'],
             ['order_value', 'operating_cost', 'net_profit', 'retained_earnings'],
             ['aset_mesin', 'aset_lain', 'total_aset_investasi', 'total_equity'],
         ];
         foreach ($keys as $row => $columns) {
+            $width = intdiv(12, count($columns));
             foreach ($columns as $column => $key) {
-                $this->assertSame($sheet['financials'][$key], $sheet['sheet']['grid'][(4 + $row * 3).','.(1 + $column * 3)]['value']);
+                $this->assertSame($sheet['financials'][$key], $sheet['sheet']['grid'][(4 + $row * 3).','.(1 + $column * $width)]['value']);
             }
         }
+        $this->assertSame('SISA PINJAMAN', $sheet['sheet']['grid']['3,9']['value']);
+        $this->assertSame('', $sheet['sheet']['grid']['3,10']['value']);
     }
 
     public function test_incremental_updates_and_deletions_match_admin_without_full_sync(): void

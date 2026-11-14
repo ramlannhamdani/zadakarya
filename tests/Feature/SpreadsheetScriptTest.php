@@ -44,7 +44,7 @@ class SpreadsheetScriptTest extends TestCase
 
     public function test_metrics_are_written_to_the_left_cell_of_each_merged_card(): void
     {
-        $this->assertStringContainsString('getRange(4 + row * 3, 1 + col * 3).setValue(f[key])', $this->script);
+        $this->assertStringContainsString('getRange(4 + row * 3, 1 + col * cardWidth).setValue(f[key])', $this->script);
         $this->assertStringContainsString('DASHBOARD_CARD_KEYS', $this->script);
     }
 
