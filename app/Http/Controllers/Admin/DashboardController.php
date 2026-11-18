@@ -256,6 +256,7 @@ class DashboardController extends Controller
             'deficit_orders_count' => $deficitOrdersCount,
             'total_active_debt' => $totalActiveDebt,
             'current_cash_balance' => $currentCashBalance,
+            'real_cash_balance' => $currentCashBalance + $totalCashAdvances - $totalActiveDebt,
             'completed_receivable' => $completedReceivable,
             'completed_unpaid_count' => $completedUnpaidOrders->count(),
             'active_receivable' => $activeReceivable,

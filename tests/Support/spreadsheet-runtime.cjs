@@ -98,6 +98,12 @@ if (require.main === module) {
     runtime.post({action:'sync_all',...input.payload});
     for(const operation of input.operations||[])runtime.post(operation);
     if(input.rebuild)runtime.ctx.setupDashboardSheet(runtime.book.sheets.Dashboard,null);
+    if(input.legacyDashboard) {
+        const dashboard = runtime.book.sheets.Dashboard;
+        dashboard.getRange(1,1,100,16).breakApart();
+        dashboard.clear();
+        ['UANG DI TANGAN','TALANGAN KAS','SISA PINJAMAN'].forEach((label,i)=>dashboard.getRange(3,1+i*4,1,4).merge().setValue(label));
+    }
     const result=runtime.ctx.refreshDashboard(runtime.book,input.day);
     result.charts=runtime.book.sheets.Dashboard.charts.map(c=>({id:c.id,row:c.row,col:c.col,ranges:c.ranges}));
     result.order_rows=runtime.ctx.dashboardRows(runtime.book,'Data Order',22);

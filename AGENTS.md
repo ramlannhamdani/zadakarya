@@ -137,9 +137,14 @@ petunjuk pemasangan selagi grafiknya belum ada.
 **Tidak boleh ada `removeChart` di mana pun.** Grafiknya buatan tangan; sekali terhapus
 harus dipasang ulang manual. Dijaga oleh `SpreadsheetScriptTest`.
 
-**Dashboard spreadsheet mengikuti dashboard admin.** Enam blok rincian, 16 kartu, dan
-tren delapan bulan dihitung ulang oleh `refreshDashboard()` setelah webhook, saat sheet
-dibuka, atau lewat menu Zada Karya > Segarkan Dashboard. Data grafik berada di tab
+**Kartu dashboard spreadsheet mengikuti dashboard admin.** Kas Riil dihitung sebagai
+Uang di Tangan + Talangan Kas − Sisa Pinjaman. Enam belas kartu memakai sel kiri atas
+A/E/I/M dalam grid A:P. Rincian piutang dan WIP diikuti rekap Januari–Desember yang
+menggantikan tabel HPP, prive, dan tren sebelumnya. Penerimaan rekap berasal dari
+pembayaran pelanggan, HPP dan beban mengikuti tanggal transaksi. Akumulasi dimulai dari
+Januari tahun laporan. `refreshDashboard()` memperbarui data setelah webhook, saat sheet
+dibuka, atau lewat menu Zada Karya > Segarkan Dashboard, serta memperbarui layout lama
+secara otomatis. Data grafik delapan bulan berada di tab
 `Tren Dashboard` (A3:C11 untuk kas, E3:G11 untuk laba). Grafik manual yang sudah ada
 hanya diperbarui sumber dan posisinya, tidak dibuat ulang. Kolom ID pesanan tetap P;
 Q:V menyimpan deadline, tahap, progres, tanggal dibuat, pembayaran masuk, dan status

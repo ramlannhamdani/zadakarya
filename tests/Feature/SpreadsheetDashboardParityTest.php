@@ -105,7 +105,7 @@ class SpreadsheetDashboardParityTest extends TestCase
         $this->assertSame($response->viewData('personalExpensesList')->pluck('reference_no')->all(), array_column($sheet['personal_expenses'], 'reference_no'));
     }
 
-    public function test_all_metrics_and_six_detail_blocks_match_admin_after_sync_and_rebuild(): void
+    public function test_all_metrics_match_admin_after_sync_and_rebuild(): void
     {
         $this->seedOverview();
         $sheet = $this->spreadsheet($this->payload(), ['rebuild' => true]);
@@ -121,19 +121,23 @@ class SpreadsheetDashboardParityTest extends TestCase
         $this->assertSame(9, $sheet['charts'][0]['ranges'][0][3]);
         $this->assertCount(22, $sheet['order_rows'][0]);
         $keys = [
-            ['current_cash_balance', 'total_cash_advances', 'total_active_debt'],
+            ['current_cash_balance', 'total_cash_advances', 'total_active_debt', 'real_cash_balance'],
             ['this_month_cash_inflow', 'this_month_global_outflow', 'critical_receivable', 'active_receivable'],
             ['order_value', 'operating_cost', 'net_profit', 'retained_earnings'],
             ['aset_mesin', 'aset_lain', 'total_aset_investasi', 'total_equity'],
         ];
         foreach ($keys as $row => $columns) {
-            $width = intdiv(12, count($columns));
+            $width = intdiv(16, count($columns));
             foreach ($columns as $column => $key) {
                 $this->assertSame($sheet['financials'][$key], $sheet['sheet']['grid'][(4 + $row * 3).','.(1 + $column * $width)]['value']);
             }
         }
         $this->assertSame('SISA PINJAMAN', $sheet['sheet']['grid']['3,9']['value']);
-        $this->assertSame('', $sheet['sheet']['grid']['3,10']['value']);
+        $this->assertSame('KAS RIIL', $sheet['sheet']['grid']['3,13']['value']);
+        $this->assertSame(
+            $sheet['financials']['current_cash_balance'] + $sheet['financials']['total_cash_advances'] - $sheet['financials']['total_active_debt'],
+            $sheet['sheet']['grid']['4,13']['value'],
+        );
     }
 
     public function test_incremental_updates_and_deletions_match_admin_without_full_sync(): void
@@ -188,7 +192,48 @@ class SpreadsheetDashboardParityTest extends TestCase
         $this->assertMatchesAdmin($sheet);
         $this->assertSame([], $sheet['charts']);
         $this->assertStringContainsString('Insert > Chart', $sheet['sheet']['grid']['49,1']['value']);
-        $this->assertStringContainsString('Line chart', $sheet['sheet']['grid']['49,7']['value']);
+        $this->assertStringContainsString('Line chart', $sheet['sheet']['grid']['49,9']['value']);
+    }
+
+    public function test_annual_recap_uses_received_payments_and_all_transactions_for_the_selected_year(): void
+    {
+        $this->seedOverview();
+        $sheet = $this->spreadsheet($this->payload());
+        $recap = $sheet['annual_recap'];
+        $this->assertSame(2026, $recap['year']);
+        $this->assertCount(12, $recap['months']);
+        $this->assertSame(21000000, $recap['months'][8]['receipts']);
+        $this->assertSame(14000000, $recap['months'][9]['receipts']);
+        $this->assertSame(18000000, $recap['months'][8]['hpp']);
+        $this->assertSame(14000000, $recap['months'][9]['hpp']);
+        $this->assertSame(300000, $recap['months'][9]['convection']);
+        $this->assertSame(2700000, $recap['months'][9]['personal']);
+        $this->assertSame(300000, $recap['months'][10]['convection']);
+        $grid = $sheet['sheet']['grid'];
+        $this->assertSame('=M30-M31', $grid['32,13']['value']);
+        $this->assertSame('=SUM(M35:M36)', $grid['37,13']['value']);
+        $this->assertSame('=M32-M37', $grid['40,13']['value']);
+        $this->assertSame('=SUM($D$40:M40)', $grid['41,13']['value']);
+        $this->assertSame('=SUM(D40:O40)', $grid['40,16']['value']);
+        $this->assertSame('=O41', $grid['41,16']['value']);
+        $this->assertStringContainsString('[Red]', $grid['40,13']['setNumberFormat']);
+
+        $this->travelTo(now()->setDate(2027, 1, 31));
+        $nextYear = $this->spreadsheet($this->payload());
+        $this->assertSame(2027, $nextYear['annual_recap']['year']);
+        $this->assertSame(0, array_sum(array_column($nextYear['annual_recap']['months'], 'receipts')));
+        $this->assertSame(0, array_sum(array_column($nextYear['annual_recap']['months'], 'hpp')));
+    }
+
+    public function test_refresh_upgrades_the_previous_dashboard_layout_and_preserves_manual_charts(): void
+    {
+        $this->seedOverview();
+        $sheet = $this->spreadsheet($this->payload(), ['legacyDashboard' => true]);
+        $this->assertMatchesAdmin($sheet);
+        $this->assertSame('KAS RIIL', $sheet['sheet']['grid']['3,13']['value']);
+        $this->assertSame('TOTAL', $sheet['sheet']['grid']['28,16']['value']);
+        $this->assertSame([101, 102], array_column($sheet['charts'], 'id'));
+        $this->assertSame([1, 9], array_column($sheet['charts'], 'col'));
     }
 
     public function test_losses_and_the_eight_month_window_match_at_the_year_boundary(): void

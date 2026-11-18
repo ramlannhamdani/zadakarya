@@ -229,6 +229,9 @@ class DashboardFinancialOverviewTest extends TestCase
         $this->assertSame(-1100000, $financials['net_profit']);
         $this->assertSame(0, $financials['aset_mesin']);
         $this->assertSame(1100000, $financials['current_cash_balance']);
+        $this->assertSame(2000000, $financials['total_cash_advances']);
+        $this->assertSame(3500000, $financials['total_active_debt']);
+        $this->assertSame(-400000, $financials['real_cash_balance']);
         $this->assertSame(4000000, $trend->last()['kas_masuk']);
         $this->assertSame(2900000, $trend->last()['kas_keluar']);
         $this->assertSame(-1100000, $trend->last()['laba_bersih']);

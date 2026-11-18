@@ -32,11 +32,11 @@ class SpreadsheetScriptTest extends TestCase
         $this->assertStringContainsString("order.status !== 'cancelled'", $this->script);
     }
 
-    public function test_dashboard_contains_the_same_six_detail_blocks_as_admin(): void
+    public function test_dashboard_contains_receivables_wip_and_the_annual_cash_recap(): void
     {
         foreach (['PIUTANG KRITIS & JATUH TEMPO', 'STATUS ORDER BERJALAN (WIP)',
-            'KOMPOSISI BIAYA PRODUKSI (HPP)', 'BEBAN PRIBADI PER BULAN (OWNER / PRIVE)',
-            'TREN ARUS KAS BULANAN', 'TREN LABA BERSIH & ESTIMASI LABA'] as $title) {
+            'LAPORAN REKAPITULASI MARGIN & ARUS KAS (JANUARI–DESEMBER)',
+            'A. PEMASUKAN', 'B. PENGELUARAN OPERASIONAL', 'C. RINGKASAN SALDO'] as $title) {
             $this->assertStringContainsString($title, $this->script);
         }
         $this->assertStringNotContainsString('MARGIN PER PESANAN', $this->script);
@@ -76,7 +76,7 @@ class SpreadsheetScriptTest extends TestCase
         preg_match('/for \(var gr = (\d+); gr <= (\d+); gr\+\+\) \{ sheet\.setRowHeight\(gr, ROW_H\); \}/', $this->script, $rows);
         // Pola ditulis dengan kutip tunggal: di kutip ganda, \1 dibaca PHP
         // sebagai escape oktal, bukan backreference.
-        preg_match('/getRange\(\'A(\d+):L\\1\'\)\.merge\(\)/', substr($this->script, strpos($this->script, 'for (var gr =')), $stamp);
+        preg_match('/getRange\(\'A(\d+):P\\1\'\)\.merge\(\)/', substr($this->script, strpos($this->script, 'for (var gr =')), $stamp);
         preg_match('/var ROW_H = (\d+);/', $this->script, $rowHeight);
 
         $this->assertNotEmpty($rows, 'Baris cadangan untuk grafik tidak ditemukan.');

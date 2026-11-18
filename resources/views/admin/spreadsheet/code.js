@@ -12,7 +12,7 @@
  * yang ada di aplikasi — penyebab paling sering tampilan sheet terlihat lama.
  * Naikkan setiap kali berkas ini diubah.
  */
-var SCRIPT_VERSION = '2026-11-14.05';
+var SCRIPT_VERSION = '2026-11-18.01';
 
 /**
  * Tinggi baris data di seluruh tab. Baris judul, banner, dan kartu KPI punya
@@ -224,13 +224,13 @@ function buildCashChart(ss) {
   var trend = ss.getSheetByName('Tren Dashboard');
   if (!sheet || !trend) return;
   var panels = [
-    {col: 1, hint: 'A49:F52', source: 'A3:C11', title: 'arus kas', type: 'Column chart'},
-    {col: 7, hint: 'G49:L52', source: 'E3:G11', title: 'laba', type: 'Line chart'}
+    {col: 1, hint: 'A49:H52', source: 'A3:C11', title: 'arus kas', type: 'Column chart'},
+    {col: 9, hint: 'I49:P52', source: 'E3:G11', title: 'laba', type: 'Line chart'}
   ];
   panels.forEach(function(panel) {
     sheet.getRange(panel.hint).breakApart().merge()
       .setValue('Grafik ' + panel.title + ' belum dipasang. Buka tab "Tren Dashboard", blok ' + panel.source
-        + ', lalu Insert > Chart, pilih ' + panel.type + '. Pindahkan ke area ini. Tabel tren di atas tetap bisa dibaca.')
+        + ', lalu Insert > Chart, pilih ' + panel.type + '. Pindahkan ke area ini.')
       .setFontSize(10).setFontColor(CLR.gray2).setBackground(CLR.gray1).setWrap(true).setVerticalAlignment('middle');
   });
   if (sheet.getCharts().length > 0) {
@@ -241,7 +241,7 @@ function buildCashChart(ss) {
       occupied[panel.col] = true;
       // Hanya arahkan ulang sumber dan posisi grafik manual; tidak membuat atau menghapus grafik.
       var updated = chart.modify().clearRanges().addRange(trend.getRange(panel.source))
-        .setNumHeaders(1).setPosition(48, panel.col, 0, 0).setOption('width', 575).setOption('height', 350).build();
+        .setNumHeaders(1).setPosition(48, panel.col, 0, 0).setOption('width', 800).setOption('height', 350).build();
       sheet.updateChart(updated);
       sheet.getRange(panel.hint).clearContent().setBackground(null);
     });
@@ -330,13 +330,13 @@ function setupAnalisaSheet(ss, orderSheet, costSheet) {
 /* Perhitungan ini diuji terhadap DashboardController dengan data yang sama. */
 var DASHBOARD_HPP_CATEGORIES = ['Kain & Bahan Baku', 'Aksesoris & Trims', 'Jasa Makloon (Bordir/Sablon)', 'Upah CMT / Jahit', 'Packing & Operasional'];
 var DASHBOARD_CARD_KEYS = [
-  ['current_cash_balance', 'total_cash_advances', 'total_active_debt'],
+  ['current_cash_balance', 'total_cash_advances', 'total_active_debt', 'real_cash_balance'],
   ['this_month_cash_inflow', 'this_month_global_outflow', 'critical_receivable', 'active_receivable'],
   ['order_value', 'operating_cost', 'net_profit', 'retained_earnings'],
   ['aset_mesin', 'aset_lain', 'total_aset_investasi', 'total_equity']
 ];
 var DASHBOARD_CARD_LABELS = [
-  ['UANG DI TANGAN', 'TALANGAN KAS', 'SISA PINJAMAN'],
+  ['UANG DI TANGAN', 'TALANGAN KAS', 'SISA PINJAMAN', 'KAS RIIL'],
   ['KAS MASUK BLN INI', 'KAS KELUAR BLN INI', 'PIUTANG JT (JATUH TEMPO)', 'PIUTANG BERJALAN'],
   ['TOTAL NILAI ORDER', 'BIAYA OPERASIONAL', 'LABA BERSIH & MARGIN', 'ALOKASI LABA'],
   ['ASET MESIN', 'ASET LAIN', 'TOTAL ASET & INVESTASI', 'TOTAL EKUITAS']
@@ -395,6 +395,7 @@ function calculateDashboardData(source, today) {
   var activeUnpaid = active.filter(function(order) { return order.payment_status !== 'paid'; });
   f.total_cash_advances = sum(activeUnpaid, function(order) { return Math.max(0, order.cost - order.paid); });
   f.total_active_debt = sum(source.loans.filter(function(row) { return row[10] && row[7] !== 'Lunas'; }), function(row) { return num(row[5]); });
+  f.real_cash_balance = f.current_cash_balance + f.total_cash_advances - f.total_active_debt;
   f.this_month_cash_inflow = sum(monthCash, function(row) { return num(row[5]); });
   f.this_month_global_outflow = sum(monthCash, function(row) { return num(row[6]); });
   f.critical_receivable = sum(critical, function(order) { return order.remaining; });
@@ -441,29 +442,47 @@ function calculateDashboardData(source, today) {
       kas_keluar: sum(cash.filter(inMonth), function(row) { return num(row[6]); }),
       estimasi_laba: gross, laba_bersih: gross - sum(convection.filter(inMonth), function(row) { return num(row[4]); })});
   }
-  return {financials: f, critical_orders: critical.slice(0, 6), wip_orders: active.slice(0, 6),
+  return {financials: f, annual_recap: calculateAnnualCashRecap(source, today.slice(0, 4)),
+    critical_orders: critical.slice(0, 6), wip_orders: active.slice(0, 6),
     cost_composition: composition, personal_expenses: thisMonthPersonal.slice(0, 7).map(function(row) {
       return {reference_no: row[1], date: dashboardDate(row[0]), title: row[3], category: row[2], amount: num(row[4])};
     }), monthly_trend: trend};
 }
 
-function setupDashboardSheet(sheet, rekapSheet) {
-  if (sheet.getMaxColumns() < 12) sheet.insertColumnsAfter(sheet.getMaxColumns(), 12 - sheet.getMaxColumns());
-  sheet.getRange(1, 1, sheet.getMaxRows(), 12).breakApart();
+function calculateAnnualCashRecap(source, year) {
+  var months = [];
+  var payments = source.cash.filter(function(row) { return /^PAY-/.test(String(row[9] || '')); });
+  for (var month = 1; month <= 12; month++) {
+    var key = year + '-' + ('0' + month).slice(-2);
+    var monthSum = function(rows, idColumn, amountColumn) {
+      return rows.filter(function(row) { return row[idColumn] && dashboardDate(row[0]).slice(0, 7) === key; })
+        .reduce(function(total, row) { return total + (Number(row[amountColumn]) || 0); }, 0);
+    };
+    months.push({month: key, receipts: monthSum(payments, 9, 5), hpp: monthSum(source.costs, 9, 7),
+      convection: monthSum(source.convection, 8, 4), personal: monthSum(source.personal, 8, 4)});
+  }
+  return {year: Number(year), months: months};
+}
+
+function setupDashboardSheet(sheet, rekapSheet, day) {
+  if (sheet.getMaxColumns() < 16) sheet.insertColumnsAfter(sheet.getMaxColumns(), 16 - sheet.getMaxColumns());
+  sheet.getRange(1, 1, sheet.getMaxRows(), 16).breakApart();
   sheet.clear();
-  [105, 90, 105, 100, 100, 100, 105, 90, 105, 100, 100, 100].forEach(function(width, i) { sheet.setColumnWidth(i + 1, width); });
+  sheet.setColumnWidths(1, 3, 85);
+  sheet.setColumnWidths(4, 12, 125);
+  sheet.setColumnWidth(16, 150);
   sheet.setRowHeight(1, 48);
-  sheet.getRange('A1:L1').merge().setValue('DASHBOARD KEUANGAN — ZADA KARYA PRODUCTION')
+  sheet.getRange('A1:P1').merge().setValue('DASHBOARD KEUANGAN — ZADA KARYA PRODUCTION')
     .setFontFamily('Arial').setFontSize(14).setFontWeight('bold').setFontColor(CLR.white).setBackground(CLR.navy)
     .setHorizontalAlignment('center').setVerticalAlignment('middle');
   sheet.setRowHeight(2, 5);
-  sheet.getRange('A2:L2').setBackground('#F59E0B');
+  sheet.getRange('A2:P2').setBackground('#F59E0B');
   for (var group = 0; group < 4; group++) {
     var labelRow = 3 + group * 3;
     sheet.setRowHeight(labelRow, 28);
     sheet.setRowHeight(labelRow + 1, 48);
     sheet.setRowHeight(labelRow + 2, 38);
-    var cardWidth = 12 / DASHBOARD_CARD_KEYS[group].length;
+    var cardWidth = 16 / DASHBOARD_CARD_KEYS[group].length;
     for (var card = 0; card < DASHBOARD_CARD_KEYS[group].length; card++) {
       var col = card * cardWidth + 1;
       var cashOnHand = group === 0 && card === 0;
@@ -480,29 +499,73 @@ function setupDashboardSheet(sheet, rekapSheet) {
   }
   sheet.setRowHeight(15, 16);
   dashboardPanel(sheet, 16, 1, 'PIUTANG KRITIS & JATUH TEMPO');
-  dashboardPanel(sheet, 16, 7, 'STATUS ORDER BERJALAN (WIP)');
-  dashboardTable(sheet, 17, 1, ['No. Order', 'Pelanggan', 'Nilai Tagihan', 'Jatuh Tempo', 'Status'], [1, 1, 1, 1, 2], 6);
-  dashboardTable(sheet, 17, 7, ['No. Order', 'Pelanggan', 'Progres Produksi', 'Nilai Pelunasan', 'Status Tahap'], [1, 1, 1, 1, 2], 6);
-  dashboardPanel(sheet, 26, 1, 'KOMPOSISI BIAYA PRODUKSI (HPP)');
-  dashboardPanel(sheet, 26, 7, 'BEBAN PRIBADI PER BULAN (OWNER / PRIVE)');
-  dashboardTable(sheet, 27, 1, ['Kategori HPP', 'Total Biaya', 'Porsi Biaya', ''], [3, 1, 1, 1], 7);
-  sheet.getRange('E27:F27').merge();
-  dashboardTable(sheet, 27, 7, ['No. Transaksi', 'Tanggal', 'Deskripsi Pengeluaran', 'Kategori', 'Jumlah (Rp)'], [1, 1, 2, 1, 1], 7);
-  dashboardPanel(sheet, 37, 1, 'TREN ARUS KAS BULANAN');
-  dashboardPanel(sheet, 37, 7, 'TREN LABA BERSIH & ESTIMASI LABA');
-  dashboardTable(sheet, 38, 1, ['Bulan', 'Kas Masuk', 'Kas Keluar'], [2, 2, 2], 8);
-  dashboardTable(sheet, 38, 7, ['Bulan', 'Estimasi Laba Kotor', 'Laba Bersih'], [2, 2, 2], 8);
+  dashboardPanel(sheet, 16, 9, 'STATUS ORDER BERJALAN (WIP)');
+  dashboardTable(sheet, 17, 1, ['No. Order', 'Pelanggan', 'Nilai Tagihan', 'Jatuh Tempo', 'Status'], [2, 2, 1, 1, 2], 6);
+  dashboardTable(sheet, 17, 9, ['No. Order', 'Pelanggan', 'Progres Produksi', 'Nilai Pelunasan', 'Status Tahap'], [2, 2, 1, 1, 2], 6);
+  setupAnnualCashRecap(sheet);
   // Grafik buatan pemilik membutuhkan ruang sendiri agar tabel tidak tertutup.
   for (var gr = 48; gr <= 60; gr++) { sheet.setRowHeight(gr, ROW_H); }
-  sheet.getRange('A62:L62').merge().setFontSize(9).setFontColor(CLR.gray2).setHorizontalAlignment('right');
+  sheet.getRange('A62:P62').merge().setFontSize(9).setFontColor(CLR.gray2).setHorizontalAlignment('right');
   sheet.setRowHeight(62, 28);
   sheet.setFrozenRows(2);
-  refreshDashboard(sheet.getParent());
+  return refreshDashboard(sheet.getParent(), day);
+}
+
+function setupAnnualCashRecap(sheet) {
+  sheet.getRange('A26:P26').merge().setValue('LAPORAN REKAPITULASI MARGIN & ARUS KAS (JANUARI–DESEMBER)')
+    .setBackground('#0070B4').setFontColor(CLR.white).setFontWeight('bold').setFontSize(14).setVerticalAlignment('middle');
+  sheet.setRowHeight(26, 42);
+  sheet.getRange('A27:P27').merge().setFontSize(10).setFontColor(CLR.gray2).setVerticalAlignment('middle');
+  sheet.setRowHeight(27, 30);
+  sheet.getRange('A28:C28').merge().setValue('Bulan');
+  sheet.getRange('D28:O28').setValues([['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agt', 'Sep', 'Okt', 'Nov', 'Des']]);
+  sheet.getRange('P28').setValue('TOTAL');
+  sheet.getRange('A28:P28').setBackground(CLR.navy).setFontColor(CLR.white).setFontWeight('bold')
+    .setFontSize(11).setHorizontalAlignment('center').setVerticalAlignment('middle');
+  sheet.setRowHeight(28, 32);
+  [[29, 'A. PEMASUKAN', '#009C4A'], [34, 'B. PENGELUARAN OPERASIONAL', '#DC6500'],
+    [39, 'C. RINGKASAN SALDO', '#0070B4']].forEach(function(section) {
+    sheet.getRange(section[0], 1, 1, 16).merge().setValue(section[1]).setBackground(section[2])
+      .setFontColor(CLR.white).setFontWeight('bold').setFontSize(12).setVerticalAlignment('middle');
+    sheet.setRowHeight(section[0], 34);
+  });
+  [[30, '1. Penerimaan Pelanggan', '#E8F6ED'], [31, '2. Pengeluaran HPP', '#E8F6ED'],
+    [32, '3. Margin Kas Bulanan', '#C9E5C5'], [35, '1. Ops. Konveksi', '#FFF0DE'],
+    [36, '2. Ops. Pribadi / Prive', '#FFF0DE'], [37, '3. Total Pengeluaran', '#F9D7B5'],
+    [40, 'Saldo Sisa Bulanan', '#D6E4F7'], [41, 'Akumulasi Total Saldo', '#C9E5C5']].forEach(function(row) {
+    sheet.getRange(row[0], 1, 1, 3).merge().setValue(row[1]);
+    sheet.getRange(row[0], 1, 1, 16).setBackground(row[2]).setFontSize(10).setVerticalAlignment('middle')
+      .setFontWeight([32, 37, 40, 41].indexOf(row[0]) >= 0 ? 'bold' : 'normal');
+    sheet.getRange(row[0], 4, 1, 13).setNumberFormat('"Rp"#,##0;[Red]-"Rp"#,##0').setHorizontalAlignment('right');
+    sheet.getRange(row[0], 16).setFontWeight('bold');
+    sheet.setRowHeight(row[0], 38);
+  });
+  sheet.setRowHeight(33, 14);
+  sheet.setRowHeight(38, 14);
+  sheet.getRange('A43:P43').merge().setValue('Penerimaan pelanggan, HPP, dan beban mengikuti tanggal transaksi. Akumulasi dimulai dari Januari tahun laporan.')
+    .setFontSize(9).setFontColor(CLR.gray2).setWrap(true).setVerticalAlignment('middle');
+  sheet.setRowHeight(43, 32);
+}
+
+function writeAnnualCashRecap(sheet, recap) {
+  sheet.getRange('A27').setValue('Tahun ' + recap.year + ' · Penerimaan dari DP dan pelunasan pelanggan');
+  [[30, 'receipts'], [31, 'hpp'], [35, 'convection'], [36, 'personal']].forEach(function(row) {
+    sheet.getRange(row[0], 4, 1, 12).setValues([recap.months.map(function(month) { return month[row[1]]; })]);
+  });
+  for (var column = 4; column <= 15; column++) {
+    var letter = String.fromCharCode(64 + column);
+    sheet.getRange(32, column).setFormula('=' + letter + '30-' + letter + '31');
+    sheet.getRange(37, column).setFormula('=SUM(' + letter + '35:' + letter + '36)');
+    sheet.getRange(40, column).setFormula('=' + letter + '32-' + letter + '37');
+    sheet.getRange(41, column).setFormula('=SUM($D$40:' + letter + '40)');
+  }
+  [30, 31, 32, 35, 36, 37, 40].forEach(function(row) { sheet.getRange(row, 16).setFormula('=SUM(D' + row + ':O' + row + ')'); });
+  sheet.getRange('P41').setFormula('=O41');
 }
 
 function dashboardPanel(sheet, row, col, title) {
   sheet.setRowHeight(row, 30);
-  sheet.getRange(row, col, 1, 6).merge().setValue(title).setBackground(CLR.navy).setFontColor(CLR.white)
+  sheet.getRange(row, col, 1, 8).merge().setValue(title).setBackground(CLR.navy).setFontColor(CLR.white)
     .setFontSize(10).setFontWeight('bold').setVerticalAlignment('middle');
 }
 
@@ -533,7 +596,8 @@ function writeDashboardRows(sheet, startRow, firstCol, spans, count, rows, money
     values.push(row);
   }
   // Satu tulis per tabel menghindari ratusan panggilan jaringan saat setiap transaksi disinkronkan.
-  sheet.getRange(startRow, firstCol, count, 6).setValues(values);
+  var width = spans.reduce(function(total, span) { return total + span; }, 0);
+  sheet.getRange(startRow, firstCol, count, width).setValues(values);
   var col = firstCol;
   spans.forEach(function(span, i) {
     if (moneyColumns.indexOf(i) >= 0) sheet.getRange(startRow, col, count, span)
@@ -543,9 +607,9 @@ function writeDashboardRows(sheet, startRow, firstCol, spans, count, rows, money
 }
 
 function dashboardTotal(sheet, row, col, label, value) {
-  sheet.getRange(row, col, 1, 4).merge().setValue(label);
-  sheet.getRange(row, col + 4, 1, 2).merge().setValue(value).setNumberFormat('"Rp"#,##0;[Red]-"Rp"#,##0');
-  sheet.getRange(row, col, 1, 6).setBackground(CLR.navy).setFontColor(CLR.white).setFontSize(9).setFontWeight('bold');
+  sheet.getRange(row, col, 1, 6).merge().setValue(label);
+  sheet.getRange(row, col + 6, 1, 2).merge().setValue(value).setNumberFormat('"Rp"#,##0;[Red]-"Rp"#,##0');
+  sheet.getRange(row, col, 1, 8).setBackground(CLR.navy).setFontColor(CLR.white).setFontSize(9).setFontWeight('bold');
   sheet.setRowHeight(row, 30);
 }
 
@@ -553,47 +617,35 @@ function refreshDashboard(ss, day) {
   var sheet = ss.getSheetByName('Dashboard');
   if (!sheet) return;
   var today = dashboardDate(day || new Date());
+  if (sheet.getRange('P28').getValues()[0][0] !== 'TOTAL') return setupDashboardSheet(sheet, null, today);
   var data = calculateDashboardData(readDashboardSource(ss), today);
   var f = data.financials;
-  // Pertahankan posisi sel versi lama sampai layout diperbarui lewat Tata Ulang.
-  var oldCashLayout = sheet.getRange('J3').getValues()[0][0] === 'KAS RIIL';
   DASHBOARD_CARD_KEYS.forEach(function(keys, row) {
-    var cardWidth = row === 0 && oldCashLayout ? 3 : 12 / keys.length;
+    var cardWidth = 16 / keys.length;
     keys.forEach(function(key, col) {
       sheet.getRange(4 + row * 3, 1 + col * cardWidth).setValue(f[key]);
     });
   });
-  if (oldCashLayout) sheet.getRange('J4').setValue(f.current_cash_balance);
   var details = [
-    ['Saldo Arus Kas', 'Kas yang dipakai untuk menutup HPP pesanan aktif', 'Sisa pokok pinjaman pihak luar'],
+    ['Saldo Arus Kas', 'Kas yang dipakai untuk menutup HPP pesanan aktif', 'Sisa pokok pinjaman pihak luar', 'Uang di Tangan + Talangan Kas − Sisa Pinjaman'],
     ['Pembayaran pelanggan + pinjaman', 'HPP + ops + prive + cicilan', 'Pesanan selesai, belum lunas', 'Sisa tagihan pesanan aktif'],
     ['Seluruh pesanan selain dibatalkan', 'HPP: ' + dashboardRupiah(f.total_hpp) + '\nOps. Konveksi: ' + dashboardRupiah(f.convection_expenses_total),
       'Margin: ' + f.profit_margin_pct + '%\nLaba kotor: ' + dashboardRupiah(f.gross_profit), 'Prive: ' + dashboardRupiah(f.personal_expenses_total) + '\nSisa laba ditahan untuk usaha'],
     ['Nilai buku aset mesin', 'Nilai buku aset selain mesin', 'Total nilai buku seluruh aset', 'Kas + piutang + aset − utang']
   ];
   details.forEach(function(notes, row) {
-    var cardWidth = row === 0 && oldCashLayout ? 3 : 12 / notes.length;
+    var cardWidth = 16 / notes.length;
     notes.forEach(function(note, col) { sheet.getRange(5 + row * 3, 1 + col * cardWidth).setValue(note); });
   });
-  writeDashboardRows(sheet, 18, 1, [1, 1, 1, 1, 2], 6, data.critical_orders.map(function(o) {
+  writeDashboardRows(sheet, 18, 1, [2, 2, 1, 1, 2], 6, data.critical_orders.map(function(o) {
     return [o.order_number, o.customer, o.remaining, o.deadline ? o.deadline.split('-').reverse().join('/') : '—', 'Siap Tagih'];
   }), [2]);
-  writeDashboardRows(sheet, 18, 7, [1, 1, 1, 1, 2], 6, data.wip_orders.map(function(o) {
+  writeDashboardRows(sheet, 18, 9, [2, 2, 1, 1, 2], 6, data.wip_orders.map(function(o) {
     return [o.order_number, o.customer, o.progress_pct + '% tahap selesai', o.remaining, o.stage_name];
   }), [3]);
   dashboardTotal(sheet, 24, 1, 'TOTAL SELURUH PIUTANG KRITIS', f.critical_receivable);
-  dashboardTotal(sheet, 24, 7, 'TOTAL SELURUH WIP', f.total_wip_pelunasan);
-  writeDashboardRows(sheet, 28, 1, [3, 1, 1, 1], 7, data.cost_composition.map(function(c, i) {
-    var row = 28 + i;
-    return [c.name, c.amount, '=IF(D' + row + '>0,SPARKLINE(D' + row + ',{"charttype","bar";"max",MAX(1,$E$35);"color1","#2563EB"}),"")', c.percentage + '%'];
-  }), [1]);
-  writeDashboardRows(sheet, 28, 7, [1, 1, 2, 1, 1], 7, data.personal_expenses.map(function(p) {
-    return [p.reference_no, p.date.split('-').reverse().join('/'), p.title, p.category, p.amount];
-  }), [4]);
-  dashboardTotal(sheet, 35, 1, 'TOTAL HPP — ' + (f.total_hpp > 0 ? '100%' : '0%'), f.total_hpp);
-  dashboardTotal(sheet, 35, 7, 'TOTAL PRIVE BULAN INI', f.total_prive_month);
-  writeDashboardRows(sheet, 39, 1, [2, 2, 2], 8, data.monthly_trend.map(function(t) { return [t.full, t.kas_masuk, t.kas_keluar]; }), [1, 2]);
-  writeDashboardRows(sheet, 39, 7, [2, 2, 2], 8, data.monthly_trend.map(function(t) { return [t.full, t.estimasi_laba, t.laba_bersih]; }), [1, 2]);
+  dashboardTotal(sheet, 24, 9, 'TOTAL SELURUH WIP', f.total_wip_pelunasan);
+  writeAnnualCashRecap(sheet, data.annual_recap);
   var trendSheet = getOrCreateSheet(ss, 'Tren Dashboard');
   trendSheet.getRange('A3:C3').setValues([['Bulan', 'Kas Masuk', 'Kas Keluar']]);
   trendSheet.getRange('E3:G3').setValues([['Bulan', 'Estimasi Laba Kotor', 'Laba Bersih']]);
@@ -603,7 +655,7 @@ function refreshDashboard(ss, day) {
   trendSheet.getRange('B4:C11').setNumberFormat('"Rp"#,##0;[Red]-"Rp"#,##0');
   trendSheet.getRange('F4:G11').setNumberFormat('"Rp"#,##0;[Red]-"Rp"#,##0');
   trendSheet.setColumnWidths(1, 7, 155);
-  sheet.getRange('A62').setValue('Data per ' + today + ' · Delapan bulan terakhir · Prive terpisah dari laba operasional');
+  sheet.getRange('A62').setValue('Data per ' + today + ' · Rekap Januari–Desember ' + data.annual_recap.year + ' · Grafik delapan bulan terakhir');
   buildCashChart(ss);
   return data;
 }

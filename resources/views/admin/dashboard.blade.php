@@ -49,7 +49,7 @@
             </div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-3.5 sm:gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3.5 sm:gap-4">
 
             <!-- ===================== BARIS 1: KAS UTAMA & KEWAJIBAN ===================== -->
 
@@ -116,6 +116,19 @@
                         </a>
                         <span class="text-slate-400 font-mono text-[10px]">Kewajiban</span>
                     </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-xs border border-slate-200/80 overflow-hidden flex flex-col justify-between hover:shadow-md transition-shadow">
+                <div class="bg-slate-800 text-white px-4 py-2.5 flex items-center justify-between">
+                    <span class="text-[11px] font-bold tracking-wider uppercase">KAS RIIL</span>
+                    <i class="fa-solid fa-wallet text-slate-300 text-xs"></i>
+                </div>
+                <div class="p-4 sm:p-5">
+                    <div class="text-lg xl:text-2xl font-black tabular-nums break-words {{ $financials['real_cash_balance'] < 0 ? 'text-rose-600' : 'text-slate-900' }} tracking-tight">
+                        {{ rupiah($financials['real_cash_balance']) }}
+                    </div>
+                    <p class="mt-2 text-[11px] text-slate-500">Uang di Tangan + Talangan Kas − Sisa Pinjaman</p>
                 </div>
             </div>
 

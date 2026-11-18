@@ -318,7 +318,7 @@ class OrderCashFlowTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('DASHBOARD KEUANGAN - ZADA KARYA');
-        $response->assertSeeInOrder(['UANG DI TANGAN', 'TALANGAN KAS', 'SISA PINJAMAN'])->assertDontSee('KAS RIIL');
+        $response->assertSeeInOrder(['UANG DI TANGAN', 'TALANGAN KAS', 'SISA PINJAMAN', 'KAS RIIL']);
         $response->assertSee('TALANGAN KAS');
         $response->assertSee('PIUTANG JT');
         $response->assertSee('PIUTANG BERJALAN');
